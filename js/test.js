@@ -65,21 +65,45 @@ class TestSuite {
     }
 
     resetTestEnvironment() {
-        // Reiniciar la aplicación a un estado conocido antes de cada test
-        if (window.tasacionApp) {
-            window.tasacionApp.currentStep = 1;
-            window.tasacionApp.inmuebleData = {};
-            window.tasacionApp.comparables = [];
-            window.tasacionApp.valorM2Referencia = 0;
-            
-            // Resetear formularios
-            document.getElementById('form-inmueble').reset();
-            document.getElementById('descuento-negociacion').value = 10;
-            
-            // Resetear UI
-            window.tasacionApp.goToStep(1);
-            window.comparablesManager.resetComparables();
+        // >>>>> CORRECCIÓN AQUÍ <<<<<
+        // Verificar que la aplicación esté instanciada antes de reiniciarla
+        if (!window.tasacionApp) {
+            console.warn("Advertencia: La aplicación no está instanciada. Esperando a que se instancie...");
+            // Esperar un poco y volver a verificar
+            setTimeout(() => {
+                if (!window.tasacionApp) {
+                    throw new Error("La aplicación no se pudo instanciar después de esperar. Verifique que no hay errores en app.js");
+                }
+                // Ahora que sabemos que la aplicación existe, proceder con el reinicio
+                window.tasacionApp.currentStep = 1;
+                window.tasacionApp.inmuebleData = {};
+                window.tasacionApp.comparables = [];
+                window.tasacionApp.valorM2Referencia = 0;
+                
+                // Resetear formularios
+                document.getElementById('form-inmueble').reset();
+                document.getElementById('descuento-negociacion').value = 10;
+                
+                // Resetear UI
+                window.tasacionApp.goToStep(1);
+                window.comparablesManager.resetComparables();
+            }, 1000); // Esperar 1 segundo
+            return;
         }
+        
+        // Si la aplicación está instanciada, proceder con el reinicio normal
+        window.tasacionApp.currentStep = 1;
+        window.tasacionApp.inmuebleData = {};
+        window.tasacionApp.comparables = [];
+        window.tasacionApp.valorM2Referencia = 0;
+        
+        // Resetear formularios
+        document.getElementById('form-inmueble').reset();
+        document.getElementById('descuento-negociacion').value = 10;
+        
+        // Resetear UI
+        window.tasacionApp.goToStep(1);
+        window.comparablesManager.resetComparables();
     }
 
     assert(condition, message) {
@@ -278,11 +302,9 @@ function testComparables(testSuite) {
     testSuite.test('Debe agregar un comparable correctamente', async () => {
         // Cerrar modal por si estaba abierto
         window.comparablesManager.closeComparableModal();
-        await new Promise(resolve => setTimeout(resolve, 50)); // Esperar a que el modal se cierre
         
         // Abrir modal y llenar datos
         window.comparablesManager.openComparableModal();
-        await new Promise(resolve => setTimeout(resolve, 50)); // Esperar a que el modal se abra y los campos estén listos
         
         document.getElementById('comp-tipo-propiedad').value = 'departamento';
         document.getElementById('comp-precio').value = '150000';
@@ -294,7 +316,6 @@ function testComparables(testSuite) {
         document.getElementById('comp-sup-cubierta').value = '80';
         
         document.getElementById('btn-guardar-comparable').click();
-        await new Promise(resolve => setTimeout(resolve, 100)); // >>>> ESPERAR AQUÍ <<<<<
         
         // Verificar que se agregó
         testSuite.assertEqual(window.tasacionApp.comparables.length, 1, 'No se agregó el comparable');
@@ -309,17 +330,15 @@ function testComparables(testSuite) {
         testSuite.assertClose(comparable.valorM2, valorM2Esperado, 0.01, 'El valor por m² no se calculó correctamente con el descuento');
     });
 
-    testSuite.test('Debe editar un comparable existente', async () => {
+    testSuite.test('Debe editar un comparable existente', () => {
         const comparable = window.tasacionApp.comparables[0];
         const idOriginal = comparable.id;
         
         window.comparablesManager.openComparableModal(idOriginal);
-        await new Promise(resolve => setTimeout(resolve, 50));
         
         // Modificar un campo
         document.getElementById('comp-precio').value = '160000';
         document.getElementById('btn-guardar-comparable').click();
-        await new Promise(resolve => setTimeout(resolve, 100)); // >>>> ESPERAR AQUÍ <<<<<
         
         // Verificar que se editó
         testSuite.assertEqual(window.tasacionApp.comparables.length, 1, 'No debería haber agregado un nuevo comparable');
@@ -339,34 +358,30 @@ function testComparables(testSuite) {
 // TESTS DE FACTORES DE AJUSTE
 // ========================================
 function testFactoresAjuste(testSuite) {
-    testSuite.test('Debe inicializar los factores para cada comparable', async () => {
-        // Primero agregamos 4 comparables para poder probar los factores
-        const datosComparables = [
-            { precio: 100000, sup: 50, direccion: 'Dir 1' },
-            { precio: 120000, sup: 60, direccion: 'Dir 2' },
-            { precio: 140000, sup: 70, direccion: 'Dir 3' },
-            { precio: 160000, sup: 80, direccion: 'Dir 4' }
-        ];
-        
-        for (const datos of datosComparables) {
-            window.comparablesManager.openComparableModal();
-            await new Promise(resolve => setTimeout(resolve, 50));
-            
-            document.getElementById('comp-precio').value = datos.precio;
-            document.getElementById('comp-direccion').value = datos.direccion;
-            document.getElementById('comp-localidad').value = 'CABA';
-            document.getElementById('comp-barrio').value = 'Test';
-            document.getElementById('comp-antiguedad').value = '10';
-            document.getElementById('comp-calidad').value = 'buena';
-            document.getElementById('comp-sup-cubierta').value = datos.sup;
-            document.getElementById('btn-guardar-comparable').click();
-            await new Promise(resolve => setTimeout(resolve, 100));
-        }
-        
-        // Ir al paso 3
-        document.getElementById('btn-siguiente-2').click();
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
+    // Primero agregamos 4 comparables para poder probar los factores
+    const datosComparables = [
+        { precio: 100000, sup: 50, direccion: 'Dir 1' },
+        { precio: 120000, sup: 60, direccion: 'Dir 2' },
+        { precio: 140000, sup: 70, direccion: 'Dir 3' },
+        { precio: 160000, sup: 80, direccion: 'Dir 4' }
+    ];
+    
+    datosComparables.forEach(datos => {
+        window.comparablesManager.openComparableModal();
+        document.getElementById('comp-precio').value = datos.precio;
+        document.getElementById('comp-direccion').value = datos.direccion;
+        document.getElementById('comp-localidad').value = 'CABA';
+        document.getElementById('comp-barrio').value = 'Test';
+        document.getElementById('comp-antiguedad').value = '10';
+        document.getElementById('comp-calidad').value = 'buena';
+        document.getElementById('comp-sup-cubierta').value = datos.sup;
+        document.getElementById('btn-guardar-comparable').click();
+    });
+    
+    // Ir al paso 3
+    document.getElementById('btn-siguiente-2').click();
+    
+    testSuite.test('Debe inicializar los factores para cada comparable', () => {
         window.tasacionApp.comparables.forEach(comparable => {
             testSuite.assert(comparable.factores, `El comparable ${comparable.id} debería tener un objeto de factores`);
             testSuite.assertEqual(Object.keys(comparable.factores).length, 10, `El comparable ${comparable.id} debería tener 10 factores`);
@@ -403,23 +418,22 @@ function testFactoresAjuste(testSuite) {
 // TESTS DE CÁLCULO DE VALOR DE REFERENCIA
 // ========================================
 function testValorReferencia(testSuite) {
-    testSuite.test('Debe calcular el valor de referencia usando el método promedio', async () => {
-        // Aplicar algunos factores a los comparables para tener valores ajustados
-        window.tasacionApp.comparables[0].factores['Ubicación'] = 5;
-        window.tasacionApp.comparables[1].factores['Calidad de Construcción'] = -3;
-        window.tasacionApp.comparables[2].factores['Estado de Mantenimiento'] = 8;
-        window.tasacionApp.comparables[3].factores['Orientación y Vistas'] = 2;
-        
-        // Recalcular los valores ajustados
-        window.tasacionApp.comparables.forEach(c => {
-            const correccionTotal = Object.values(c.factores).reduce((sum, val) => sum + val, 0);
-            c.valorM2Ajustado = c.valorM2 * (1 + correccionTotal / 100);
-        });
-        
-        // Ir al paso 4
-        document.getElementById('btn-siguiente-3').click();
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
+    // Aplicar algunos factores a los comparables para tener valores ajustados
+    window.tasacionApp.comparables[0].factores['Ubicación'] = 5;
+    window.tasacionApp.comparables[1].factores['Calidad de Construcción'] = -3;
+    window.tasacionApp.comparables[2].factores['Estado de Mantenimiento'] = 8;
+    window.tasacionApp.comparables[3].factores['Orientación y Vistas'] = 2;
+    
+    // Recalcular los valores ajustados
+    window.tasacionApp.comparables.forEach(c => {
+        const correccionTotal = Object.values(c.factores).reduce((sum, val) => sum + val, 0);
+        c.valorM2Ajustado = c.valorM2 * (1 + correccionTotal / 100);
+    });
+    
+    // Ir al paso 4
+    document.getElementById('btn-siguiente-3').click();
+    
+    testSuite.test('Debe calcular el valor de referencia usando el método promedio', () => {
         document.getElementById('metodo-calculo').value = 'promedio';
         document.getElementById('metodo-calculo').dispatchEvent(new Event('change'));
         
@@ -429,7 +443,7 @@ function testValorReferencia(testSuite) {
         testSuite.assertClose(window.tasacionApp.valorM2Referencia, promedioEsperado, 0.01, 'El valor de referencia (promedio) no se calculó correctamente');
     });
 
-    testSuite.test('Debe calcular el valor de referencia usando el método mediana', async () => {
+    testSuite.test('Debe calcular el valor de referencia usando el método mediana', () => {
         document.getElementById('metodo-calculo').value = 'mediana';
         document.getElementById('metodo-calculo').dispatchEvent(new Event('change'));
         
@@ -446,11 +460,10 @@ function testValorReferencia(testSuite) {
 // TESTS DE COMPOSICIÓN DEL VALOR
 // ========================================
 function testComposicionValor(testSuite) {
-    testSuite.test('Debe calcular los valores parciales de la composición', async () => {
-        // Ir al paso 5
-        document.getElementById('btn-siguiente-4').click();
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
+    // Ir al paso 5
+    document.getElementById('btn-siguiente-4').click();
+    
+    testSuite.test('Debe calcular los valores parciales de la composición', () => {
         const valorM2Ref = window.tasacionApp.valorM2Referencia;
         const inmueble = window.tasacionApp.inmuebleData;
         
@@ -481,7 +494,7 @@ function testPrevencionErrores(testSuite) {
         testSuite.assertEqual(window.tasacionApp.currentStep, 1, 'No debería avanzar con campos obligatorios vacíos');
     });
 
-    testSuite.test('Debe prevenir avance con menos de 4 comparables (Paso 2)', async () => {
+    testSuite.test('Debe prevenir avance con menos de 4 comparables (Paso 2)', () => {
         // Llenar datos del paso 1
         document.getElementById('tipo-propiedad').value = 'departamento';
         document.getElementById('direccion').value = 'Test';
@@ -491,12 +504,10 @@ function testPrevencionErrores(testSuite) {
         document.getElementById('calidad').value = 'buena';
         document.getElementById('sup-cubierta').value = '100';
         document.getElementById('btn-siguiente-1').click();
-        await new Promise(resolve => setTimeout(resolve, 100));
         
         // Agregar solo 3 comparables
         for (let i = 0; i < 3; i++) {
             window.comparablesManager.openComparableModal();
-            await new Promise(resolve => setTimeout(resolve, 50));
             document.getElementById('comp-precio').value = '100000';
             document.getElementById('comp-direccion').value = `Test ${i}`;
             document.getElementById('comp-localidad').value = 'CABA';
@@ -505,19 +516,16 @@ function testPrevencionErrores(testSuite) {
             document.getElementById('comp-calidad').value = 'buena';
             document.getElementById('comp-sup-cubierta').value = '50';
             document.getElementById('btn-guardar-comparable').click();
-            await new Promise(resolve => setTimeout(resolve, 100));
         }
         
         document.getElementById('btn-siguiente-2').click();
-        await new Promise(resolve => setTimeout(resolve, 100));
         
         testSuite.assertEqual(window.tasacionApp.currentStep, 2, 'No debería avanzar con menos de 4 comparables');
     });
 
-    testSuite.test('Debe prevenir avance sin aplicar factores (Paso 3)', async () => {
+    testSuite.test('Debe prevenir avance sin aplicar factores (Paso 3)', () => {
         // Agregar el cuarto comparable
         window.comparablesManager.openComparableModal();
-        await new Promise(resolve => setTimeout(resolve, 50));
         document.getElementById('comp-precio').value = '100000';
         document.getElementById('comp-direccion').value = 'Test 4';
         document.getElementById('comp-localidad').value = 'CABA';
@@ -526,14 +534,11 @@ function testPrevencionErrores(testSuite) {
         document.getElementById('comp-calidad').value = 'buena';
         document.getElementById('comp-sup-cubierta').value = '50';
         document.getElementById('btn-guardar-comparable').click();
-        await new Promise(resolve => setTimeout(resolve, 100));
         
         document.getElementById('btn-siguiente-2').click();
-        await new Promise(resolve => setTimeout(resolve, 100));
         
         // No tocar ningún slider
         document.getElementById('btn-siguiente-3').click();
-        await new Promise(resolve => setTimeout(resolve, 100));
         
         testSuite.assertEqual(window.tasacionApp.currentStep, 3, 'No debería avanzar sin aplicar factores de ajuste');
     });
@@ -583,7 +588,6 @@ function testCargaCompleta(testSuite) {
         document.getElementById('cochera').value = 'comun';
         
         document.getElementById('btn-siguiente-1').click();
-        await new Promise(resolve => setTimeout(resolve, 100));
         testSuite.assertEqual(window.tasacionApp.currentStep, 2, 'Fallo en el paso 1');
         
         // === PASO 2: Cargar 4 Comparables ===
@@ -596,8 +600,6 @@ function testCargaCompleta(testSuite) {
         
         for (const datos of datosComparables) {
             window.comparablesManager.openComparableModal();
-            await new Promise(resolve => setTimeout(resolve, 50));
-            
             document.getElementById('comp-tipo-propiedad').value = datos.tipo;
             document.getElementById('comp-precio').value = datos.precio;
             document.getElementById('comp-direccion').value = datos.dir;
@@ -607,13 +609,14 @@ function testCargaCompleta(testSuite) {
             document.getElementById('comp-calidad').value = datos.calidad;
             document.getElementById('comp-sup-cubierta').value = datos.sup;
             document.getElementById('btn-guardar-comparable').click();
+            
+            // Pequeña espera para asegurar que el DOM se actualice
             await new Promise(resolve => setTimeout(resolve, 100));
         }
         
         testSuite.assertEqual(window.tasacionApp.comparables.length, 4, 'No se cargaron los 4 comparables');
         
         document.getElementById('btn-siguiente-2').click();
-        await new Promise(resolve => setTimeout(resolve, 100));
         testSuite.assertEqual(window.tasacionApp.currentStep, 3, 'Fallo al pasar al paso 3');
         
         // === PASO 3: Aplicar Factores de Ajuste ===
@@ -625,6 +628,7 @@ function testCargaCompleta(testSuite) {
         ];
         
         for (let i = 0; i < 4; i++) {
+            // Cambiar a la pestaña del comparable
             document.querySelector(`.factor-tab[data-comparable="${i + 1}"]`).click();
             await new Promise(resolve => setTimeout(resolve, 100));
             
@@ -641,14 +645,12 @@ function testCargaCompleta(testSuite) {
         }
         
         document.getElementById('btn-siguiente-3').click();
-        await new Promise(resolve => setTimeout(resolve, 100));
         testSuite.assertEqual(window.tasacionApp.currentStep, 4, 'Fallo al pasar al paso 4');
         
         // === PASO 4: Calcular Valor de Referencia ===
         testSuite.assert(window.tasacionApp.valorM2Referencia > 0, 'El valor de referencia debería ser mayor a 0');
         
         document.getElementById('btn-siguiente-4').click();
-        await new Promise(resolve => setTimeout(resolve, 100));
         testSuite.assertEqual(window.tasacionApp.currentStep, 5, 'Fallo al pasar al paso 5');
         
         // === PASO 5: Verificar Valor Final ===
