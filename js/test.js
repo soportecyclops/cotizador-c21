@@ -662,33 +662,66 @@ async function runAllTests() {
 }
 
 // ========================================
-// INTEGRACIÓN CON LA APLICACIÓN (SECCIÓN CORREGIDA)
+// INTEGRACIÓN CON LA APLICACIÓN (SECCIÓN MÁS ROBUSTA)
 // ========================================
 document.addEventListener('DOMContentLoaded', () => {
-    // Crear botón para ejecutar tests
-    const testButton = document.createElement('button');
-    testButton.id = 'btn-run-tests';
-    testButton.className = 'btn-secondary';
-    testButton.innerHTML = '<i class="fas fa-flask"></i> Ejecutar Tests';
-    testButton.style.marginLeft = '10px';
-    
-    // 👉 CORRECCIÓN: Agregar el botón a la sección de acciones del PRIMER PASO
-    const step1Actions = document.querySelector('#step-1 .form-actions');
-    if (step1Actions) {
-        step1Actions.appendChild(testButton);
+    console.log("test.js: DOMContentLoaded fired. Attempting to add test button.");
+
+    // Función para crear y agregar el botón
+    function addTestButton() {
+        console.log("test.js: addTestButton() called.");
+        
+        // Verificar si el botón ya existe para evitar duplicados
+        if (document.getElementById('btn-run-tests')) {
+            console.log("test.js: Test button already exists. Skipping creation.");
+            return;
+        }
+
+        // Buscar el contenedor de acciones del primer paso
+        const step1Actions = document.querySelector('#step-1 .form-actions');
+        console.log("test.js: Selector '#step-1 .form-actions' found element:", step1Actions);
+
+        if (step1Actions) {
+            console.log("test.js: Container found. Creating and appending the button.");
+            const testButton = document.createElement('button');
+            testButton.id = 'btn-run-tests';
+            testButton.className = 'btn-secondary';
+            testButton.innerHTML = '<i class="fas fa-flask"></i> Ejecutar Tests';
+            testButton.style.marginLeft = '10px';
+            
+            step1Actions.appendChild(testButton);
+            console.log("test.js: Button successfully added to the DOM.");
+            
+            // Agregar evento al botón
+            testButton.addEventListener('click', async () => {
+                console.log("test.js: Test button clicked.");
+                testButton.disabled = true;
+                testButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ejecutando...';
+                
+                try {
+                    await runAllTests();
+                } catch (e) {
+                    console.error("test.js: An error occurred during test execution:", e);
+                } finally {
+                    testButton.disabled = false;
+                    testButton.innerHTML = '<i class="fas fa-flask"></i> Ejecutar Tests';
+                }
+            });
+        } else {
+            console.error("test.js: ERROR - Could not find the container '#step-1 .form-actions' to add the test button.");
+            console.error("test.js: Please check the HTML structure and ensure the script runs after the DOM is loaded.");
+        }
     }
-    
-    // Agregar evento al botón
-    testButton.addEventListener('click', async () => {
-        // Mostrar indicador de que se están ejecutando los tests
-        testButton.disabled = true;
-        testButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ejecutando...';
-        
-        // Ejecutar todos los tests
-        await runAllTests();
-        
-        // Restaurar el botón
-        testButton.disabled = false;
-        testButton.innerHTML = '<i class="fas fa-flask"></i> Ejecutar Tests';
-    });
+
+    // Intentar agregar el botón inmediatamente
+    addTestButton();
+
+    // Como respaldo, si el elemento no se encontró, intentarlo de nuevo después de un corto retraso
+    // Esto maneja casos donde otros scripts podrían estar modificando el DOM
+    setTimeout(() => {
+        if (!document.getElementById('btn-run-tests')) {
+            console.log("test.js: First attempt failed. Retrying after 500ms delay.");
+            addTestButton();
+        }
+    }, 500); // Retraso de 500ms
 });
