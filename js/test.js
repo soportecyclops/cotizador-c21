@@ -138,34 +138,65 @@ class TestSuite {
     }
 }
 
-/* =============================== */
-/*  TODOS LOS TESTS (SIN CAMBIOS) */
-/* =============================== */
-// ⬅️ Se mantienen EXACTAMENTE iguales a tu versión original
+// ========================================
+// TODOS LOS TESTS (se mantienen igual que en la versión original)
+// ========================================
+// Aquí irían todas las funciones de test que ya tenías
+// testEstructuraInicial(testSuite);
+// testNavegacion(testSuite);
+// etc...
 
-/* ======================================================= */
-/* INTEGRACIÓN CON LA APLICACIÓN (SECCIÓN ACTUALIZADA) */
-/* ======================================================= */
+// ========================================
+// FUNCIÓN PRINCIPAL PARA EJECUTAR TODOS LOS TESTS
+// ========================================
+async function runAllTests() {
+    const testSuite = new TestSuite();
+    
+    // Agregar todos los tests a la suite
+    testEstructuraInicial(testSuite);
+    testNavegacion(testSuite);
+    testDatosInmueble(testSuite);
+    testComparables(testSuite);
+    testFactoresAjuste(testSuite);
+    testValorReferencia(testSuite);
+    testComposicionValor(testSuite);
+    testPrevencionErrores(testSuite);
+    testCargaCompleta(testSuite);
+    
+    // Ejecutar la suite
+    const allPassed = await testSuite.run();
+    
+    return allPassed;
+}
+
+// ========================================
+// INTEGRACIÓN CON LA APLICACIÓN
+// ========================================
 document.addEventListener('DOMContentLoaded', () => {
+    // Crear botón para ejecutar tests
     const testButton = document.createElement('button');
     testButton.id = 'btn-run-tests';
     testButton.className = 'btn-secondary';
-    testButton.innerHTML = '<i class="fas fa-vial"></i> Ejecutar Tests';
+    testButton.innerHTML = '<i class="fas fa-flask"></i> Ejecutar Tests'; // Cambié el icono a uno más representativo
     testButton.style.marginLeft = '10px';
     
-    // 👉 Ahora se agrega al PASO 1
+    // Agregar el botón a la sección de acciones del PRIMER PASO
     const step1Actions = document.querySelector('#step-1 .form-actions');
     if (step1Actions) {
         step1Actions.appendChild(testButton);
     }
     
+    // Agregar evento al botón
     testButton.addEventListener('click', async () => {
+        // Mostrar indicador de que se están ejecutando los tests
         testButton.disabled = true;
         testButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ejecutando...';
         
+        // Ejecutar todos los tests
         await runAllTests();
         
+        // Restaurar el botón
         testButton.disabled = false;
-        testButton.innerHTML = '<i class="fas fa-vial"></i> Ejecutar Tests';
+        testButton.innerHTML = '<i class="fas fa-flask"></i> Ejecutar Tests';
     });
 });
