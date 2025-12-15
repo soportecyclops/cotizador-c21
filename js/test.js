@@ -296,7 +296,7 @@ function testComparables(testSuite) {
         // Verificar que se agregó
         testSuite.assertEqual(window.tasacionApp.comparables.length, 1, 'No se agregó el comparable');
         testSuite.assertEqual(window.tasacionApp.comparables[0].precio, 150000, 'El precio no se guardó correctamente');
-        testSuite.assertEqual(window.tasacionApp.comparables[0].valorM2, 150000 / 80 * 0.9, 'El valor por m² no se calculó correctamente');
+        testSuite.assertClose(window.tasacionApp.comparables[0].valorM2, 150000 / 80 * 0.9, 0.01, 'El valor por m² no se calculó correctamente');
     });
 
     testSuite.test('Debe calcular el valor por m² con el descuento de negociación', () => {
@@ -358,6 +358,10 @@ function testFactoresAjuste(testSuite) {
     document.getElementById('btn-siguiente-2').click();
     
     testSuite.test('Debe inicializar los factores para cada comparable', () => {
+        // >>>>> CORRECCIÓN AQUÍ <<<<<
+        // Verificación defensiva para asegurar que hay comparables antes de continuar
+        testSuite.assert(window.tasacionApp.comparables.length > 0, 'Debe haber comparables para probar factores');
+        
         window.tasacionApp.comparables.forEach(comparable => {
             testSuite.assert(comparable.factores, `El comparable ${comparable.id} debería tener un objeto de factores`);
             testSuite.assertEqual(Object.keys(comparable.factores).length, 10, `El comparable ${comparable.id} debería tener 10 factores`);
@@ -365,6 +369,10 @@ function testFactoresAjuste(testSuite) {
     });
 
     testSuite.test('Debe aplicar ajustes al cambiar los sliders', () => {
+        // >>>>> CORRECCIÓN AQUÍ <<<<<
+        // Verificación defensiva para asegurar que hay un primer comparable
+        testSuite.assert(window.tasacionApp.comparables.length > 0, 'Debe haber al menos un comparable para aplicar factores');
+        
         const primerComparable = window.tasacionApp.comparables[0];
         
         // Simular el cambio en un slider (por ejemplo, Ubicación)
@@ -381,6 +389,10 @@ function testFactoresAjuste(testSuite) {
     });
 
     testSuite.test('Debe cambiar de comparable al hacer clic en las pestañas', () => {
+        // >>>>> CORRECCIÓN AQUÍ <<<<<
+        // Verificación defensiva para asegurar que hay al menos 2 comparables
+        testSuite.assert(window.tasacionApp.comparables.length >= 2, 'Debe haber al menos 2 comparables para probar cambio de pestaña');
+        
         // Hacer clic en la pestaña del segundo comparable
         const tabComparable2 = document.querySelector('.factor-tab[data-comparable="2"]');
         tabComparable2.click();
@@ -394,6 +406,10 @@ function testFactoresAjuste(testSuite) {
 // TESTS DE CÁLCULO DE VALOR DE REFERENCIA
 // ========================================
 function testValorReferencia(testSuite) {
+    // >>>>> CORRECCIÓN AQUÍ <<<<<
+    // Verificación defensiva para asegurar que hay comparables antes de continuar
+    testSuite.assert(window.tasacionApp.comparables.length > 0, 'Debe haber comparables para calcular valor de referencia');
+    
     // Aplicar algunos factores a los comparables para tener valores ajustados
     window.tasacionApp.comparables[0].factores['Ubicación'] = 5;
     window.tasacionApp.comparables[1].factores['Calidad de Construcción'] = -3;
@@ -682,7 +698,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("test.js: Selector '#step-1 .form-actions' found element:", step1Actions);
 
         if (step1Actions) {
-            console.log("test.js: Container found. Creating and appending the button.");
+            console.log("test.js: Container found. Creating and appending button.");
             const testButton = document.createElement('button');
             testButton.id = 'btn-run-tests';
             testButton.className = 'btn-secondary';
@@ -690,7 +706,7 @@ document.addEventListener('DOMContentLoaded', () => {
             testButton.style.marginLeft = '10px';
             
             step1Actions.appendChild(testButton);
-            console.log("test.js: Button successfully added to the DOM.");
+            console.log("test.js: Button successfully added to DOM.");
             
             // Agregar evento al botón
             testButton.addEventListener('click', async () => {
@@ -708,8 +724,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         } else {
-            console.error("test.js: ERROR - Could not find the container '#step-1 .form-actions' to add the test button.");
-            console.error("test.js: Please check the HTML structure and ensure the script runs after the DOM is loaded.");
+            console.error("test.js: ERROR - Could not find container '#step-1 .form-actions' to add test button.");
+            console.error("test.js: Please check HTML structure and ensure script runs after DOM is loaded.");
         }
     }
 
