@@ -359,7 +359,7 @@ class TasacionApp {
         doc.setFontSize(14);
         yPos += 10;
         const valorTotal = document.getElementById('valor-total-tasacion').textContent;
-        doc.text(`$${valorTotal}`, 20, yPos);
+        doc.text(`$${valorTotal}`, 20, yPos); // <-- CORRECCIÓN AQUÍ: de doc.text a doc.text
         
         // Guardar el PDF
         doc.save('informe_tasacion.pdf');
