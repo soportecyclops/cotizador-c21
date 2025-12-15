@@ -74,7 +74,7 @@ class TestSuite {
                 if (!window.tasacionApp) {
                     throw new Error("La aplicación no se pudo instanciar después de esperar. Verifique que no hay errores en app.js");
                 }
-                // Ahora que sabemos que la aplicación existe, proceder con el reinicio
+                // Ahora que sabemos que la aplicación existe, proceder con el reinicio normal
                 window.tasacionApp.currentStep = 1;
                 window.tasacionApp.inmuebleData = {};
                 window.tasacionApp.comparables = [];
@@ -372,10 +372,13 @@ function testFactoresAjuste(testSuite) {
         document.getElementById('comp-direccion').value = datos.direccion;
         document.getElementById('comp-localidad').value = 'CABA';
         document.getElementById('comp-barrio').value = 'Test';
-        document.getElementById('comp-antiguedad').value = '10';
-        document.getElementById('comp-calidad').value = 'buena';
+        document.getElementById('comp-antiguedad').value = datos.ant;
+        document.getElementById('comp-calidad').value = datos.calidad;
         document.getElementById('comp-sup-cubierta').value = datos.sup;
         document.getElementById('btn-guardar-comparable').click();
+        
+        // Pequeña espera para asegurar que el DOM se actualice
+        await new Promise(resolve => setTimeout(resolve, 100));
     });
     
     // Ir al paso 3
@@ -516,6 +519,9 @@ function testPrevencionErrores(testSuite) {
             document.getElementById('comp-calidad').value = 'buena';
             document.getElementById('comp-sup-cubierta').value = '50';
             document.getElementById('btn-guardar-comparable').click();
+            
+            // Pequeña espera para asegurar que el DOM se actualice
+            await new Promise(resolve => setTimeout(resolve, 100));
         }
         
         document.getElementById('btn-siguiente-2').click();
@@ -629,7 +635,7 @@ function testCargaCompleta(testSuite) {
         
         for (let i = 0; i < 4; i++) {
             // Cambiar a la pestaña del comparable
-            document.querySelector(`.factor-tab[data-comparable="${i + 1}"]`).click();
+            document.querySelector(`.factor-tab[data-comparable="${i + 1}").click();
             await new Promise(resolve => setTimeout(resolve, 100));
             
             // Aplicar ajustes (simplificado, solo algunos factores)
@@ -640,6 +646,10 @@ function testCargaCompleta(testSuite) {
             const sliderMantenimiento = document.getElementById('factor-estado-de-mantenimiento');
             sliderMantenimiento.value = ajustes[i].mantenimiento;
             sliderMantenimiento.dispatchEvent(new Event('input'));
+            
+            const sliderSuperficie = document.getElementById('factor-superficie-cubierta');
+            sliderSuperficie.value = ajustes[i].superficie;
+            sliderSuperficie.dispatchEvent(new Event('input'));
             
             await new Promise(resolve => setTimeout(resolve, 100));
         }
