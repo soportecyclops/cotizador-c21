@@ -43,15 +43,15 @@ class ComparablesManager {
                 document.getElementById('comp-tipo-propiedad').value = comparable.tipoPropiedad;
                 document.getElementById('comp-precio').value = comparable.precio;
                 document.getElementById('comp-direccion').value = comparable.direccion;
-                document.getElementById('comp-numero').value = comparable.numero;
-                document.getElementById('comp-piso').value = comparable.piso;
-                document.getElementById('comp-depto').value = comparable.depto;
+                document.getElementById('comp-numero').value = comparable.numero || '';
+                document.getElementById('comp-piso').value = comparable.piso || '';
+                document.getElementById('comp-depto').value = comparable.depto || '';
                 document.getElementById('comp-localidad').value = comparable.localidad;
                 document.getElementById('comp-barrio').value = comparable.barrio;
                 document.getElementById('comp-antiguedad').value = comparable.antiguedad;
                 document.getElementById('comp-calidad').value = comparable.calidad;
                 document.getElementById('comp-sup-cubierta').value = comparable.supCubierta;
-                document.getElementById('comp-sup-terreno').value = comparable.supTerreno;
+                document.getElementById('comp-sup-terreno').value = comparable.supTerreno || '';
                 document.getElementById('comp-cochera').value = comparable.cochera;
                 document.getElementById('comp-observaciones').value = comparable.observaciones || '';
             }
@@ -82,9 +82,11 @@ class ComparablesManager {
         
         for (const fieldId of requiredFields) {
             const field = document.getElementById(fieldId);
-            if (!field.value.trim()) {
-                window.tasacionApp.showNotification('Por favor, complete todos los campos obligatorios', 'error');
-                field.focus();
+            // >>>>> CORRECCIÓN AQUÍ <<<<<
+            // Validación defensiva para evitar "field.value.trim is not a function"
+            if (!field || !field.value || typeof field.value !== 'string' || !field.value.trim()) {
+                window.tasacionApp.showNotification(`Por favor, complete todos los campos obligatorios (${fieldId})`, 'error');
+                if (field) field.focus();
                 return;
             }
         }
