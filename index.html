@@ -3,438 +3,445 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cotizador Inmobiliario v1.0</title>
+    <title>Cotizador Inmobiliario v2.0</title>
     <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
     <header>
-        <h1>Cotizador Inmobiliario v1.0</h1>
-        <p>Herramienta profesional de tasación inmobiliaria</p>
+        <div class="container">
+            <h1><i class="fas fa-home"></i> Cotizador Inmobiliario v2.0</h1>
+            <p>Herramienta profesional de tasación inmobiliaria</p>
+        </div>
     </header>
 
-    <!-- Indicador de progreso -->
-    <div class="progress-indicator">
-        <!-- Se generará dinámicamente con JavaScript -->
-    </div>
+    <div class="container">
+        <!-- Indicador de progreso -->
+        <div class="progress-indicator">
+            <div class="progress-step active" data-step="1">
+                <div class="step-number">1</div>
+                <div class="step-label">Datos del Inmueble</div>
+            </div>
+            <div class="progress-step" data-step="2">
+                <div class="step-number">2</div>
+                <div class="step-label">Comparables</div>
+            </div>
+            <div class="progress-step" data-step="3">
+                <div class="step-number">3</div>
+                <div class="step-label">Factores de Ajuste</div>
+            </div>
+            <div class="progress-step" data-step="4">
+                <div class="step-number">4</div>
+                <div class="step-label">Valor de Referencia</div>
+            </div>
+            <div class="progress-step" data-step="5">
+                <div class="step-number">5</div>
+                <div class="step-label">Composición del Valor</div>
+            </div>
+        </div>
 
-    <main>
-        <!-- Nivel 1: Datos duros -->
-        <section id="datos-duros" class="seccion fade-in">
-            <div class="seccion-header">
-                <div class="seccion-title">
-                    <span class="seccion-icon">🏠</span>
-                    <h2>Nivel 1: Datos del Inmueble</h2>
-                </div>
-                <div class="tooltip">
-                    <span class="seccion-icon">❓</span>
-                    <span class="tooltip-text">Ingrese los datos objetivos del inmueble a tasar</span>
-                </div>
+        <!-- Paso 1: Datos del Inmueble -->
+        <section id="step-1" class="step-content active">
+            <div class="step-header">
+                <h2><i class="fas fa-building"></i> Datos del Inmueble a Tasar</h2>
+                <p>Ingrese los datos objetivos del inmueble que será tasado</p>
             </div>
             
-            <form id="formulario-inmueble">
+            <div class="form-container">
                 <div class="form-row">
+                    <div class="form-group">
+                        <label for="tipo-propiedad">Tipo de Propiedad</label>
+                        <select id="tipo-propiedad" required>
+                            <option value="">Seleccionar...</option>
+                            <option value="casa">Casa</option>
+                            <option value="ph">PH</option>
+                            <option value="departamento">Departamento</option>
+                            <option value="duplex">Duplex</option>
+                            <option value="triplex">Triplex</option>
+                            <option value="loft">Loft</option>
+                            <option value="terreno">Terreno</option>
+                        </select>
+                    </div>
                     <div class="form-group">
                         <label for="direccion">Dirección</label>
-                        <input type="text" id="direccion" name="direccion" required>
-                        <div class="form-help">Ingrese la dirección completa del inmueble</div>
-                    </div>
-                    <div class="form-group">
-                        <label for="ubicacion">Ubicación</label>
-                        <input type="text" id="ubicacion" name="ubicacion" required>
-                        <div class="form-help">Barrio o zona</div>
+                        <input type="text" id="direccion" placeholder="Calle y número" required>
                     </div>
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="superficie-cubierta">Superficie Cubierta (m²)</label>
-                        <input type="number" id="superficie-cubierta" name="superficie-cubierta" min="0" step="0.01" required>
+                        <label for="piso">Piso</label>
+                        <input type="text" id="piso" placeholder="Ej: PB, 1°, 2°, etc.">
                     </div>
                     <div class="form-group">
-                        <label for="superficie-semicubierta">Superficie Semicubierta (m²)</label>
-                        <input type="number" id="superficie-semicubierta" name="superficie-semicubierta" min="0" step="0.01">
+                        <label for="depto">Departamento</label>
+                        <input type="text" id="depto" placeholder="Ej: A, B, 1, 2, etc.">
                     </div>
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="superficie-descubierta">Superficie Descubierta (m²)</label>
-                        <input type="number" id="superficie-descubierta" name="superficie-descubierta" min="0" step="0.01">
+                        <label for="localidad">Localidad</label>
+                        <input type="text" id="localidad" placeholder="Ej: CABA, La Plata, etc." required>
                     </div>
                     <div class="form-group">
-                        <label for="superficie-balcon">Superficie Balcón (m²)</label>
-                        <input type="number" id="superficie-balcon" name="superficie-balcon" min="0" step="0.01">
+                        <label for="barrio">Barrio/Zona</label>
+                        <input type="text" id="barrio" placeholder="Ej: Palermo, Belgrano, etc." required>
                     </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="antiguedad">Antigüedad (años)</label>
-                    <input type="number" id="antiguedad" name="antiguedad" min="0" required>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="antiguedad">Antigüedad (años)</label>
+                        <input type="number" id="antiguedad" min="0" placeholder="Ej: 5" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="calidad">Calidad de Construcción</label>
+                        <select id="calidad" required>
+                            <option value="">Seleccionar...</option>
+                            <option value="excelente">Excelente</option>
+                            <option value="muy-buena">Muy Buena</option>
+                            <option value="buena">Buena</option>
+                            <option value="regular">Regular</option>
+                            <option value="mala">Mala</option>
+                        </select>
+                    </div>
                 </div>
-            </form>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="sup-cubierta">Superficie Cubierta (m²)</label>
+                        <input type="number" id="sup-cubierta" min="0" step="0.01" placeholder="Ej: 85.50" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="sup-semicubierta">Superficie Semicubierta (m²)</label>
+                        <input type="number" id="sup-semicubierta" min="0" step="0.01" placeholder="Ej: 20.00">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="sup-descubierta">Superficie Descubierta (m²)</label>
+                        <input type="number" id="sup-descubierta" min="0" step="0.01" placeholder="Ej: 30.00">
+                    </div>
+                    <div class="form-group">
+                        <label for="sup-balcon">Superficie Balcón (m²)</label>
+                        <input type="number" id="sup-balcon" min="0" step="0.01" placeholder="Ej: 5.00">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="sup-terreno">Superficie Total del Terreno (m²)</label>
+                        <input type="number" id="sup-terreno" min="0" step="0.01" placeholder="Ej: 180.00">
+                    </div>
+                    <div class="form-group">
+                        <label for="cochera">Cochera</label>
+                        <select id="cochera">
+                            <option value="no">No tiene</option>
+                            <option value="propia">Propia</option>
+                            <option value="comun">Común</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button id="btn-siguiente-1" class="btn-primary">Siguiente <i class="fas fa-arrow-right"></i></button>
+                </div>
+            </div>
         </section>
 
-        <!-- Nivel 2: Comparables -->
-        <section id="comparables" class="seccion fade-in">
-            <div class="seccion-header">
-                <div class="seccion-title">
-                    <span class="seccion-icon">📊</span>
-                    <h2>Nivel 2: Comparables de Mercado</h2>
-                </div>
-                <div class="tooltip">
-                    <span class="seccion-icon">❓</span>
-                    <span class="tooltip-text">Agregue propiedades similares para comparar</span>
+        <!-- Paso 2: Comparables -->
+        <section id="step-2" class="step-content">
+            <div class="step-header">
+                <h2><i class="fas fa-chart-bar"></i> Comparables de Mercado</h2>
+                <p>Agregue al menos 4 propiedades similares para comparar</p>
+            </div>
+            
+            <div class="comparable-actions">
+                <button id="btn-agregar-comparable" class="btn-primary"><i class="fas fa-plus"></i> Agregar Comparable</button>
+                <div class="discount-control">
+                    <label for="descuento-negociacion">Descuento de Negociación (%):</label>
+                    <input type="number" id="descuento-negociacion" min="0" max="100" step="0.1" value="10">
                 </div>
             </div>
             
-            <div class="acciones">
-                <button id="btn-agregar-comparable">Agregar Comparable</button>
+            <div id="comparables-container" class="comparables-container">
+                <!-- Los comparables se agregarán dinámicamente aquí -->
             </div>
             
-            <div id="comparables-empty" class="state-empty">
-                <div class="state-empty-icon">📋</div>
+            <div id="no-comparables" class="empty-state">
+                <i class="fas fa-home"></i>
                 <p>No hay comparables cargados</p>
                 <p>Haga clic en "Agregar Comparable" para comenzar</p>
             </div>
             
-            <div class="table-responsive">
-                <table id="tabla-comparables" class="oculto">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Precio Publicado</th>
-                            <th>Superficie (m²)</th>
-                            <th>Antigüedad</th>
-                            <th>Dirección</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Los comparables se agregarán dinámicamente -->
-                    </tbody>
-                </table>
+            <div class="form-actions">
+                <button id="btn-anterior-2" class="btn-secondary"><i class="fas fa-arrow-left"></i> Anterior</button>
+                <button id="btn-siguiente-2" class="btn-primary" disabled>Siguiente <i class="fas fa-arrow-right"></i></button>
             </div>
         </section>
 
-        <!-- Nivel 3: Factores de ajuste -->
-        <section id="factores-ajuste" class="seccion fade-in">
-            <div class="seccion-header">
-                <div class="seccion-title">
-                    <span class="seccion-icon">⚖️</span>
-                    <h2>Nivel 3: Factores de Ajuste</h2>
+        <!-- Paso 3: Factores de Ajuste -->
+        <section id="step-3" class="step-content">
+            <div class="step-header">
+                <h2><i class="fas fa-sliders-h"></i> Factores de Ajuste</h2>
+                <p>Ajuste los comparables según características cualitativas</p>
+            </div>
+            
+            <div class="factors-container">
+                <div class="factor-tabs">
+                    <button class="factor-tab active" data-comparable="1">Comparable 1</button>
+                    <button class="factor-tab" data-comparable="2">Comparable 2</button>
+                    <button class="factor-tab" data-comparable="3">Comparable 3</button>
+                    <button class="factor-tab" data-comparable="4">Comparable 4</button>
                 </div>
-                <div class="tooltip">
-                    <span class="seccion-icon">❓</span>
-                    <span class="tooltip-text">Ajuste los comparables según características cualitativas</span>
+                
+                <div id="factors-content" class="factors-content">
+                    <!-- Los factores de ajuste se cargarán dinámicamente aquí -->
                 </div>
             </div>
             
-            <div id="factores-empty" class="state-empty">
-                <div class="state-empty-icon">🎯</div>
-                <p>Seleccione un comparable para aplicar factores de ajuste</p>
-            </div>
-            
-            <div id="contenedor-factores" class="oculto">
-                <h3>Factores para Comparable #<span id="id-comparable-seleccionado"></span></h3>
-                <div class="table-responsive">
-                    <table id="tabla-factores">
-                        <thead>
-                            <tr>
-                                <th>Concepto</th>
-                                <th>Ponderación Máxima</th>
-                                <th>Ajuste Aplicado (%)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>Ubicación</td>
-                                <td>15%</td>
-                                <td>
-                                    <div class="range-container">
-                                        <input type="range" min="-15" max="15" step="0.1" value="0" data-factor="ubicacion" data-max="15">
-                                        <span class="valor-ajuste">0%</span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Calidad de construcción</td>
-                                <td>12%</td>
-                                <td>
-                                    <div class="range-container">
-                                        <input type="range" min="-12" max="12" step="0.1" value="0" data-factor="calidad-construccion" data-max="12">
-                                        <span class="valor-ajuste">0%</span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Expectativa de vida</td>
-                                <td>8%</td>
-                                <td>
-                                    <div class="range-container">
-                                        <input type="range" min="-8" max="8" step="0.1" value="0" data-factor="expectativa-vida" data-max="8">
-                                        <span class="valor-ajuste">0%</span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Estado de mantenimiento</td>
-                                <td>15%</td>
-                                <td>
-                                    <div class="range-container">
-                                        <input type="range" min="-15" max="15" step="0.1" value="0" data-factor="estado-mantenimiento" data-max="15">
-                                        <span class="valor-ajuste">0%</span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Superficie cubierta</td>
-                                <td>7%</td>
-                                <td>
-                                    <div class="range-container">
-                                        <input type="range" min="-7" max="7" step="0.1" value="0" data-factor="superficie-cubierta" data-max="7">
-                                        <span class="valor-ajuste">0%</span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Dimensión / Sup. descubierta</td>
-                                <td>10%</td>
-                                <td>
-                                    <div class="range-container">
-                                        <input type="range" min="-10" max="10" step="0.1" value="0" data-factor="dimension-descubierta" data-max="10">
-                                        <span class="valor-ajuste">0%</span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Estacionamiento</td>
-                                <td>10%</td>
-                                <td>
-                                    <div class="range-container">
-                                        <input type="range" min="-10" max="10" step="0.1" value="0" data-factor="estacionamiento" data-max="10">
-                                        <span class="valor-ajuste">0%</span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Factibilidad comercial</td>
-                                <td>10%</td>
-                                <td>
-                                    <div class="range-container">
-                                        <input type="range" min="-10" max="10" step="0.1" value="0" data-factor="factibilidad-comercial" data-max="10">
-                                        <span class="valor-ajuste">0%</span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Distribución / equipamiento</td>
-                                <td>8%</td>
-                                <td>
-                                    <div class="range-container">
-                                        <input type="range" min="-8" max="8" step="0.1" value="0" data-factor="distribucion-equipamiento" data-max="8">
-                                        <span class="valor-ajuste">0%</span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Orientación y vistas</td>
-                                <td>5%</td>
-                                <td>
-                                    <div class="range-container">
-                                        <input type="range" min="-5" max="5" step="0.1" value="0" data-factor="orientacion-vistas" data-max="5">
-                                        <span class="valor-ajuste">0%</span>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="acciones">
-                    <button id="btn-aplicar-ajustes">Aplicar Ajustes</button>
-                </div>
+            <div class="form-actions">
+                <button id="btn-anterior-3" class="btn-secondary"><i class="fas fa-arrow-left"></i> Anterior</button>
+                <button id="btn-siguiente-3" class="btn-primary">Siguiente <i class="fas fa-arrow-right"></i></button>
             </div>
         </section>
 
-        <!-- Nivel 4: Precio corregido del comparable -->
-        <section id="precio-corregido" class="seccion fade-in">
-            <div class="seccion-header">
-                <div class="seccion-title">
-                    <span class="seccion-icon">💰</span>
-                    <h2>Nivel 4: Precio Corregido de Comparables</h2>
-                </div>
-                <div class="tooltip">
-                    <span class="seccion-icon">❓</span>
-                    <span class="tooltip-text">Precios de los comparables después de aplicar los ajustes</span>
-                </div>
+        <!-- Paso 4: Valor de Referencia -->
+        <section id="step-4" class="step-content">
+            <div class="step-header">
+                <h2><i class="fas fa-calculator"></i> Valor de Referencia</h2>
+                <p>Valor por metro cuadrado calculado a partir de los comparables ajustados</p>
             </div>
             
-            <div id="precios-corregidos-empty" class="state-empty">
-                <div class="state-empty-icon">📈</div>
-                <p>Aplique ajustes a los comparables para ver los precios corregidos</p>
-            </div>
-            
-            <div class="table-responsive">
-                <table id="tabla-precios-corregidos" class="oculto">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Precio Original</th>
-                            <th>Corrección Total (%)</th>
-                            <th>Precio Corregido</th>
-                            <th>Valor por m²</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Los precios corregidos se agregarán dinámicamente -->
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <!-- Nivel 5: Valor m² de referencia -->
-        <section id="valor-m2-referencia" class="seccion fade-in">
-            <div class="seccion-header">
-                <div class="seccion-title">
-                    <span class="seccion-icon">📐</span>
-                    <h2>Nivel 5: Valor por m² de Referencia</h2>
-                </div>
-                <div class="tooltip">
-                    <span class="seccion-icon">❓</span>
-                    <span class="tooltip-text">Valor por metro cuadrado calculado a partir de los comparables</span>
-                </div>
-            </div>
-            
-            <div class="result-card">
-                <div class="metodo-calculo">
-                    <label for="metodo-referencia">Método de Cálculo:</label>
-                    <select id="metodo-referencia">
-                        <option value="promedio">Promedio</option>
+            <div class="reference-value-container">
+                <div class="reference-method">
+                    <label for="metodo-calculo">Método de Cálculo:</label>
+                    <select id="metodo-calculo">
+                        <option value="promedio">Promedio Simple</option>
+                        <option value="promedio-ponderado">Promedio Ponderado</option>
                         <option value="mediana">Mediana</option>
-                        <option value="rango">Rango (Promedio del rango intermedio)</option>
                     </select>
                 </div>
-                <div class="resultado-referencia">
-                    <div class="result-title">Valor por m² de referencia</div>
-                    <div class="result-value">$<span id="valor-m2">0.00</span></div>
+                
+                <div class="reference-result">
+                    <div class="result-label">Valor por m² de Referencia</div>
+                    <div class="result-value">$<span id="valor-m2-referencia">0.00</span></div>
                 </div>
-            </div>
-        </section>
-
-        <!-- Nivel 6: Composición del valor del inmueble -->
-        <section id="composicion-valor" class="seccion fade-in">
-            <div class="seccion-header">
-                <div class="seccion-title">
-                    <span class="seccion-icon">🏗️</span>
-                    <h2>Nivel 6: Composición del Valor del Inmueble</h2>
-                </div>
-                <div class="tooltip">
-                    <span class="seccion-icon">❓</span>
-                    <span class="tooltip-text">Valor total del inmueble según composición de superficies</span>
+                
+                <div class="comparables-adjusted">
+                    <h3>Valores Ajustados por m²</h3>
+                    <div id="valores-ajustados-container">
+                        <!-- Los valores ajustados se mostrarán aquí -->
+                    </div>
                 </div>
             </div>
             
-            <div class="result-card">
-                <div class="table-responsive">
-                    <table id="tabla-composicion">
+            <div class="form-actions">
+                <button id="btn-anterior-4" class="btn-secondary"><i class="fas fa-arrow-left"></i> Anterior</button>
+                <button id="btn-siguiente-4" class="btn-primary">Siguiente <i class="fas fa-arrow-right"></i></button>
+            </div>
+        </section>
+
+        <!-- Paso 5: Composición del Valor -->
+        <section id="step-5" class="step-content">
+            <div class="step-header">
+                <h2><i class="fas fa-chart-pie"></i> Composición del Valor</h2>
+                <p>Cálculo del valor total según composición de superficies</p>
+            </div>
+            
+            <div class="composition-container">
+                <div class="composition-table">
+                    <table>
                         <thead>
                             <tr>
                                 <th>Tipo de Superficie</th>
                                 <th>Superficie (m²)</th>
                                 <th>Coeficiente</th>
+                                <th>Valor por m²</th>
                                 <th>Valor Parcial</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
                                 <td>Cubierta</td>
-                                <td id="m2-cubierta">0</td>
+                                <td id="comp-sup-cubierta">0</td>
                                 <td>100%</td>
-                                <td id="valor-cubierta">$0.00</td>
+                                <td id="comp-valor-m2">$0.00</td>
+                                <td id="comp-valor-cubierta">$0.00</td>
                             </tr>
                             <tr>
                                 <td>Semicubierta</td>
-                                <td id="m2-semicubierta">0</td>
+                                <td id="comp-sup-semicubierta">0</td>
                                 <td>50%</td>
-                                <td id="valor-semicubierta">$0.00</td>
+                                <td id="comp-valor-m2-semi">$0.00</td>
+                                <td id="comp-valor-semicubierta">$0.00</td>
                             </tr>
                             <tr>
                                 <td>Descubierta</td>
-                                <td id="m2-descubierta">0</td>
+                                <td id="comp-sup-descubierta">0</td>
                                 <td>20%</td>
-                                <td id="valor-descubierta">$0.00</td>
+                                <td id="comp-valor-m2-desc">$0.00</td>
+                                <td id="comp-valor-descubierta">$0.00</td>
                             </tr>
                             <tr>
                                 <td>Balcón</td>
-                                <td id="m2-balcon">0</td>
+                                <td id="comp-sup-balcon">0</td>
                                 <td>33%</td>
-                                <td id="valor-balcon">$0.00</td>
+                                <td id="comp-valor-m2-balc">$0.00</td>
+                                <td id="comp-valor-balcon">$0.00</td>
+                            </tr>
+                            <tr>
+                                <td>Cochera</td>
+                                <td id="comp-sup-cochera">-</td>
+                                <td>Global</td>
+                                <td id="comp-valor-m2-cochera">$0.00</td>
+                                <td id="comp-valor-cochera">$0.00</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
                 
-                <div class="valor-total">
-                    <h3>TOTAL VALOR DE TASACIÓN</h3>
-                    <div>$<span id="valor-total">0.00</span></div>
+                <div class="total-value">
+                    <div class="total-label">TOTAL VALOR DE TASACIÓN</div>
+                    <div class="total-amount">$<span id="valor-total-tasacion">0.00</span></div>
                 </div>
             </div>
-        </section>
-
-        <!-- Acciones generales -->
-        <section id="acciones-generales" class="seccion fade-in">
-            <div class="acciones">
-                <button id="btn-calcular-todo">Calcular Tasación Completa</button>
-                <button id="btn-reiniciar" class="secondary">Reiniciar Cálculo</button>
-                <button id="btn-exportar" class="secondary">Exportar Datos</button>
+            
+            <div class="form-actions">
+                <button id="btn-anterior-5" class="btn-secondary"><i class="fas fa-arrow-left"></i> Anterior</button>
+                <button id="btn-exportar" class="btn-primary"><i class="fas fa-file-pdf"></i> Exportar Informe</button>
+                <button id="btn-reiniciar" class="btn-secondary"><i class="fas fa-redo"></i> Reiniciar</button>
             </div>
         </section>
-    </main>
-
-    <footer>
-        <p>Cotizador Inmobiliario v1.0 - Documentación Técnica</p>
-    </footer>
+    </div>
 
     <!-- Modal para agregar/editar comparables -->
     <div id="modal-comparable" class="modal">
         <div class="modal-content">
-            <span class="close-modal">&times;</span>
-            <h2 id="modal-titulo">Agregar Comparable</h2>
-            <form id="form-comparable">
-                <input type="hidden" id="modal-id">
-                <div class="form-group">
-                    <label for="modal-precio">Precio Publicado</label>
-                    <input type="number" id="modal-precio" min="0" step="0.01" required>
-                </div>
-                <div class="form-group">
-                    <label for="modal-superficie">Superficie (m²)</label>
-                    <input type="number" id="modal-superficie" min="0" step="0.01" required>
-                </div>
-                <div class="form-group">
-                    <label for="modal-antiguedad">Antigüedad (años)</label>
-                    <input type="number" id="modal-antiguedad" min="0" required>
-                </div>
-                <div class="form-group">
-                    <label for="modal-direccion">Dirección</label>
-                    <input type="text" id="modal-direccion" required>
-                </div>
-                <div class="acciones">
-                    <button type="button" id="btn-guardar-comparable">Guardar</button>
-                    <button type="button" class="secondary" onclick="document.getElementById('modal-comparable').style.display='none'">Cancelar</button>
-                </div>
-            </form>
+            <div class="modal-header">
+                <h3 id="modal-title">Agregar Comparable</h3>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="form-comparable">
+                    <input type="hidden" id="comparable-id">
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="comp-tipo-propiedad">Tipo de Propiedad</label>
+                            <select id="comp-tipo-propiedad" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="casa">Casa</option>
+                                <option value="ph">PH</option>
+                                <option value="departamento">Departamento</option>
+                                <option value="duplex">Duplex</option>
+                                <option value="triplex">Triplex</option>
+                                <option value="loft">Loft</option>
+                                <option value="terreno">Terreno</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="comp-precio">Precio de Venta (USD)</label>
+                            <input type="number" id="comp-precio" min="0" step="0.01" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="comp-direccion">Dirección</label>
+                            <input type="text" id="comp-direccion" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="comp-numero">Número</label>
+                            <input type="text" id="comp-numero">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="comp-piso">Piso</label>
+                            <input type="text" id="comp-piso">
+                        </div>
+                        <div class="form-group">
+                            <label for="comp-depto">Departamento</label>
+                            <input type="text" id="comp-depto">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="comp-localidad">Localidad</label>
+                            <input type="text" id="comp-localidad" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="comp-barrio">Barrio/Zona</label>
+                            <input type="text" id="comp-barrio" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="comp-antiguedad">Antigüedad (años)</label>
+                            <input type="number" id="comp-antiguedad" min="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="comp-calidad">Calidad de Construcción</label>
+                            <select id="comp-calidad" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="excelente">Excelente</option>
+                                <option value="muy-buena">Muy Buena</option>
+                                <option value="buena">Buena</option>
+                                <option value="regular">Regular</option>
+                                <option value="mala">Mala</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="comp-sup-cubierta">Superficie Cubierta (m²)</label>
+                            <input type="number" id="comp-sup-cubierta" min="0" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="comp-sup-terreno">Superficie Total del Terreno (m²)</label>
+                            <input type="number" id="comp-sup-terreno" min="0" step="0.01">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="comp-cochera">Cochera</label>
+                            <select id="comp-cochera">
+                                <option value="no">No tiene</option>
+                                <option value="propia">Propia</option>
+                                <option value="comun">Común</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="comp-observaciones">Observaciones</label>
+                            <textarea id="comp-observaciones" rows="3"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="btn-cancelar-comparable" class="btn-secondary">Cancelar</button>
+                <button type="button" id="btn-guardar-comparable" class="btn-primary">Guardar</button>
+            </div>
         </div>
     </div>
 
-    <!-- Contenedor para mensajes de error -->
-    <div id="error-container" class="error-container" style="display: none;">
-        <h3>Errores de validación</h3>
-        <ul id="error-list"></ul>
-        <button id="btn-cerrar-errores">Cerrar</button>
-    </div>
+    <!-- Contenedor para notificaciones -->
+    <div id="notification-container"></div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="js/app.js"></script>
     <script src="js/comparables.js"></script>
+    <script src="js/factores.js"></script>
     <script src="js/composicion.js"></script>
-    <script src="js/asesor.js"></script>
-    <script src="js/test.js"></script>
 </body>
 </html>
