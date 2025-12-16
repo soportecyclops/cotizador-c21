@@ -1,5 +1,5 @@
 /**
- * Versión corregida con tests auto-suficientes
+ * Versión final corregida con tests auto-suficientes
  */
 
 console.log("test.js: Script cargado");
@@ -117,7 +117,7 @@ class TestSuite {
 }
 
 // ========================================
-// DEFINICIÓN DE LOS TESTS (CORREGIDOS)
+// DEFINICIÓN DE LOS TESTS
 // ========================================
 
 function testEstructuraInicial(testSuite) {
@@ -189,7 +189,7 @@ function testDatosInmueble(testSuite) {
 }
 
 // ========================================
-// FUNCIÓN DE TEST DE COMPARABLES CORREGIDA
+// FUNCIÓN DE TEST DE COMPARABLES CORREGIDA (VERSIÓN FINAL)
 // ========================================
 async function testComparables(testSuite) {
     testSuite.test('Debe agregar y eliminar un comparable correctamente', async () => {
@@ -208,33 +208,34 @@ async function testComparables(testSuite) {
         // 2. Abrimos el modal para agregar un comparable
         window.comparablesManager.openComparableModal();
         
-        // Esperamos un poco a que el modal se renderice
+        // Esperamos un poco a que el modal se muestre
         await new Promise(resolve => setTimeout(resolve, 100));
         
-        // 3. Verificamos que el modal está abierto y rellenamos los datos con los IDs CORRECTOS
-        testSuite.assertElementExists('#comparableModal', 'El modal de comparable no se encontró en el DOM');
+        // 3. Verificamos que el modal está abierto usando el ID CORRECTO
+        testSuite.assertElementExists('#modal-agregar-comparable', 'El modal de comparable no se encontró en el DOM');
         
-        document.getElementById('comparablePrecio').value = '150000';
-        document.getElementById('comparableDireccion').value = 'Calle Falsa 456';
-        document.getElementById('comparableLocalidad').value = 'CABA';
-        document.getElementById('comparableBarrio').value = 'Caballito';
-        document.getElementById('comparableSupCubierta').value = '80';
+        // 4. Rellenamos los datos con los IDs CORRECTOS del formulario
+        document.getElementById('comp-precio').value = '150000';
+        document.getElementById('comp-direccion').value = 'Calle Falsa 456';
+        document.getElementById('comp-localidad').value = 'CABA';
+        document.getElementById('comp-barrio').value = 'Caballito';
+        document.getElementById('comp-sup-cubierta').value = '80';
         
-        // 4. Guardamos el comparable
-        document.getElementById('guardarComparableBtn').click();
+        // 5. Guardamos el comparable usando el ID CORRECTO del botón
+        document.getElementById('btn-guardar-comparable').click();
         
         // Esperamos a que la operación asíncrona de guardar termine
         await new Promise(resolve => setTimeout(resolve, 200));
         
-        // 5. Verificamos que se agregó correctamente
+        // 6. Verificamos que se agregó correctamente
         testSuite.assertEqual(window.tasacionApp.comparables.length, 1, 'No se agregó el comparable');
         testSuite.assertEqual(window.tasacionApp.comparables[0].direccion, 'Calle Falsa 456', 'La dirección del comparable no es la esperada');
         
-        // 6. Eliminamos el comparable que se acaba de agregar
+        // 7. Eliminamos el comparable que se acaba de agregar
         const idAEliminar = window.tasacionApp.comparables[0].id;
         window.comparablesManager.deleteComparable(idAEliminar);
         
-        // 7. Verificamos que se eliminó correctamente
+        // 8. Verificamos que se eliminó correctamente
         testSuite.assertEqual(window.tasacionApp.comparables.length, 0, 'El comparable no se eliminó correctamente');
     });
 }
