@@ -1,11 +1,11 @@
 /**
- * Versión corregida del test.js para diagnosticar problemas
+ * Versión incremental del test.js - Añadiendo tests de Navegación y Datos
  */
 
 console.log("test.js: Script cargado");
 
 // ========================================
-// CLASE TESTSUITE SIMPLIFICADA
+// CLASE TESTSUITE
 // ========================================
 class TestSuite {
     constructor() {
@@ -20,7 +20,7 @@ class TestSuite {
     }
 
     async run() {
-        console.log('%c🚀 Iniciando Suite de Tests Simplificada', 'font-size: 16px; font-weight: bold; color: #3498db;');
+        console.log('%c🚀 Iniciando Suite de Tests del Cotizador', 'font-size: 16px; font-weight: bold; color: #3498db;');
         console.log('=====================================================');
         
         const startTime = performance.now();
@@ -28,6 +28,9 @@ class TestSuite {
         for (const test of this.tests) {
             this.currentTestName = test.name;
             try {
+                // Preparar el entorno para cada test
+                this.resetTestEnvironment();
+                
                 // Ejecutar el test
                 await test.testFunction();
                 this.passed++;
@@ -48,7 +51,31 @@ class TestSuite {
         console.log(`%c✅ Pasados: ${this.passed}`, 'color: #2ecc71; font-weight: bold;');
         console.log(`%c❌ Fallidos: ${this.failed}`, 'color: #e74c3c; font-weight: bold;');
         
+        this.updateResultsUI();
         return this.failed === 0;
+    }
+
+    resetTestEnvironment() {
+        // Reinicia el estado de la aplicación al principio de cada test
+        if (window.tasacionApp) {
+            window.tasacionApp.currentStep = 1;
+            window.tasacionApp.inmuebleData = {};
+            window.tasacionApp.comparables = [];
+            window.tasacionApp.valorM2Referencia = 0;
+            
+            // Resetear formularios
+            const formInmueble = document.getElementById('form-inmueble');
+            if (formInmueble) formInmueble.reset();
+
+            const descuentoInput = document.getElementById('descuento-negociacion');
+            if (descuentoInput) descuentoInput.value = 10;
+            
+            // Resetear UI al paso 1
+            window.tasacionApp.goToStep(1);
+            if (window.comparablesManager) {
+                window.comparablesManager.resetComparables();
+            }
+        }
     }
 
     assert(condition, message) {
@@ -63,23 +90,29 @@ class TestSuite {
         }
     }
 
+    assertClose(actual, expected, tolerance = 0.01, message) {
+        if (Math.abs(actual - expected) > tolerance) {
+            throw new Error(message || `Expected ${expected} ± ${tolerance}, but got ${actual} in test: ${this.currentTestName}`);
+        }
+    }
+
+    assertElementExists(selector, message) {
+        const element = document.querySelector(selector);
+        if (!element) {
+            throw new Error(message || `Element with selector "${selector}" not found in test: ${this.currentTestName}`);
+        }
+        return element;
+    }
+
     updateResultsUI() {
         let resultsContainer = document.getElementById('test-results-container');
         if (!resultsContainer) {
             resultsContainer = document.createElement('div');
             resultsContainer.id = 'test-results-container';
             resultsContainer.style.cssText = `
-                position: fixed;
-                top: 10px;
-                left: 10px;
-                background: white;
-                border: 2px solid #ddd;
-                border-radius: 8px;
-                padding: 15px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                z-index: 10000;
-                max-width: 400px;
-                font-family: monospace;
+                position: fixed; top: 10px; right: 10px; background: white; border: 2px solid #ddd;
+                border-radius: 8px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 10000; max-width: 400px; font-family: monospace;
             `;
             document.body.appendChild(resultsContainer);
         }
@@ -99,45 +132,105 @@ class TestSuite {
 }
 
 // ========================================
-// TESTS MÍNIMOS PARA VERIFICAR INFRAESTRUCTURA
+// DEFINICIÓN DE LOS TESTS
 // ========================================
-function setupBasicTests(testSuite) {
-    testSuite.test('El DOM debe estar cargado', () => {
-        testSuite.assert(document.readyState === 'complete' || document.readyState === 'interactive', 
-                         'El DOM no está completamente cargado');
+
+function testEstructuraInicial(testSuite) {
+    testSuite.test('La aplicación principal debe instanciarse correctamente', () => {
+        testSuite.assert(window.tasacionApp, 'La instancia de TasacionApp no existe en window');
+        testSuite.assert(window.tasacionApp instanceof TasacionApp, 'window.tasacionApp no es una instancia de TasacionApp');
     });
 
-    testSuite.test('Debe existir el contenedor del paso 1', () => {
-        const step1 = document.getElementById('step-1');
-        testSuite.assert(step1, 'No existe el contenedor del paso 1');
+    testSuite.test('Los gestores de componentes deben instanciarse', () => {
+        testSuite.assert(window.comparablesManager, 'ComparablesManager no está instanciado');
+        testSuite.assert(window.factoresManager, 'FactoresManager no está instanciado');
+        testSuite.assert(window.composicionManager, 'ComposicionManager no está instanciado');
+    });
+}
+
+function testNavegacion(testSuite) {
+    testSuite.test('Debe mostrar el paso 1 como activo inicialmente', () => {
+        testSuite.assert(document.getElementById('step-1').classList.contains('active'), 'El paso 1 debería estar activo');
+        testSuite.assert(!document.getElementById('step-2').classList.contains('active'), 'El paso 2 no debería estar activo');
     });
 
-    testSuite.test('Debe existir el contenedor de acciones del paso 1', () => {
-        const actions = document.querySelector('#step-1 .form-actions');
-        testSuite.assert(actions, 'No existe el contenedor de acciones del paso 1');
+    testSuite.test('No debe poder avanzar al paso 2 con datos inválidos', () => {
+        document.getElementById('btn-siguiente-1').click();
+        testSuite.assertEqual(window.tasacionApp.currentStep, 1, 'No debería poder avanzar al paso 2 sin datos válidos');
     });
 
-    testSuite.test('La aplicación debe estar instanciada', () => {
-        testSuite.assert(window.tasacionApp, 'La aplicación no está instanciada en window.tasacionApp');
+    testSuite.test('Debe poder avanzar al paso 2 con datos válidos', () => {
+        // Llenar datos válidos mínimos
+        document.getElementById('tipo-propiedad').value = 'departamento';
+        document.getElementById('direccion').value = 'Calle Test 123';
+        document.getElementById('localidad').value = 'CABA';
+        document.getElementById('barrio').value = 'Palermo';
+        document.getElementById('antiguedad').value = '10';
+        document.getElementById('calidad').value = 'buena';
+        document.getElementById('sup-cubierta').value = '100';
+        
+        document.getElementById('btn-siguiente-1').click();
+        
+        testSuite.assertEqual(window.tasacionApp.currentStep, 2, 'Debería poder avanzar al paso 2');
+        testSuite.assert(document.getElementById('step-2').classList.contains('active'), 'El paso 2 debería estar activo');
+    });
+
+    testSuite.test('Debe poder volver al paso anterior', () => {
+        document.getElementById('btn-anterior-2').click();
+        testSuite.assertEqual(window.tasacionApp.currentStep, 1, 'Debería volver al paso 1');
+        testSuite.assert(document.getElementById('step-1').classList.contains('active'), 'El paso 1 debería estar activo');
+    });
+}
+
+function testDatosInmueble(testSuite) {
+    testSuite.test('Debe guardar correctamente los datos del inmueble', () => {
+        // Llenar todos los campos
+        document.getElementById('tipo-propiedad').value = 'ph';
+        document.getElementById('direccion').value = 'Av. Corrientes 1000';
+        document.getElementById('piso').value = '3';
+        document.getElementById('depto').value = 'B';
+        document.getElementById('localidad').value = 'CABA';
+        document.getElementById('barrio').value = 'Once';
+        document.getElementById('antiguedad').value = '20';
+        document.getElementById('calidad').value = 'muy-buena';
+        document.getElementById('sup-cubierta').value = '75';
+        document.getElementById('sup-semicubierta').value = '15';
+        document.getElementById('sup-descubierta').value = '25';
+        document.getElementById('sup-balcon').value = '8';
+        document.getElementById('sup-terreno').value = '150';
+        document.getElementById('cochera').value = 'propia';
+        
+        // Avanzar al siguiente paso para que se guarden los datos
+        document.getElementById('btn-siguiente-1').click();
+        
+        const data = window.tasacionApp.inmuebleData;
+        testSuite.assertEqual(data.tipoPropiedad, 'ph', 'El tipo de propiedad no se guardó correctamente');
+        testSuite.assertEqual(data.direccion, 'Av. Corrientes 1000', 'La dirección no se guardó correctamente');
+        testSuite.assertEqual(data.supCubierta, 75, 'La superficie cubierta no se guardó correctamente');
+        testSuite.assertEqual(data.cochera, 'propia', 'La cochera no se guardó correctamente');
     });
 }
 
 // ========================================
-// FUNCIÓN PRINCIPAL PARA EJECUTAR TESTS
+// FUNCIÓN PRINCIPAL PARA EJECUTAR TODOS LOS TESTS
 // ========================================
-async function runBasicTests() {
-    console.log("runBasicTests: Iniciando tests básicos");
+async function runAllTests() {
+    console.log("runAllTests: Iniciando todos los tests");
     
     try {
         const testSuite = new TestSuite();
-        setupBasicTests(testSuite);
+        
+        // Agregar todos los tests a la suite
+        testEstructuraInicial(testSuite);
+        testNavegacion(testSuite);
+        testDatosInmueble(testSuite);
         
         const allPassed = await testSuite.run();
-        console.log("runBasicTests: Tests finalizados, resultado:", allPassed);
+        console.log("runAllTests: Tests finalizados, resultado:", allPassed);
         
         return allPassed;
     } catch (error) {
-        console.error("runBasicTests: Error al ejecutar tests:", error);
+        console.error("runAllTests: Error al ejecutar tests:", error);
         return false;
     }
 }
@@ -146,20 +239,10 @@ async function runBasicTests() {
 // FUNCIÓN PARA AGREGAR EL BOTÓN DE TEST
 // ========================================
 function addTestButton() {
-    console.log("addTestButton: Intentando agregar botón de test");
-    
-    // Verificar si el botón ya existe
-    if (document.getElementById('btn-run-tests')) {
-        console.log("addTestButton: El botón ya existe");
-        return;
-    }
+    if (document.getElementById('btn-run-tests')) return;
 
-    // Buscar el contenedor de acciones del primer paso
     const step1Actions = document.querySelector('#step-1 .form-actions');
-    console.log("addTestButton: Contenedor de acciones encontrado:", step1Actions);
-
     if (step1Actions) {
-        console.log("addTestButton: Creando botón");
         const testButton = document.createElement('button');
         testButton.id = 'btn-run-tests';
         testButton.className = 'btn-secondary';
@@ -167,50 +250,32 @@ function addTestButton() {
         testButton.style.marginLeft = '10px';
         
         step1Actions.appendChild(testButton);
-        console.log("addTestButton: Botón agregado exitosamente");
         
-        // Agregar evento al botón
         testButton.addEventListener('click', async () => {
-            console.log("addTestButton: Botón clickeado");
             testButton.disabled = true;
             testButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ejecutando...';
             
             try {
-                await runBasicTests();
+                await runAllTests();
             } catch (e) {
-                console.error("addTestButton: Error durante la ejecución de tests:", e);
+                console.error("Error durante la ejecución de tests:", e);
             } finally {
                 testButton.disabled = false;
                 testButton.innerHTML = '<i class="fas fa-flask"></i> Ejecutar Tests';
             }
         });
-    } else {
-        console.error("addTestButton: No se encontró el contenedor de acciones");
     }
 }
 
 // ========================================
 // INICIALIZACIÓN
 // ========================================
-console.log("test.js: Configurando evento DOMContentLoaded");
-
-// Función asíncrona para inicializar cuando el DOM esté listo
 async function initializeTests() {
-    console.log("initializeTests: Inicializando tests");
     addTestButton();
 }
 
-// Usar DOMContentLoaded para inicializar
 document.addEventListener('DOMContentLoaded', initializeTests);
 
-// Si el DOM ya está cargado, inicializar inmediatamente
 if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    console.log("test.js: DOM ya está cargado, inicializando inmediatamente");
     initializeTests();
 }
-
-// Intentar inicializar después de un tiempo como respaldo
-setTimeout(async () => {
-    console.log("test.js: Intento de respaldo para inicializar");
-    await initializeTests();
-}, 1000);
