@@ -1,5 +1,5 @@
 /**
- * Versión completa con tests para FactoresManager y ComposicionManager.
+ * Versión corregida eliminando la llamada redundante a initFactors().
  */
 
 console.log("test.js: Script cargado");
@@ -259,10 +259,9 @@ async function testFactoresManager(testSuite) {
         document.getElementById('btn-guardar-comparable').click();
         await new Promise(resolve => setTimeout(resolve, 200));
 
-        // 2. Avanzamos al paso 3 y cargamos los factores
+        // 2. Avanzamos al paso 3. goToStep(3) ya llama a initFactors()
         window.tasacionApp.goToStep(3);
-        window.factoresManager.initFactors();
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 200)); // Esperamos a que se renderice la UI
 
         const comparable = window.tasacionApp.comparables[0];
         const valorM2Original = comparable.valorM2;
@@ -342,8 +341,8 @@ async function runAllTests() {
         testNavegacion(testSuite);
         testDatosInmueble(testSuite);
         testComparables(testSuite);
-        testFactoresManager(testSuite); // <-- NUEVO TEST
-        testComposicionManager(testSuite); // <-- NUEVO TEST
+        testFactoresManager(testSuite);
+        testComposicionManager(testSuite);
         
         const allPassed = await testSuite.run();
         console.log("runAllTests: Tests finalizados, resultado:", allPassed);
