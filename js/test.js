@@ -1,5 +1,5 @@
 /**
- * Versión final con un test de flujo completo simplificado y más diagnóstico.
+ * Versión final corrigiendo la secuencia de UI y el estado del bucle.
  */
 
 console.log("test.js: Script cargado");
@@ -272,9 +272,12 @@ async function testFactoresManager(testSuite) {
     });
 }
 
+// ========================================
+// TEST DE COMPOSICIÓN (CORREGIDO)
+// ========================================
 async function testComposicionManager(testSuite) {
     testSuite.test('Debe calcular el valor total de la tasación', async () => {
-        // ... (código del test existente sin cambios) ...
+        // 1. Preparamos un escenario completo hasta el paso 5
         document.getElementById('tipo-propiedad').value = 'departamento';
         document.getElementById('direccion').value = 'Calle Test 123';
         document.getElementById('localidad').value = 'CABA';
@@ -287,6 +290,7 @@ async function testComposicionManager(testSuite) {
         document.getElementById('cochera').value = 'propia';
         document.getElementById('btn-siguiente-1').click();
 
+        // Agregamos un comparable para poder avanzar
         window.comparablesManager.openComparableModal();
         await new Promise(resolve => setTimeout(resolve, 100));
         document.getElementById('comp-tipo-propiedad').value = 'departamento';
@@ -300,10 +304,21 @@ async function testComposicionManager(testSuite) {
         document.getElementById('btn-guardar-comparable').click();
         await new Promise(resolve => setTimeout(resolve, 200));
 
+        // Simulamos que ya tenemos un valor de referencia
         window.tasacionApp.valorM2Referencia = 2000;
+
+        // 2. ---- CAMBIO CLAVE AQUÍ ----
+        // Navegamos al paso 4 para que los elementos de la UI existan antes de calcular
+        window.tasacionApp.goToStep(4);
+        await new Promise(resolve => setTimeout(resolve, 200));
+
+        // 3. Ejecutamos el cálculo de la composición
         window.tasacionApp.calculateComposition();
 
+        // 4. Obtenemos el valor total calculado por el manager
         const valorTotalCalculado = window.composicionManager.calculateValorTotal();
+
+        // 5. Verificamos que el valor del manager coincida con el mostrado en la UI
         const valorTotalEnUI = parseFloat(document.getElementById('valor-total-tasacion').textContent.replace('$', '').replace(',', ''));
         
         testSuite.assertClose(valorTotalCalculado, valorTotalEnUI, 0.01, 'El valor total calculado por el manager no coincide con el de la UI');
@@ -311,7 +326,7 @@ async function testComposicionManager(testSuite) {
 }
 
 // ========================================
-// NUEVO TEST DE FLUJO COMPLETO (END-TO-END) SIMPLIFICADO
+// TEST DE FLUJO COMPLETO (CORREGIDO)
 // ========================================
 async function testFlujoCompleto(testSuite) {
     testSuite.test('Debe completar el flujo completo de tasación y calcular el valor final', async () => {
@@ -341,12 +356,17 @@ async function testFlujoCompleto(testSuite) {
 
         for (let i = 0; i < comparablesData.length; i++) {
             const data = comparablesData[i];
-            console.log(`DIAGNOSTICO: Iniciando agregado del comparable ${i + 1}: ${data.dir}`);
             
             window.comparablesManager.openComparableModal();
-            await new Promise(resolve => setTimeout(resolve, 200)); // Pausa un poco más larga
+            await new Promise(resolve => setTimeout(resolve, 250));
             
-            // ---- CAMBIO CLAVE AQUÍ: Eliminamos la limpieza manual y nos fiamos de form.reset() ----
+            // ---- CAMBIO CLAVE AQUÍ: Limpiamos los campos explícitamente para un estado limpio ----
+            const form = document.getElementById('form-comparable');
+            if(form) {
+                const inputs = form.querySelectorAll('input, select');
+                inputs.forEach(input => input.value = '');
+            }
+            await new Promise(resolve => setTimeout(resolve, 50));
             
             // Rellenamos los datos
             document.getElementById('comp-tipo-propiedad').value = 'departamento';
@@ -359,13 +379,9 @@ async function testFlujoCompleto(testSuite) {
             document.getElementById('comp-sup-cubierta').value = data.sup;
             
             document.getElementById('btn-guardar-comparable').click();
-            await new Promise(resolve => setTimeout(resolve, 300)); // Pausa más larga para asegurar guardado
-
-            // Línea de diagnóstico para ver qué pasa en cada vuelta
-            console.log(`DIAGNOSTICO: Fin de la iteración ${i + 1}. Total de comparables guardados: ${window.tasacionApp.comparables.length}`);
+            await new Promise(resolve => setTimeout(resolve, 300));
         }
-
-        testSuite.assertEqual(window.tasacionApp.comparables.length, 4, `No se agregaron los 4 comparables. Se agregaron ${window.tasacionApp.comparables.length}.`);
+        testSuite.assertEqual(window.tasacionApp.comparables.length, 4, 'No se agregaron los 4 comparables');
 
         // --- PASO 3: Aplicar Factores ---
         document.getElementById('btn-siguiente-2').click();
