@@ -1,5 +1,5 @@
 /**
- * Versión final con un test de flujo completo robusto y sincronizado.
+ * Versión final con un test de flujo completo simplificado y más diagnóstico.
  */
 
 console.log("test.js: Script cargado");
@@ -311,7 +311,7 @@ async function testComposicionManager(testSuite) {
 }
 
 // ========================================
-// NUEVO TEST DE FLUJO COMPLETO (END-TO-END) CORREGIDO
+// NUEVO TEST DE FLUJO COMPLETO (END-TO-END) SIMPLIFICADO
 // ========================================
 async function testFlujoCompleto(testSuite) {
     testSuite.test('Debe completar el flujo completo de tasación y calcular el valor final', async () => {
@@ -339,21 +339,16 @@ async function testFlujoCompleto(testSuite) {
             { dir: 'Dorrego 200', barrio: 'Palermo', precio: 275000, sup: 118, ant: '6', cal: 'muy-buena' }
         ];
 
-        for (const data of comparablesData) {
-            window.comparablesManager.openComparableModal();
-            await new Promise(resolve => setTimeout(resolve, 150)); // Aumentamos la pausa para asegurar que el modal esté listo
-
-            // ---- CAMBIO CLAVE AQUÍ: Limpiamos los campos explícitamente antes de rellenarlos ----
-            document.getElementById('comp-tipo-propiedad').value = '';
-            document.getElementById('comp-precio').value = '';
-            document.getElementById('comp-direccion').value = '';
-            document.getElementById('comp-localidad').value = '';
-            document.getElementById('comp-barrio').value = '';
-            document.getElementById('comp-antiguedad').value = '';
-            document.getElementById('comp-calidad').value = '';
-            document.getElementById('comp-sup-cubierta').value = '';
+        for (let i = 0; i < comparablesData.length; i++) {
+            const data = comparablesData[i];
+            console.log(`DIAGNOSTICO: Iniciando agregado del comparable ${i + 1}: ${data.dir}`);
             
-            // Ahora rellenamos con los datos del test
+            window.comparablesManager.openComparableModal();
+            await new Promise(resolve => setTimeout(resolve, 200)); // Pausa un poco más larga
+            
+            // ---- CAMBIO CLAVE AQUÍ: Eliminamos la limpieza manual y nos fiamos de form.reset() ----
+            
+            // Rellenamos los datos
             document.getElementById('comp-tipo-propiedad').value = 'departamento';
             document.getElementById('comp-precio').value = data.precio;
             document.getElementById('comp-direccion').value = data.dir;
@@ -364,9 +359,13 @@ async function testFlujoCompleto(testSuite) {
             document.getElementById('comp-sup-cubierta').value = data.sup;
             
             document.getElementById('btn-guardar-comparable').click();
-            await new Promise(resolve => setTimeout(resolve, 250)); // Pausa para asegurar que se guarde
+            await new Promise(resolve => setTimeout(resolve, 300)); // Pausa más larga para asegurar guardado
+
+            // Línea de diagnóstico para ver qué pasa en cada vuelta
+            console.log(`DIAGNOSTICO: Fin de la iteración ${i + 1}. Total de comparables guardados: ${window.tasacionApp.comparables.length}`);
         }
-        testSuite.assertEqual(window.tasacionApp.comparables.length, 4, 'No se agregaron los 4 comparables');
+
+        testSuite.assertEqual(window.tasacionApp.comparables.length, 4, `No se agregaron los 4 comparables. Se agregaron ${window.tasacionApp.comparables.length}.`);
 
         // --- PASO 3: Aplicar Factores ---
         document.getElementById('btn-siguiente-2').click();
