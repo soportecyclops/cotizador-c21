@@ -255,8 +255,12 @@ async function testComparables(testSuite) {
     });
 }
 
+// ========================================
+// TEST DE FACTORES (CORREGIDO)
+// ========================================
 async function testFactoresManager(testSuite) {
     testSuite.test('Debe aplicar factores de ajuste y recalcular el valor', async () => {
+        // 1. Preparar datos iniciales y navegar al paso 2
         document.getElementById('tipo-propiedad').value = 'departamento';
         document.getElementById('direccion').value = 'Calle Test 123';
         document.getElementById('localidad').value = 'CABA';
@@ -266,6 +270,7 @@ async function testFactoresManager(testSuite) {
         document.getElementById('sup-cubierta').value = '100';
         document.getElementById('btn-siguiente-1').click();
 
+        // 2. Agregar un comparable
         window.comparablesManager.openComparableModal();
         await new Promise(resolve => setTimeout(resolve, 100));
         document.getElementById('comp-tipo-propiedad').value = 'departamento';
@@ -279,19 +284,21 @@ async function testFactoresManager(testSuite) {
         document.getElementById('btn-guardar-comparable').click();
         await new Promise(resolve => setTimeout(resolve, 200));
 
+        // 3. Navegar al paso 3 y ESPERAR a que la UI de factores se cargue
         window.tasacionApp.goToStep(3);
-        await new Promise(resolve => setTimeout(resolve, 200));
+        console.log("DIAGNOSTICO: Esperando a que el slider de 'ubicación' aparezca en el DOM...");
+        const sliderUbicacion = await waitForElement('#factor-ubicación');
+        console.log("DIAGNOSTICO: Slider de 'ubicación' encontrado.");
 
         const comparable = window.tasacionApp.comparables[0];
         const valorM2Original = comparable.valorM2;
-
-        const sliderUbicacion = document.getElementById('factor-ubicación');
-        testSuite.assert(sliderUbicacion, 'El slider de Ubicación no se encontró');
         
+        // 4. Interactuar con el slider
         sliderUbicacion.value = '15';
         sliderUbicacion.dispatchEvent(new Event('input', { bubbles: true }));
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 100)); // Pequeña pausa para que el evento se procese
 
+        // 5. Verificar los resultados
         testSuite.assertEqual(comparable.factores['Ubicación'], 15, 'El factor de Ubicación no se guardó correctamente');
         
         const valorM2Esperado = valorM2Original * 1.15;
@@ -357,6 +364,7 @@ async function testComposicionManager(testSuite) {
 // ========================================
 async function testFlujoCompleto(testSuite) {
     testSuite.test('Debe completar el flujo completo de tasación y calcular el valor final', async () => {
+        // 1. Completar paso 1
         document.getElementById('tipo-propiedad').value = 'departamento';
         document.getElementById('direccion').value = 'Uriarte 1500';
         document.getElementById('piso').value = '5';
@@ -372,6 +380,7 @@ async function testFlujoCompleto(testSuite) {
         document.getElementById('btn-siguiente-1').click();
         await new Promise(resolve => setTimeout(resolve, 500));
 
+        // 2. Agregar comparables programáticamente
         const comparablesData = [
             { dir: 'Scalabrini Ortiz 1200', barrio: 'Palermo', precio: 280000, sup: 110, ant: '5', cal: 'excelente' },
             { dir: 'Jorge Newbery 800', barrio: 'Colegiales', precio: 250000, sup: 115, ant: '10', cal: 'muy-buena' },
@@ -400,32 +409,35 @@ async function testFlujoCompleto(testSuite) {
         }
         testSuite.assertEqual(window.tasacionApp.comparables.length, 4, 'No se agregaron los 4 comparables');
 
-        // ---- CAMBIO CLAVE AQUÍ: Navegamos y forzamos la reconstrucción del estado ----
-        console.log("DIAGNOSTICO: Navegando al paso 3 y esperando a la UI de factores...");
+        // 3. Navegar al paso 3 y forzar inicialización de factores
         document.getElementById('btn-siguiente-2').click();
-        await new Promise(resolve => setTimeout(resolve, 2000)); // Pausa muy generosa
-
-        // ---- CAMBIO CLAVE AQUÍ: Forzamos la inicialización de los factores ----
+        await new Promise(resolve => setTimeout(resolve, 500)); // Pequeña pausa para que el paso se renderice
+        
         console.log("DIAGNOSTICO: Forzando la inicialización de los factores...");
         window.factoresManager.initFactors();
-        await new Promise(resolve => setTimeout(resolve, 2000)); // Pausa muy generosa
 
-        const slider1 = document.getElementById('factor-ubicación');
+        // 4. ESPERAR a que los sliders existan antes de interactuar
+        console.log("DIAGNOSTICO: Esperando a que los sliders de factores aparezcan en el DOM...");
+        const slider1 = await waitForElement('#factor-ubicación');
+        const slider2 = await waitForElement('#factor-calidad-de-construcción');
+        console.log("DIAGNOSTICO: Sliders de factores encontrados.");
+
+        // 5. Interactuar con los sliders
         slider1.value = '5';
         slider1.dispatchEvent(new Event('input', { bubbles: true }));
         
-        const slider2 = document.getElementById('factor-calidad-de-construcción');
         slider2.value = '-5';
         slider2.dispatchEvent(new Event('input', { bubbles: true }));
         await new Promise(resolve => setTimeout(resolve, 500));
 
+        // 6. Navegar al final
         document.getElementById('btn-siguiente-3').click();
         await new Promise(resolve => setTimeout(resolve, 500));
         
         document.getElementById('btn-siguiente-4').click();
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        // Verificar que el elemento exista antes de intentar acceder a él
+        // 7. Verificar resultados finales
         const valorFinalElement = document.getElementById('valor-total-tasacion');
         testSuite.assert(valorFinalElement, 'El elemento valor-total-tasacion no existe en el DOM');
         
