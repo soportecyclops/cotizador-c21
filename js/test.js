@@ -1,5 +1,5 @@
 /**
- * Versión final corregida con tests auto-suficientes
+ * Versión con test de diagnóstico para comparables
  */
 
 console.log("test.js: Script cargado");
@@ -189,7 +189,7 @@ function testDatosInmueble(testSuite) {
 }
 
 // ========================================
-// FUNCIÓN DE TEST DE COMPARABLES CORREGIDA (VERSIÓN FINAL)
+// FUNCIÓN DE TEST DE COMPARABLES (VERSIÓN DE DIAGNÓSTICO)
 // ========================================
 async function testComparables(testSuite) {
     testSuite.test('Debe agregar y eliminar un comparable correctamente', async () => {
@@ -206,37 +206,29 @@ async function testComparables(testSuite) {
         testSuite.assertEqual(window.tasacionApp.currentStep, 2, 'No se pudo avanzar al paso 2 para probar comparables');
 
         // 2. Abrimos el modal para agregar un comparable
+        console.log("DIAGNÓSTICO: Llamando a openComparableModal()...");
         window.comparablesManager.openComparableModal();
         
         // Esperamos un poco a que el modal se muestre
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        // 3. Verificamos que el modal está abierto usando el ID CORRECTO
-        testSuite.assertElementExists('#modal-agregar-comparable', 'El modal de comparable no se encontró en el DOM');
-        
-        // 4. Rellenamos los datos con los IDs CORRECTOS del formulario
-        document.getElementById('comp-precio').value = '150000';
-        document.getElementById('comp-direccion').value = 'Calle Falsa 456';
-        document.getElementById('comp-localidad').value = 'CABA';
-        document.getElementById('comp-barrio').value = 'Caballito';
-        document.getElementById('comp-sup-cubierta').value = '80';
-        
-        // 5. Guardamos el comparable usando el ID CORRECTO del botón
-        document.getElementById('btn-guardar-comparable').click();
-        
-        // Esperamos a que la operación asíncrona de guardar termine
         await new Promise(resolve => setTimeout(resolve, 200));
         
-        // 6. Verificamos que se agregó correctamente
-        testSuite.assertEqual(window.tasacionApp.comparables.length, 1, 'No se agregó el comparable');
-        testSuite.assertEqual(window.tasacionApp.comparables[0].direccion, 'Calle Falsa 456', 'La dirección del comparable no es la esperada');
-        
-        // 7. Eliminamos el comparable que se acaba de agregar
-        const idAEliminar = window.tasacionApp.comparables[0].id;
-        window.comparablesManager.deleteComparable(idAEliminar);
-        
-        // 8. Verificamos que se eliminó correctamente
-        testSuite.assertEqual(window.tasacionApp.comparables.length, 0, 'El comparable no se eliminó correctamente');
+        console.log("DIAGNÓSTICO: Buscando el modal en el DOM...");
+
+        // 3. En lugar de fallar, vamos a inspeccionar el elemento
+        const modal = document.getElementById('modal-agregar-comparable');
+
+        if (modal) {
+            console.log("DIAGNÓSTICO: ¡El modal fue encontrado!", modal);
+            console.log("DIAGNÓSTICO: Su estilo 'display' es:", modal.style.display);
+            console.log("DIAGNÓSTICO: Tiene la clase 'show'?", modal.classList.contains('show'));
+            console.log("DIAGNÓSTICO: Sus clases completas son:", modal.className);
+            // Forzamos una aserción para que el test se marque como fallido, pero con info útil
+            testSuite.assert(false, "El modal SÍ existe en el DOM. El problema no es que no se encuentre. Revisa la consola para más detalles.");
+        } else {
+            console.error("DIAGNÓSTICO: El modal NO fue encontrado. El selector '#modal-agregar-comparable' devolvió null.");
+            // Forzamos la aserción original para que el test falle como antes
+            testSuite.assert(false, "El modal de comparable no se encontró en el DOM");
+        }
     });
 }
 
