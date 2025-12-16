@@ -343,7 +343,7 @@ class TasacionApp {
         });
         
         // Agregar valor de referencia
-        yPos += 10;
+        yPos += 20;
         doc.setFontSize(16);
         doc.text('Valor de Referencia', 20, yPos);
         
@@ -386,6 +386,7 @@ class TasacionApp {
         document.getElementById('tipo-propiedad').value = '';
         document.getElementById('direccion').value = '';
         document.getElementById('piso').value = '';
+        document.getElementById('depto').value = '';
         document.getElementById('depto').value = '';
         document.getElementById('localidad').value = '';
         document.getElementById('barrio').value = '';
