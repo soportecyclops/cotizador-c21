@@ -1,5 +1,5 @@
 /**
- * Versión final. Mockea window.confirm para evitar interferencias entre tests.
+ * Versión final corrigiendo el selector del ID con tilde.
  */
 
 console.log("test.js: Script cargado");
@@ -278,7 +278,8 @@ async function testFactoresManager(testSuite) {
         const valorM2Original = comparable.valorM2;
 
         // 3. Simulamos el cambio de un factor (Ubicación: +15%)
-        const sliderUbicacion = document.getElementById('factor-ubicacion');
+        // ---- CAMBIO CLAVE AQUÍ: Usamos el ID correcto con tilde ----
+        const sliderUbicacion = document.getElementById('factor-ubicación');
         testSuite.assert(sliderUbicacion, 'El slider de Ubicación no se encontró');
         
         sliderUbicacion.value = '15';
