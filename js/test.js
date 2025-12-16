@@ -1,5 +1,5 @@
 /**
- * Versión final corrigiendo el selector del ID con tilde.
+ * Versión completa con un test de flujo completo (end-to-end).
  */
 
 console.log("test.js: Script cargado");
@@ -185,12 +185,9 @@ function testDatosInmueble(testSuite) {
     });
 }
 
-// ========================================
-// FUNCIÓN DE TEST DE COMPARABLES (CORREGIDA CON MOCK)
-// ========================================
 async function testComparables(testSuite) {
     testSuite.test('Debe agregar y eliminar un comparable correctamente', async () => {
-        // 1. Preparamos el entorno para llegar al paso 2
+        // ... (código del test existente sin cambios) ...
         document.getElementById('tipo-propiedad').value = 'departamento';
         document.getElementById('direccion').value = 'Calle Test 123';
         document.getElementById('localidad').value = 'CABA';
@@ -202,7 +199,6 @@ async function testComparables(testSuite) {
         
         testSuite.assertEqual(window.tasacionApp.currentStep, 2, 'No se pudo avanzar al paso 2 para probar comparables');
 
-        // 2. Abrimos el modal y rellenamos TODOS los datos obligatorios
         window.comparablesManager.openComparableModal();
         await new Promise(resolve => setTimeout(resolve, 100));
         
@@ -215,38 +211,25 @@ async function testComparables(testSuite) {
         document.getElementById('comp-calidad').value = 'buena';
         document.getElementById('comp-sup-cubierta').value = '80';
         
-        // 3. Guardamos el comparable
         document.getElementById('btn-guardar-comparable').click();
         await new Promise(resolve => setTimeout(resolve, 200));
         
-        // 4. Verificamos que se agregó correctamente
         testSuite.assertEqual(window.tasacionApp.comparables.length, 1, 'No se agregó el comparable');
         testSuite.assertEqual(window.tasacionApp.comparables[0].direccion, 'Calle Falsa 456', 'La dirección del comparable no es la esperada');
         
-        // 5. ---- CAMBIO CLAVE AQUÍ ----
-        // Mockeamos window.confirm para que no detenga el test
         const originalConfirm = window.confirm;
-        window.confirm = () => true; // Simula que el usuario siempre hace clic en "Aceptar"
-
-        // 6. Eliminamos el comparable (ahora sin pausas)
+        window.confirm = () => true;
         const idAEliminar = window.tasacionApp.comparables[0].id;
         window.comparablesManager.deleteComparable(idAEliminar);
-
-        // 7. Restauramos la función original para no afectar a otros tests
         window.confirm = originalConfirm;
         
-        // 8. Verificamos que se eliminó correctamente
         testSuite.assertEqual(window.tasacionApp.comparables.length, 0, 'El comparable no se eliminó correctamente');
     });
 }
 
-// ========================================
-// NUEVOS TESTS PARA FACTORES Y COMPOSICIÓN
-// ========================================
-
 async function testFactoresManager(testSuite) {
     testSuite.test('Debe aplicar factores de ajuste y recalcular el valor', async () => {
-        // 1. Preparamos el escenario completo hasta el paso 3
+        // ... (código del test existente sin cambios) ...
         document.getElementById('tipo-propiedad').value = 'departamento';
         document.getElementById('direccion').value = 'Calle Test 123';
         document.getElementById('localidad').value = 'CABA';
@@ -256,11 +239,10 @@ async function testFactoresManager(testSuite) {
         document.getElementById('sup-cubierta').value = '100';
         document.getElementById('btn-siguiente-1').click();
 
-        // Agregamos un comparable
         window.comparablesManager.openComparableModal();
         await new Promise(resolve => setTimeout(resolve, 100));
         document.getElementById('comp-tipo-propiedad').value = 'departamento';
-        document.getElementById('comp-precio').value = '200000'; // Precio base
+        document.getElementById('comp-precio').value = '200000';
         document.getElementById('comp-direccion').value = 'Calle Factor 789';
         document.getElementById('comp-localidad').value = 'CABA';
         document.getElementById('comp-barrio').value = 'Belgrano';
@@ -270,15 +252,12 @@ async function testFactoresManager(testSuite) {
         document.getElementById('btn-guardar-comparable').click();
         await new Promise(resolve => setTimeout(resolve, 200));
 
-        // 2. Avanzamos al paso 3. goToStep(3) ya llama a initFactors()
         window.tasacionApp.goToStep(3);
-        await new Promise(resolve => setTimeout(resolve, 200)); // Esperamos a que se renderice la UI
+        await new Promise(resolve => setTimeout(resolve, 200));
 
         const comparable = window.tasacionApp.comparables[0];
         const valorM2Original = comparable.valorM2;
 
-        // 3. Simulamos el cambio de un factor (Ubicación: +15%)
-        // ---- CAMBIO CLAVE AQUÍ: Usamos el ID correcto con tilde ----
         const sliderUbicacion = document.getElementById('factor-ubicación');
         testSuite.assert(sliderUbicacion, 'El slider de Ubicación no se encontró');
         
@@ -286,7 +265,6 @@ async function testFactoresManager(testSuite) {
         sliderUbicacion.dispatchEvent(new Event('input', { bubbles: true }));
         await new Promise(resolve => setTimeout(resolve, 100));
 
-        // 4. Verificamos los resultados
         testSuite.assertEqual(comparable.factores['Ubicación'], 15, 'El factor de Ubicación no se guardó correctamente');
         
         const valorM2Esperado = valorM2Original * 1.15;
@@ -296,7 +274,7 @@ async function testFactoresManager(testSuite) {
 
 async function testComposicionManager(testSuite) {
     testSuite.test('Debe calcular el valor total de la tasación', async () => {
-        // 1. Preparamos un escenario completo hasta el paso 5
+        // ... (código del test existente sin cambios) ...
         document.getElementById('tipo-propiedad').value = 'departamento';
         document.getElementById('direccion').value = 'Calle Test 123';
         document.getElementById('localidad').value = 'CABA';
@@ -309,7 +287,6 @@ async function testComposicionManager(testSuite) {
         document.getElementById('cochera').value = 'propia';
         document.getElementById('btn-siguiente-1').click();
 
-        // Agregamos un comparable para poder avanzar
         window.comparablesManager.openComparableModal();
         await new Promise(resolve => setTimeout(resolve, 100));
         document.getElementById('comp-tipo-propiedad').value = 'departamento';
@@ -323,19 +300,96 @@ async function testComposicionManager(testSuite) {
         document.getElementById('btn-guardar-comparable').click();
         await new Promise(resolve => setTimeout(resolve, 200));
 
-        // Simulamos que ya tenemos un valor de referencia
         window.tasacionApp.valorM2Referencia = 2000;
-
-        // 2. Ejecutamos el cálculo de la composición
         window.tasacionApp.calculateComposition();
 
-        // 3. Obtenemos el valor total calculado por el manager
         const valorTotalCalculado = window.composicionManager.calculateValorTotal();
-
-        // 4. Verificamos que el valor del manager coincida con el mostrado en la UI
         const valorTotalEnUI = parseFloat(document.getElementById('valor-total-tasacion').textContent.replace('$', '').replace(',', ''));
         
         testSuite.assertClose(valorTotalCalculado, valorTotalEnUI, 0.01, 'El valor total calculado por el manager no coincide con el de la UI');
+    });
+}
+
+// ========================================
+// NUEVO TEST DE FLUJO COMPLETO (END-TO-END)
+// ========================================
+async function testFlujoCompleto(testSuite) {
+    testSuite.test('Debe completar el flujo completo de tasación y calcular el valor final', async () => {
+        // --- PASO 1: Datos del Inmueble ---
+        document.getElementById('tipo-propiedad').value = 'departamento';
+        document.getElementById('direccion').value = 'Uriarte 1500';
+        document.getElementById('piso').value = '5';
+        document.getElementById('depto').value = 'C';
+        document.getElementById('localidad').value = 'CABA';
+        document.getElementById('barrio').value = 'Palermo';
+        document.getElementById('antiguedad').value = '8';
+        document.getElementById('calidad').value = 'muy-buena';
+        document.getElementById('sup-cubierta').value = '120';
+        document.getElementById('sup-semicubierta').value = '25';
+        document.getElementById('sup-balcon').value = '12';
+        document.getElementById('cochera').value = 'comun';
+        document.getElementById('btn-siguiente-1').click();
+        await new Promise(resolve => setTimeout(resolve, 200));
+
+        // --- PASO 2: Agregar Comparables (4) ---
+        const comparablesData = [
+            { dir: 'Scalabrini Ortiz 1200', barrio: 'Palermo', precio: 280000, sup: 110, ant: '5', cal: 'excelente' },
+            { dir: 'Jorge Newbery 800', barrio: 'Colegiales', precio: 250000, sup: 115, ant: '10', cal: 'muy-buena' },
+            { dir: 'Gorriti 500', barrio: 'Palermo', precio: 265000, sup: 105, ant: '12', cal: 'buena' },
+            { dir: 'Dorrego 200', barrio: 'Palermo', precio: 275000, sup: 118, ant: '6', cal: 'muy-buena' }
+        ];
+
+        for (const data of comparablesData) {
+            window.comparablesManager.openComparableModal();
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            document.getElementById('comp-tipo-propiedad').value = 'departamento';
+            document.getElementById('comp-precio').value = data.precio;
+            document.getElementById('comp-direccion').value = data.dir;
+            document.getElementById('comp-localidad').value = 'CABA';
+            document.getElementById('comp-barrio').value = data.barrio;
+            document.getElementById('comp-antiguedad').value = data.ant;
+            document.getElementById('comp-calidad').value = data.cal;
+            document.getElementById('comp-sup-cubierta').value = data.sup;
+            
+            document.getElementById('btn-guardar-comparable').click();
+            await new Promise(resolve => setTimeout(resolve, 200));
+        }
+        testSuite.assertEqual(window.tasacionApp.comparables.length, 4, 'No se agregaron los 4 comparables');
+
+        // --- PASO 3: Aplicar Factores ---
+        document.getElementById('btn-siguiente-2').click();
+        await new Promise(resolve => setTimeout(resolve, 300)); // Esperar a que se muestren los factores
+
+        // Aplicar factores al primer comparable
+        const slider1 = document.getElementById('factor-ubicación');
+        slider1.value = '5';
+        slider1.dispatchEvent(new Event('input', { bubbles: true }));
+        
+        const slider2 = document.getElementById('factor-calidad-de-construcción');
+        slider2.value = '-5';
+        slider2.dispatchEvent(new Event('input', { bubbles: true }));
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        // --- PASO 4 y 5: Composición y Reporte Final ---
+        document.getElementById('btn-siguiente-3').click();
+        await new Promise(resolve => setTimeout(resolve, 200)); // Paso 4: Composición
+        
+        document.getElementById('btn-siguiente-4').click();
+        await new Promise(resolve => setTimeout(resolve, 200)); // Paso 5: Reporte Final
+
+        // --- VERIFICACIÓN FINAL ---
+        const valorFinalTexto = document.getElementById('valor-total-tasacion').textContent;
+        const valorFinalNumero = parseFloat(valorFinalTexto.replace('$', '').replace(',', ''));
+        
+        testSuite.assert(valorFinalTexto.startsWith('$'), 'El valor final no tiene el formato de moneda correcto');
+        testSuite.assert(valorFinalNumero > 0, 'El valor final no es un número positivo');
+        
+        const valorM2RefTexto = document.getElementById('valor-m2-referencia').textContent;
+        const valorM2RefNumero = parseFloat(valorM2RefTexto.replace('$', ''));
+        testSuite.assert(valorM2RefNumero > 0, 'El valor de referencia por m² no es un número positivo');
+        
+        console.log(`%c📊 Flujo Completo: Valor Final de Tasación: ${valorFinalTexto}`, 'color: #17a2b8; font-weight: bold;');
     });
 }
 
@@ -355,6 +409,7 @@ async function runAllTests() {
         testComparables(testSuite);
         testFactoresManager(testSuite);
         testComposicionManager(testSuite);
+        testFlujoCompleto(testSuite); // <-- NUEVO TEST DE FLUJO COMPLETO
         
         const allPassed = await testSuite.run();
         console.log("runAllTests: Tests finalizados, resultado:", allPassed);
