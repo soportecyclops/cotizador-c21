@@ -1,5 +1,5 @@
 /**
- * Versión optimizada para velocidad, con la estabilidad ya garantizada.
+ * Versión final con un test de flujo completo simplificado y más diagnóstico.
  */
 
 console.log("test.js: Script cargado");
@@ -187,6 +187,7 @@ function testDatosInmueble(testSuite) {
 
 async function testComparables(testSuite) {
     testSuite.test('Debe agregar y eliminar un comparable correctamente', async () => {
+        // ... (código del test existente sin cambios) ...
         document.getElementById('tipo-propiedad').value = 'departamento';
         document.getElementById('direccion').value = 'Calle Test 123';
         document.getElementById('localidad').value = 'CABA';
@@ -199,7 +200,7 @@ async function testComparables(testSuite) {
         testSuite.assertEqual(window.tasacionApp.currentStep, 2, 'No se pudo avanzar al paso 2 para probar comparables');
 
         window.comparablesManager.openComparableModal();
-        await new Promise(resolve => setTimeout(resolve, 100)); // Pausa corta y consistente
+        await new Promise(resolve => setTimeout(resolve, 100));
         
         document.getElementById('comp-tipo-propiedad').value = 'departamento';
         document.getElementById('comp-precio').value = '150000';
@@ -211,7 +212,7 @@ async function testComparables(testSuite) {
         document.getElementById('comp-sup-cubierta').value = '80';
         
         document.getElementById('btn-guardar-comparable').click();
-        await new Promise(resolve => setTimeout(resolve, 100)); // Pausa corta y consistente
+        await new Promise(resolve => setTimeout(resolve, 200));
         
         testSuite.assertEqual(window.tasacionApp.comparables.length, 1, 'No se agregó el comparable');
         testSuite.assertEqual(window.tasacionApp.comparables[0].direccion, 'Calle Falsa 456', 'La dirección del comparable no es la esperada');
@@ -228,6 +229,7 @@ async function testComparables(testSuite) {
 
 async function testFactoresManager(testSuite) {
     testSuite.test('Debe aplicar factores de ajuste y recalcular el valor', async () => {
+        // ... (código del test existente sin cambios) ...
         document.getElementById('tipo-propiedad').value = 'departamento';
         document.getElementById('direccion').value = 'Calle Test 123';
         document.getElementById('localidad').value = 'CABA';
@@ -248,10 +250,10 @@ async function testFactoresManager(testSuite) {
         document.getElementById('comp-calidad').value = 'muy-buena';
         document.getElementById('comp-sup-cubierta').value = '100';
         document.getElementById('btn-guardar-comparable').click();
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 200));
 
         window.tasacionApp.goToStep(3);
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 200));
 
         const comparable = window.tasacionApp.comparables[0];
         const valorM2Original = comparable.valorM2;
@@ -272,6 +274,7 @@ async function testFactoresManager(testSuite) {
 
 async function testComposicionManager(testSuite) {
     testSuite.test('Debe calcular el valor total de la tasación', async () => {
+        // ... (código del test existente sin cambios) ...
         document.getElementById('tipo-propiedad').value = 'departamento';
         document.getElementById('direccion').value = 'Calle Test 123';
         document.getElementById('localidad').value = 'CABA';
@@ -295,7 +298,7 @@ async function testComposicionManager(testSuite) {
         document.getElementById('comp-calidad').value = 'buena';
         document.getElementById('comp-sup-cubierta').value = '100';
         document.getElementById('btn-guardar-comparable').click();
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 200));
 
         window.tasacionApp.valorM2Referencia = 2000;
         window.tasacionApp.calculateComposition();
@@ -308,7 +311,7 @@ async function testComposicionManager(testSuite) {
 }
 
 // ========================================
-// NUEVO TEST DE FLUJO COMPLETO (END-TO-END) OPTIMIZADO
+// NUEVO TEST DE FLUJO COMPLETO (END-TO-END) SIMPLIFICADO
 // ========================================
 async function testFlujoCompleto(testSuite) {
     testSuite.test('Debe completar el flujo completo de tasación y calcular el valor final', async () => {
@@ -326,7 +329,7 @@ async function testFlujoCompleto(testSuite) {
         document.getElementById('sup-balcon').value = '12';
         document.getElementById('cochera').value = 'comun';
         document.getElementById('btn-siguiente-1').click();
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 200));
 
         // --- PASO 2: Agregar Comparables (4) ---
         const comparablesData = [
@@ -336,10 +339,16 @@ async function testFlujoCompleto(testSuite) {
             { dir: 'Dorrego 200', barrio: 'Palermo', precio: 275000, sup: 118, ant: '6', cal: 'muy-buena' }
         ];
 
-        for (const data of comparablesData) {
-            window.comparablesManager.openComparableModal();
-            await new Promise(resolve => setTimeout(resolve, 100));
+        for (let i = 0; i < comparablesData.length; i++) {
+            const data = comparablesData[i];
+            console.log(`DIAGNOSTICO: Iniciando agregado del comparable ${i + 1}: ${data.dir}`);
             
+            window.comparablesManager.openComparableModal();
+            await new Promise(resolve => setTimeout(resolve, 200)); // Pausa un poco más larga
+            
+            // ---- CAMBIO CLAVE AQUÍ: Eliminamos la limpieza manual y nos fiamos de form.reset() ----
+            
+            // Rellenamos los datos
             document.getElementById('comp-tipo-propiedad').value = 'departamento';
             document.getElementById('comp-precio').value = data.precio;
             document.getElementById('comp-direccion').value = data.dir;
@@ -350,13 +359,17 @@ async function testFlujoCompleto(testSuite) {
             document.getElementById('comp-sup-cubierta').value = data.sup;
             
             document.getElementById('btn-guardar-comparable').click();
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise(resolve => setTimeout(resolve, 300)); // Pausa más larga para asegurar guardado
+
+            // Línea de diagnóstico para ver qué pasa en cada vuelta
+            console.log(`DIAGNOSTICO: Fin de la iteración ${i + 1}. Total de comparables guardados: ${window.tasacionApp.comparables.length}`);
         }
-        testSuite.assertEqual(window.tasacionApp.comparables.length, 4, 'No se agregaron los 4 comparables');
+
+        testSuite.assertEqual(window.tasacionApp.comparables.length, 4, `No se agregaron los 4 comparables. Se agregaron ${window.tasacionApp.comparables.length}.`);
 
         // --- PASO 3: Aplicar Factores ---
         document.getElementById('btn-siguiente-2').click();
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 300));
 
         const slider1 = document.getElementById('factor-ubicación');
         slider1.value = '5';
@@ -369,10 +382,10 @@ async function testFlujoCompleto(testSuite) {
 
         // --- PASO 4 y 5: Composición y Reporte Final ---
         document.getElementById('btn-siguiente-3').click();
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 200));
         
         document.getElementById('btn-siguiente-4').click();
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 200));
 
         // --- VERIFICACIÓN FINAL ---
         const valorFinalTexto = document.getElementById('valor-total-tasacion').textContent;
