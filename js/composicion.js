@@ -41,6 +41,16 @@ class ComposicionManager {
         // Esta función podría generar un gráfico de composición del valor
         // usando una librería como Chart.js si se desea agregar en el futuro
     }
+
+    // CAMBIO: Añadido el método reset() por consistencia.
+    /**
+     * Resetea el estado del gestor de composición.
+     * Actualmente no mantiene estado, pero el método se añade para consistencia.
+     */
+    reset() {
+        // No hay estado interno que limpiar, pero el método es necesario para el flujo de reset general.
+        // Si en el futuro se almacenan datos o gráficos, se limpiarían aquí.
+    }
 }
 
 // Inicializar el gestor de composición
