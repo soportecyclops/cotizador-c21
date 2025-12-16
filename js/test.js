@@ -341,8 +341,12 @@ async function testComposicionManager(testSuite) {
         window.tasacionApp.calculateComposition();
         await new Promise(resolve => setTimeout(resolve, 500)); // Pausa para asegurar que los valores se actualicen
 
+        // Verificar que el elemento exista antes de intentar acceder a él
+        const valorTotalElement = document.getElementById('valor-total-tasacion');
+        testSuite.assert(valorTotalElement, 'El elemento valor-total-tasacion no existe en el DOM');
+        
         const valorTotalCalculado = window.composicionManager.calculateValorTotal();
-        const valorTotalEnUI = parseFloat(document.getElementById('valor-total-tasacion').textContent.replace('$', '').replace(',', ''));
+        const valorTotalEnUI = parseFloat(valorTotalElement.textContent.replace('$', '').replace(',', ''));
         
         testSuite.assertClose(valorTotalCalculado, valorTotalEnUI, 0.01, 'El valor total calculado por el manager no coincide con el de la UI');
     });
@@ -421,7 +425,11 @@ async function testFlujoCompleto(testSuite) {
         document.getElementById('btn-siguiente-4').click();
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        const valorFinalTexto = document.getElementById('valor-total-tasacion').textContent;
+        // Verificar que el elemento exista antes de intentar acceder a él
+        const valorFinalElement = document.getElementById('valor-total-tasacion');
+        testSuite.assert(valorFinalElement, 'El elemento valor-total-tasacion no existe en el DOM');
+        
+        const valorFinalTexto = valorFinalElement.textContent;
         const valorFinalNumero = parseFloat(valorFinalTexto.replace('$', '').replace(',', ''));
         
         testSuite.assert(valorFinalTexto.startsWith('$'), 'El valor final no tiene el formato de moneda correcto');
