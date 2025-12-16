@@ -82,8 +82,6 @@ class ComparablesManager {
         
         for (const fieldId of requiredFields) {
             const field = document.getElementById(fieldId);
-            // >>>>> CORRECCIÓN AQUÍ <<<<<
-            // Validación defensiva para evitar "field.value.trim is not a function"
             if (!field || !field.value || typeof field.value !== 'string' || !field.value.trim()) {
                 window.tasacionApp.showNotification(`Por favor, complete todos los campos obligatorios (${fieldId})`, 'error');
                 if (field) field.focus();
@@ -212,7 +210,11 @@ class ComparablesManager {
         }
     }
 
-    resetComparables() {
+    // CAMBIO: Renombrado de resetComparables a reset para consistencia.
+    /**
+     * Resetea la lista de comparables y el ID siguiente.
+     */
+    reset() {
         window.tasacionApp.comparables = [];
         this.nextId = 1;
         this.updateComparablesUI();
