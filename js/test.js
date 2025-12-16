@@ -1,6 +1,5 @@
 /**
- * Versión final y definitiva. El test es 100% autosuficiente y reconstruye el estado
- * que la función resetForm() destruye.
+ * Versión limpia con tests para una aplicación corregida.
  */
 
 console.log("test.js: Script cargado");
@@ -187,7 +186,7 @@ function testDatosInmueble(testSuite) {
 }
 
 // ========================================
-// FUNCIÓN DE TEST DE COMPARABLES (SOLUCIÓN 100% AUTOSUFICIENTE)
+// FUNCIÓN DE TEST DE COMPARABLES (VERSIÓN LIMPIA Y NATURAL)
 // ========================================
 async function testComparables(testSuite) {
     testSuite.test('Debe agregar y eliminar un comparable correctamente', async () => {
@@ -203,34 +202,25 @@ async function testComparables(testSuite) {
         
         testSuite.assertEqual(window.tasacionApp.currentStep, 2, 'No se pudo avanzar al paso 2 para probar comparables');
 
-        // 2. RECONSTRUIMOS EL ESTADO DESTRUIDO por resetForm()
-        // Esta es la clave: nos aseguramos de que los arrays existan.
-        if (!window.tasacionApp.comparables) {
-            window.tasacionApp.comparables = [];
-        }
-        if (!window.comparablesManager.comparables) {
-            window.comparablesManager.comparables = [];
-        }
-
-        // 3. Simulamos la adición de un comparable.
-        const newComparable = {
-            id: Date.now(),
-            direccion: 'Calle Falsa 456',
-            precio: 150000,
-            localidad: 'CABA',
-            barrio: 'Caballito',
-            supCubierta: 80
-        };
-
-        // Añadimos el comparable a los arrays de datos de la aplicación
-        window.tasacionApp.comparables.push(newComparable);
-        window.comparablesManager.comparables.push(newComparable);
+        // 2. Abrimos el modal y rellenamos los datos de forma natural
+        window.comparablesManager.openComparableModal();
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        document.getElementById('comp-precio').value = '150000';
+        document.getElementById('comp-direccion').value = 'Calle Falsa 456';
+        document.getElementById('comp-localidad').value = 'CABA';
+        document.getElementById('comp-barrio').value = 'Caballito';
+        document.getElementById('comp-sup-cubierta').value = '80';
+        
+        // 3. Guardamos el comparable haciendo click en el botón (ahora debería funcionar)
+        document.getElementById('btn-guardar-comparable').click();
+        await new Promise(resolve => setTimeout(resolve, 200));
         
         // 4. Verificamos que se agregó correctamente
         testSuite.assertEqual(window.tasacionApp.comparables.length, 1, 'No se agregó el comparable');
         testSuite.assertEqual(window.tasacionApp.comparables[0].direccion, 'Calle Falsa 456', 'La dirección del comparable no es la esperada');
         
-        // 5. Eliminamos el comparable que se acaba de agregar
+        // 5. Eliminamos el comparable
         const idAEliminar = window.tasacionApp.comparables[0].id;
         window.comparablesManager.deleteComparable(idAEliminar);
         
