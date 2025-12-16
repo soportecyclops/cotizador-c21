@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cotizador Inmobiliario Century v2.0</title>
     <link rel="stylesheet" href="css/styles.css">
+    <!-- NUEVO: CSS Responsivo -->
+    <link rel="stylesheet" href="css/responsive.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
@@ -13,6 +15,10 @@
         <div class="container">
             <h1><i class="fas fa-home"></i> Cotizador Inmobiliario Century21 V2.0</h1>
             <p>Herramienta profesional de tasación inmobiliaria</p>
+            <!-- NUEVO: Botón de Logout -->
+            <button id="btn-logout" class="btn-secondary" style="position: absolute; top: 20px; right: 20px;" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+            </button>
         </div>
     </header>
 
@@ -312,6 +318,8 @@
             
             <div class="form-actions">
                 <button id="btn-anterior-5" class="btn-secondary"><i class="fas fa-arrow-left"></i> Anterior</button>
+                <!-- NUEVO: Botón para guardar en backend -->
+                <button id="btn-guardar-backend" class="btn-primary"><i class="fas fa-save"></i> Guardar en Servidor</button>
                 <button id="btn-exportar" class="btn-primary"><i class="fas fa-file-pdf"></i> Exportar Informe</button>
                 <button id="btn-reiniciar" class="btn-secondary"><i class="fas fa-redo"></i> Reiniciar</button>
             </div>
@@ -439,10 +447,13 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <!-- MODIFICADO: Orden de los scripts para que auth.js cargue primero -->
+    <script src="js/auth.js"></script>
     <script src="js/app.js"></script>
     <script src="js/comparables.js"></script>
     <script src="js/factores.js"></script>
     <script src="js/composicion.js"></script>
-    <script src="js/test.js"></script> <!-- <-- LÍNEA AÑADIDA Y CORREGIDA -->
+    <script src="js/test.js"></script>
 </body>
 </html>
