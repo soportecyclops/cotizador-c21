@@ -1,5 +1,5 @@
 /**
- * Versión corregida con el test de comparables completo.
+ * Versión completa con tests para FactoresManager y ComposicionManager.
  */
 
 console.log("test.js: Script cargado");
@@ -185,9 +185,6 @@ function testDatosInmueble(testSuite) {
     });
 }
 
-// ========================================
-// FUNCIÓN DE TEST DE COMPARABLES (CORREGIDA Y COMPLETA)
-// ========================================
 async function testComparables(testSuite) {
     testSuite.test('Debe agregar y eliminar un comparable correctamente', async () => {
         // 1. Preparamos el entorno para llegar al paso 2
@@ -206,14 +203,13 @@ async function testComparables(testSuite) {
         window.comparablesManager.openComparableModal();
         await new Promise(resolve => setTimeout(resolve, 100));
         
-        // --- CAMBIOS AQUÍ ---
-        document.getElementById('comp-tipo-propiedad').value = 'departamento'; // Campo que faltaba
+        document.getElementById('comp-tipo-propiedad').value = 'departamento';
         document.getElementById('comp-precio').value = '150000';
         document.getElementById('comp-direccion').value = 'Calle Falsa 456';
         document.getElementById('comp-localidad').value = 'CABA';
         document.getElementById('comp-barrio').value = 'Caballito';
-        document.getElementById('comp-antiguedad').value = '10'; // Campo que faltaba
-        document.getElementById('comp-calidad').value = 'buena'; // Campo que faltaba
+        document.getElementById('comp-antiguedad').value = '10';
+        document.getElementById('comp-calidad').value = 'buena';
         document.getElementById('comp-sup-cubierta').value = '80';
         
         // 3. Guardamos el comparable
@@ -233,6 +229,105 @@ async function testComparables(testSuite) {
     });
 }
 
+// ========================================
+// NUEVOS TESTS PARA FACTORES Y COMPOSICIÓN
+// ========================================
+
+async function testFactoresManager(testSuite) {
+    testSuite.test('Debe aplicar factores de ajuste y recalcular el valor', async () => {
+        // 1. Preparamos el escenario completo hasta el paso 3
+        document.getElementById('tipo-propiedad').value = 'departamento';
+        document.getElementById('direccion').value = 'Calle Test 123';
+        document.getElementById('localidad').value = 'CABA';
+        document.getElementById('barrio').value = 'Palermo';
+        document.getElementById('antiguedad').value = '10';
+        document.getElementById('calidad').value = 'buena';
+        document.getElementById('sup-cubierta').value = '100';
+        document.getElementById('btn-siguiente-1').click();
+
+        // Agregamos un comparable
+        window.comparablesManager.openComparableModal();
+        await new Promise(resolve => setTimeout(resolve, 100));
+        document.getElementById('comp-tipo-propiedad').value = 'departamento';
+        document.getElementById('comp-precio').value = '200000'; // Precio base
+        document.getElementById('comp-direccion').value = 'Calle Factor 789';
+        document.getElementById('comp-localidad').value = 'CABA';
+        document.getElementById('comp-barrio').value = 'Belgrano';
+        document.getElementById('comp-antiguedad').value = '5';
+        document.getElementById('comp-calidad').value = 'muy-buena';
+        document.getElementById('comp-sup-cubierta').value = '100';
+        document.getElementById('btn-guardar-comparable').click();
+        await new Promise(resolve => setTimeout(resolve, 200));
+
+        // 2. Avanzamos al paso 3 y cargamos los factores
+        window.tasacionApp.goToStep(3);
+        window.factoresManager.initFactors();
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        const comparable = window.tasacionApp.comparables[0];
+        const valorM2Original = comparable.valorM2;
+
+        // 3. Simulamos el cambio de un factor (Ubicación: +15%)
+        const sliderUbicacion = document.getElementById('factor-ubicacion');
+        testSuite.assert(sliderUbicacion, 'El slider de Ubicación no se encontró');
+        
+        sliderUbicacion.value = '15';
+        sliderUbicacion.dispatchEvent(new Event('input', { bubbles: true }));
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        // 4. Verificamos los resultados
+        testSuite.assertEqual(comparable.factores['Ubicación'], 15, 'El factor de Ubicación no se guardó correctamente');
+        
+        const valorM2Esperado = valorM2Original * 1.15;
+        testSuite.assertClose(comparable.valorM2Ajustado, valorM2Esperado, 0.01, 'El valor por m² ajustado no se calculó correctamente');
+    });
+}
+
+async function testComposicionManager(testSuite) {
+    testSuite.test('Debe calcular el valor total de la tasación', async () => {
+        // 1. Preparamos un escenario completo hasta el paso 5
+        document.getElementById('tipo-propiedad').value = 'departamento';
+        document.getElementById('direccion').value = 'Calle Test 123';
+        document.getElementById('localidad').value = 'CABA';
+        document.getElementById('barrio').value = 'Palermo';
+        document.getElementById('antiguedad').value = '10';
+        document.getElementById('calidad').value = 'buena';
+        document.getElementById('sup-cubierta').value = '100';
+        document.getElementById('sup-semicubierta').value = '50';
+        document.getElementById('sup-balcon').value = '10';
+        document.getElementById('cochera').value = 'propia';
+        document.getElementById('btn-siguiente-1').click();
+
+        // Agregamos un comparable para poder avanzar
+        window.comparablesManager.openComparableModal();
+        await new Promise(resolve => setTimeout(resolve, 100));
+        document.getElementById('comp-tipo-propiedad').value = 'departamento';
+        document.getElementById('comp-precio').value = '200000';
+        document.getElementById('comp-direccion').value = 'Calle Compo 101';
+        document.getElementById('comp-localidad').value = 'CABA';
+        document.getElementById('comp-barrio').value = 'Palermo';
+        document.getElementById('comp-antiguedad').value = '10';
+        document.getElementById('comp-calidad').value = 'buena';
+        document.getElementById('comp-sup-cubierta').value = '100';
+        document.getElementById('btn-guardar-comparable').click();
+        await new Promise(resolve => setTimeout(resolve, 200));
+
+        // Simulamos que ya tenemos un valor de referencia
+        window.tasacionApp.valorM2Referencia = 2000;
+
+        // 2. Ejecutamos el cálculo de la composición
+        window.tasacionApp.calculateComposition();
+
+        // 3. Obtenemos el valor total calculado por el manager
+        const valorTotalCalculado = window.composicionManager.calculateValorTotal();
+
+        // 4. Verificamos que el valor del manager coincida con el mostrado en la UI
+        const valorTotalEnUI = parseFloat(document.getElementById('valor-total-tasacion').textContent.replace('$', '').replace(',', ''));
+        
+        testSuite.assertClose(valorTotalCalculado, valorTotalEnUI, 0.01, 'El valor total calculado por el manager no coincide con el de la UI');
+    });
+}
+
 
 // ========================================
 // FUNCIÓN PRINCIPAL PARA EJECUTAR TODOS LOS TESTS
@@ -247,6 +342,8 @@ async function runAllTests() {
         testNavegacion(testSuite);
         testDatosInmueble(testSuite);
         testComparables(testSuite);
+        testFactoresManager(testSuite); // <-- NUEVO TEST
+        testComposicionManager(testSuite); // <-- NUEVO TEST
         
         const allPassed = await testSuite.run();
         console.log("runAllTests: Tests finalizados, resultado:", allPassed);
