@@ -359,7 +359,7 @@ class TasacionApp {
         doc.setFontSize(14);
         yPos += 10;
         const valorTotal = document.getElementById('valor-total-tasacion').textContent;
-        doc.text(`$${valorTotal}`, 20, yPos); // <-- CORRECCIÓN AQUÍ: de doc.text a doc.text
+        doc.text(`$${valorTotal}`, 20, yPos);
         
         // Guardar el PDF
         doc.save('informe_tasacion.pdf');
@@ -367,23 +367,54 @@ class TasacionApp {
         this.showNotification('Informe exportado correctamente', 'success');
     }
 
+    // ==========================================================
+    // MÉTODOS CORREGIDOS / AÑADIDOS
+    // ==========================================================
+    
+    /**
+     * Resetea el estado de la aplicación y los campos del formulario.
+     * Es una función más robusta para ser usada por los tests y el botón de reinicio.
+     */
+    resetForm() {
+        // Limpiar los campos del paso 1 uno por uno
+        document.getElementById('tipo-propiedad').value = '';
+        document.getElementById('direccion').value = '';
+        document.getElementById('piso').value = '';
+        document.getElementById('depto').value = '';
+        document.getElementById('localidad').value = '';
+        document.getElementById('barrio').value = '';
+        document.getElementById('antiguedad').value = '';
+        document.getElementById('calidad').value = '';
+        document.getElementById('sup-cubierta').value = '';
+        document.getElementById('sup-semicubierta').value = '';
+        document.getElementById('sup-descubierta').value = '';
+        document.getElementById('sup-balcon').value = '';
+        document.getElementById('sup-terreno').value = '';
+        document.getElementById('cochera').value = 'no';
+
+        // Resetear variables de la aplicación
+        this.inmuebleData = {};
+        this.comparables = [];
+        this.valorM2Referencia = 0;
+        this.descuentoNegociacion = 10; // Valor por defecto
+        document.getElementById('descuento-negociacion').value = 10;
+
+        // Volver al paso 1 y actualizar UI
+        this.goToStep(1);
+
+        // Resetear otros componentes si existen
+        if (window.comparablesManager) {
+            window.comparablesManager.resetComparables();
+        }
+    }
+
+    /**
+     * Resetea la aplicación mostrando un diálogo de confirmación.
+     * Ahora utiliza el método resetForm() para la lógica principal.
+     */
     resetApp() {
         if (confirm('¿Está seguro de que desea reiniciar la aplicación? Se perderán todos los datos ingresados.')) {
-            // Reiniciar variables
-            this.currentStep = 1;
-            this.inmuebleData = {};
-            this.comparables = [];
-            this.valorM2Referencia = 0;
-            
-            // Reiniciar formulario
-            document.getElementById('form-inmueble').reset();
-            
-            // Reiniciar UI
-            this.goToStep(1);
-            
-            // Reiniciar componentes
-            window.comparablesManager.resetComparables();
-            
+            this.resetForm(); // <-- Usar la nueva función
             this.showNotification('Aplicación reiniciada correctamente', 'success');
         }
     }
