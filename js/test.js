@@ -146,6 +146,34 @@ function waitForElement(selector, timeout = 5000) {
 }
 
 // ========================================
+// NUEVA FUNCIÓN DE AYUDA PARA ESPERAR A UNA CONDICIÓN
+// ========================================
+/**
+ * Espera a que una condición se cumpla.
+ * @param {Function} condition - Una función que devuelve un booleano.
+ * @param {number} timeout - El tiempo máximo en milisegundos a esperar.
+ * @returns {Promise} Una promesa que se resuelve cuando la condición se cumple.
+ */
+function waitForCondition(condition, timeout = 5000) {
+    return new Promise((resolve, reject) => {
+        const startTime = Date.now();
+
+        const checkInterval = setInterval(() => {
+            if (condition()) {
+                clearInterval(checkInterval);
+                resolve();
+                return;
+            }
+
+            if (Date.now() - startTime > timeout) {
+                clearInterval(checkInterval);
+                reject(new Error(`La condición no se cumplió después de ${timeout}ms`));
+            }
+        }, 100); // Revisar cada 100ms
+    });
+}
+
+// ========================================
 // DEFINICIÓN DE LOS TESTS
 // ========================================
 
@@ -437,7 +465,15 @@ async function testFlujoCompleto(testSuite) {
         document.getElementById('btn-siguiente-4').click();
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        // 7. Verificar resultados finales
+        // 7. ESPERAR a que el valor final se calcule y tenga el formato correcto
+        console.log("DIAGNOSTICO: Esperando a que el valor final se calcule y se formatee...");
+        await waitForCondition(() => {
+            const valorFinalElement = document.getElementById('valor-total-tasacion');
+            return valorFinalElement && valorFinalElement.textContent.startsWith('$');
+        });
+        console.log("DIAGNOSTICO: Valor final calculado y formateado.");
+
+        // 8. Verificar resultados finales
         const valorFinalElement = document.getElementById('valor-total-tasacion');
         testSuite.assert(valorFinalElement, 'El elemento valor-total-tasacion no existe en el DOM');
         
