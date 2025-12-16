@@ -1,5 +1,5 @@
 /**
- * Versión completa con un test de flujo completo (end-to-end).
+ * Versión final con un test de flujo completo robusto y sincronizado.
  */
 
 console.log("test.js: Script cargado");
@@ -311,7 +311,7 @@ async function testComposicionManager(testSuite) {
 }
 
 // ========================================
-// NUEVO TEST DE FLUJO COMPLETO (END-TO-END)
+// NUEVO TEST DE FLUJO COMPLETO (END-TO-END) CORREGIDO
 // ========================================
 async function testFlujoCompleto(testSuite) {
     testSuite.test('Debe completar el flujo completo de tasación y calcular el valor final', async () => {
@@ -335,14 +335,25 @@ async function testFlujoCompleto(testSuite) {
         const comparablesData = [
             { dir: 'Scalabrini Ortiz 1200', barrio: 'Palermo', precio: 280000, sup: 110, ant: '5', cal: 'excelente' },
             { dir: 'Jorge Newbery 800', barrio: 'Colegiales', precio: 250000, sup: 115, ant: '10', cal: 'muy-buena' },
-            { dir: 'Gorriti 500', barrio: 'Palermo', precio: 265000, sup: 105, ant: '12', cal: 'buena' },
+            { dir: 'Gorriti 500', barrio: 'Palermo', precio:265000, sup: 105, ant: '12', cal: 'buena' },
             { dir: 'Dorrego 200', barrio: 'Palermo', precio: 275000, sup: 118, ant: '6', cal: 'muy-buena' }
         ];
 
         for (const data of comparablesData) {
             window.comparablesManager.openComparableModal();
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise(resolve => setTimeout(resolve, 150)); // Aumentamos la pausa para asegurar que el modal esté listo
+
+            // ---- CAMBIO CLAVE AQUÍ: Limpiamos los campos explícitamente antes de rellenarlos ----
+            document.getElementById('comp-tipo-propiedad').value = '';
+            document.getElementById('comp-precio').value = '';
+            document.getElementById('comp-direccion').value = '';
+            document.getElementById('comp-localidad').value = '';
+            document.getElementById('comp-barrio').value = '';
+            document.getElementById('comp-antiguedad').value = '';
+            document.getElementById('comp-calidad').value = '';
+            document.getElementById('comp-sup-cubierta').value = '';
             
+            // Ahora rellenamos con los datos del test
             document.getElementById('comp-tipo-propiedad').value = 'departamento';
             document.getElementById('comp-precio').value = data.precio;
             document.getElementById('comp-direccion').value = data.dir;
@@ -353,15 +364,14 @@ async function testFlujoCompleto(testSuite) {
             document.getElementById('comp-sup-cubierta').value = data.sup;
             
             document.getElementById('btn-guardar-comparable').click();
-            await new Promise(resolve => setTimeout(resolve, 200));
+            await new Promise(resolve => setTimeout(resolve, 250)); // Pausa para asegurar que se guarde
         }
         testSuite.assertEqual(window.tasacionApp.comparables.length, 4, 'No se agregaron los 4 comparables');
 
         // --- PASO 3: Aplicar Factores ---
         document.getElementById('btn-siguiente-2').click();
-        await new Promise(resolve => setTimeout(resolve, 300)); // Esperar a que se muestren los factores
+        await new Promise(resolve => setTimeout(resolve, 300));
 
-        // Aplicar factores al primer comparable
         const slider1 = document.getElementById('factor-ubicación');
         slider1.value = '5';
         slider1.dispatchEvent(new Event('input', { bubbles: true }));
@@ -373,10 +383,10 @@ async function testFlujoCompleto(testSuite) {
 
         // --- PASO 4 y 5: Composición y Reporte Final ---
         document.getElementById('btn-siguiente-3').click();
-        await new Promise(resolve => setTimeout(resolve, 200)); // Paso 4: Composición
+        await new Promise(resolve => setTimeout(resolve, 200));
         
         document.getElementById('btn-siguiente-4').click();
-        await new Promise(resolve => setTimeout(resolve, 200)); // Paso 5: Reporte Final
+        await new Promise(resolve => setTimeout(resolve, 200));
 
         // --- VERIFICACIÓN FINAL ---
         const valorFinalTexto = document.getElementById('valor-total-tasacion').textContent;
@@ -409,7 +419,7 @@ async function runAllTests() {
         testComparables(testSuite);
         testFactoresManager(testSuite);
         testComposicionManager(testSuite);
-        testFlujoCompleto(testSuite); // <-- NUEVO TEST DE FLUJO COMPLETO
+        testFlujoCompleto(testSuite);
         
         const allPassed = await testSuite.run();
         console.log("runAllTests: Tests finalizados, resultado:", allPassed);
