@@ -1,5 +1,5 @@
 /**
- * Versión final corrigiendo la secuencia de UI y el estado del bucle.
+ * Versión final con tests robustos que esperan a la UI.
  */
 
 console.log("test.js: Script cargado");
@@ -275,7 +275,6 @@ async function testFactoresManager(testSuite) {
 // ========================================
 async function testComposicionManager(testSuite) {
     testSuite.test('Debe calcular el valor total de la tasación', async () => {
-        // 1. Preparamos un escenario completo hasta el paso 5
         document.getElementById('tipo-propiedad').value = 'departamento';
         document.getElementById('direccion').value = 'Calle Test 123';
         document.getElementById('localidad').value = 'CABA';
@@ -288,7 +287,6 @@ async function testComposicionManager(testSuite) {
         document.getElementById('cochera').value = 'propia';
         document.getElementById('btn-siguiente-1').click();
 
-        // Agregamos un comparable para poder avanzar
         window.comparablesManager.openComparableModal();
         await new Promise(resolve => setTimeout(resolve, 100));
         document.getElementById('comp-tipo-propiedad').value = 'departamento';
@@ -302,21 +300,15 @@ async function testComposicionManager(testSuite) {
         document.getElementById('btn-guardar-comparable').click();
         await new Promise(resolve => setTimeout(resolve, 200));
 
-        // Simulamos que ya tenemos un valor de referencia
         window.tasacionApp.valorM2Referencia = 2000;
 
-        // 2. ---- CAMBIO CLAVE AQUÍ ----
-        // Navegamos al paso 4 para que los elementos de la UI existan antes de calcular
+        // ---- CAMBIO CLAVE AQUÍ: Navegamos y esperamos a que la UI esté lista ----
         window.tasacionApp.goToStep(4);
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise(resolve => setTimeout(resolve, 300)); // Pausa para asegurar que la UI del paso 4 se renderice
 
-        // 3. Ejecutamos el cálculo de la composición
         window.tasacionApp.calculateComposition();
 
-        // 4. Obtenemos el valor total calculado por el manager
         const valorTotalCalculado = window.composicionManager.calculateValorTotal();
-
-        // 5. Verificamos que el valor del manager coincida con el mostrado en la UI
         const valorTotalEnUI = parseFloat(document.getElementById('valor-total-tasacion').textContent.replace('$', '').replace(',', ''));
         
         testSuite.assertClose(valorTotalCalculado, valorTotalEnUI, 0.01, 'El valor total calculado por el manager no coincide con el de la UI');
@@ -328,7 +320,6 @@ async function testComposicionManager(testSuite) {
 // ========================================
 async function testFlujoCompleto(testSuite) {
     testSuite.test('Debe completar el flujo completo de tasación y calcular el valor final', async () => {
-        // --- PASO 1: Datos del Inmueble ---
         document.getElementById('tipo-propiedad').value = 'departamento';
         document.getElementById('direccion').value = 'Uriarte 1500';
         document.getElementById('piso').value = '5';
@@ -344,15 +335,13 @@ async function testFlujoCompleto(testSuite) {
         document.getElementById('btn-siguiente-1').click();
         await new Promise(resolve => setTimeout(resolve, 200));
 
-        // --- PASO 2: Agregar Comparables (4) ---
         const comparablesData = [
             { dir: 'Scalabrini Ortiz 1200', barrio: 'Palermo', precio: 280000, sup: 110, ant: '5', cal: 'excelente' },
             { dir: 'Jorge Newbery 800', barrio: 'Colegiales', precio: 250000, sup: 115, ant: '10', cal: 'muy-buena' },
-            { dir: 'Gorriti 500', barrio: 'Palermo', precio: 265000, sup: 105, ant: '12', cal: 'buena' },
+            { dir: 'Gorriti 500', barrio: 'Palermo', precio:265000, sup: 105, ant: '12', cal: 'buena' },
             { dir: 'Dorrego 200', barrio: 'Palermo', precio: 275000, sup: 118, ant: '6', cal: 'muy-buena' }
         ];
 
-        // ---- CAMBIO CLAVE AQUÍ: Evitamos el modal y agregamos datos directamente ----
         let nextId = 1;
         for (const data of comparablesData) {
             const precioAjustado = data.precio * (1 - window.tasacionApp.descuentoNegociacion / 100);
@@ -367,34 +356,32 @@ async function testFlujoCompleto(testSuite) {
                 calidad: data.cal,
                 supCubierta: data.sup,
                 valorM2: precioAjustado / data.sup,
-                valorM2Ajustado: precioAjustado / data.sup, // Inicialmente sin factores
+                valorM2Ajustado: precioAjustado / data.sup,
                 factores: {}
             };
             window.tasacionApp.comparables.push(comparable);
         }
         testSuite.assertEqual(window.tasacionApp.comparables.length, 4, 'No se agregaron los 4 comparables');
 
-        // --- PASO 3: Aplicar Factores ---
         document.getElementById('btn-siguiente-2').click();
         await new Promise(resolve => setTimeout(resolve, 300));
 
-        const slider1 = document.getElementById('factor-ubicación');
+        // ---- CAMBIO CLAVE AQUÍ: Usamos assertElementExists para esperar al slider ----
+        const slider1 = testSuite.assertElementExists('#factor-ubicación', 'El slider de Ubicación no se encontró');
         slider1.value = '5';
         slider1.dispatchEvent(new Event('input', { bubbles: true }));
         
-        const slider2 = document.getElementById('factor-calidad-de-construcción');
+        const slider2 = testSuite.assertElementExists('#factor-calidad-de-construcción', 'El slider de Calidad no se encontró');
         slider2.value = '-5';
         slider2.dispatchEvent(new Event('input', { bubbles: true }));
         await new Promise(resolve => setTimeout(resolve, 100));
 
-        // --- PASO 4 y 5: Composición y Reporte Final ---
         document.getElementById('btn-siguiente-3').click();
         await new Promise(resolve => setTimeout(resolve, 200));
         
         document.getElementById('btn-siguiente-4').click();
         await new Promise(resolve => setTimeout(resolve, 200));
 
-        // --- VERIFICACIÓN FINAL ---
         const valorFinalTexto = document.getElementById('valor-total-tasacion').textContent;
         const valorFinalNumero = parseFloat(valorFinalTexto.replace('$', '').replace(',', ''));
         
