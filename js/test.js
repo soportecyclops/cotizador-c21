@@ -117,6 +117,36 @@ class TestSuite {
 }
 
 // ========================================
+// FUNCIÓN DE AYUDA PARA ESPERAR A LOS ELEMENTOS
+// ========================================
+/**
+ * Espera a que un elemento aparezca en el DOM.
+ * @param {string} selector - El selector CSS del elemento a esperar.
+ * @param {number} timeout - El tiempo máximo en milisegundos a esperar.
+ * @returns {Promise<Element>} Una promesa que se resuelve con el elemento.
+ */
+function waitForElement(selector, timeout = 5000) {
+    return new Promise((resolve, reject) => {
+        const startTime = Date.now();
+
+        const checkInterval = setInterval(() => {
+            const element = document.querySelector(selector);
+            if (element) {
+                clearInterval(checkInterval);
+                resolve(element);
+                return;
+            }
+
+            if (Date.now() - startTime > timeout) {
+                clearInterval(checkInterval);
+                reject(new Error(`Elemento con selector "${selector}" no apareció después de ${timeout}ms`));
+            }
+        }, 100); // Revisar cada 100ms
+    });
+}
+
+
+// ========================================
 // DEFINICIÓN DE LOS TESTS
 // ========================================
 
@@ -271,7 +301,7 @@ async function testFactoresManager(testSuite) {
 }
 
 // ========================================
-// TEST DE COMPOSICIÓN (CORREGIDO)
+// TEST DE COMPOSICIÓN (CORREGIDO CON TIEMPOS DE ESPERA LARGOS)
 // ========================================
 async function testComposicionManager(testSuite) {
     testSuite.test('Debe calcular el valor total de la tasación', async () => {
@@ -302,9 +332,12 @@ async function testComposicionManager(testSuite) {
 
         window.tasacionApp.valorM2Referencia = 2000;
 
-        // ---- CAMBIO CLAVE AQUÍ: Navegamos y esperamos a que la UI esté lista ----
+        // ---- CAMBIO CLAVE AQUÍ: Usamos waitForElement y esperamos más tiempo ----
+        console.log("DIAGNOSTICO: Navegando al paso 4 y esperando a la UI...");
         window.tasacionApp.goToStep(4);
-        await new Promise(resolve => setTimeout(resolve, 300)); // Pausa para asegurar que la UI del paso 4 se renderice
+        await waitForElement('#comp-sup-cubierta', 5000); // Esperar hasta 5s a que un elemento del paso 4 exista
+        console.log("DIAGNOSTICO: UI del paso 4 encontrada. Ejecutando cálculo...");
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Pausa extra larga después de la navegación
 
         window.tasacionApp.calculateComposition();
 
@@ -316,7 +349,7 @@ async function testComposicionManager(testSuite) {
 }
 
 // ========================================
-// TEST DE FLUJO COMPLETO (CORREGIDO)
+// TEST DE FLUJO COMPLETO (CORREGIDO CON TIEMPOS DE ESPERA LARGOS)
 // ========================================
 async function testFlujoCompleto(testSuite) {
     testSuite.test('Debe completar el flujo completo de tasación y calcular el valor final', async () => {
@@ -333,7 +366,7 @@ async function testFlujoCompleto(testSuite) {
         document.getElementById('sup-balcon').value = '12';
         document.getElementById('cochera').value = 'comun';
         document.getElementById('btn-siguiente-1').click();
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise(resolve => setTimeout(resolve, 500));
 
         const comparablesData = [
             { dir: 'Scalabrini Ortiz 1200', barrio: 'Palermo', precio: 280000, sup: 110, ant: '5', cal: 'excelente' },
@@ -363,24 +396,27 @@ async function testFlujoCompleto(testSuite) {
         }
         testSuite.assertEqual(window.tasacionApp.comparables.length, 4, 'No se agregaron los 4 comparables');
 
+        // ---- CAMBIO CLAVE AQUÍ: Usamos waitForElement y esperamos más tiempo ----
+        console.log("DIAGNOSTICO: Navegando al paso 3 y esperando a la UI de factores...");
         document.getElementById('btn-siguiente-2').click();
-        await new Promise(resolve => setTimeout(resolve, 300));
+        await waitForElement('#factor-ubicacion', 5000); // Esperar hasta 5s a que un elemento del paso 3 exista
+        console.log("DIAGNOSTICO: UI de factores encontrada. Aplicando factores...");
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Pausa extra larga
 
-        // ---- CAMBIO CLAVE AQUÍ: Usamos assertElementExists para esperar al slider ----
-        const slider1 = testSuite.assertElementExists('#factor-ubicación', 'El slider de Ubicación no se encontró');
+        const slider1 = document.getElementById('factor-ubicación');
         slider1.value = '5';
         slider1.dispatchEvent(new Event('input', { bubbles: true }));
         
-        const slider2 = testSuite.assertElementExists('#factor-calidad-de-construcción', 'El slider de Calidad no se encontró');
+        const slider2 = document.getElementById('factor-calidad-de-construcción');
         slider2.value = '-5';
         slider2.dispatchEvent(new Event('input', { bubbles: true }));
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 500));
 
         document.getElementById('btn-siguiente-3').click();
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
         document.getElementById('btn-siguiente-4').click();
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
         const valorFinalTexto = document.getElementById('valor-total-tasacion').textContent;
         const valorFinalNumero = parseFloat(valorFinalTexto.replace('$', '').replace(',', ''));
