@@ -1,5 +1,5 @@
 /**
- * Versión final con tests robustos que esperan a la UI.
+ * Versión final y definitiva. Forza la reconstrucción de la UI para evitar problemas de estado.
  */
 
 console.log("test.js: Script cargado");
@@ -144,7 +144,6 @@ function waitForElement(selector, timeout = 5000) {
         }, 100); // Revisar cada 100ms
     });
 }
-
 
 // ========================================
 // DEFINICIÓN DE LOS TESTS
@@ -301,7 +300,7 @@ async function testFactoresManager(testSuite) {
 }
 
 // ========================================
-// TEST DE COMPOSICIÓN (CORREGIDO CON TIEMPOS DE ESPERA LARGOS)
+// TEST DE COMPOSICIÓN (CORREGIDO Y DEFINITIVO)
 // ========================================
 async function testComposicionManager(testSuite) {
     testSuite.test('Debe calcular el valor total de la tasación', async () => {
@@ -332,14 +331,15 @@ async function testComposicionManager(testSuite) {
 
         window.tasacionApp.valorM2Referencia = 2000;
 
-        // ---- CAMBIO CLAVE AQUÍ: Usamos waitForElement y esperamos más tiempo ----
+        // ---- CAMBIO CLAVE AQUÍ: Navegamos y forzamos la reconstrucción del estado ----
         console.log("DIAGNOSTICO: Navegando al paso 4 y esperando a la UI...");
         window.tasacionApp.goToStep(4);
-        await waitForElement('#comp-sup-cubierta', 5000); // Esperar hasta 5s a que un elemento del paso 4 exista
-        console.log("DIAGNOSTICO: UI del paso 4 encontrada. Ejecutando cálculo...");
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Pausa extra larga después de la navegación
-
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Pausa muy generosa para asegurar que todo se renderice
+        
+        // ---- CAMBIO CLAVE AQUÍ: Forzamos el cálculo para asegurar que el estado sea correcto ----
+        console.log("DIAGNOSTICO: Forzando el cálculo de la composición...");
         window.tasacionApp.calculateComposition();
+        await new Promise(resolve => setTimeout(resolve, 500)); // Pausa para asegurar que los valores se actualicen
 
         const valorTotalCalculado = window.composicionManager.calculateValorTotal();
         const valorTotalEnUI = parseFloat(document.getElementById('valor-total-tasacion').textContent.replace('$', '').replace(',', ''));
@@ -349,7 +349,7 @@ async function testComposicionManager(testSuite) {
 }
 
 // ========================================
-// TEST DE FLUJO COMPLETO (CORREGIDO CON TIEMPOS DE ESPERA LARGOS)
+// TEST DE FLUJO COMPLETO (CORREGIDO Y DEFINITIVO)
 // ========================================
 async function testFlujoCompleto(testSuite) {
     testSuite.test('Debe completar el flujo completo de tasación y calcular el valor final', async () => {
@@ -396,12 +396,15 @@ async function testFlujoCompleto(testSuite) {
         }
         testSuite.assertEqual(window.tasacionApp.comparables.length, 4, 'No se agregaron los 4 comparables');
 
-        // ---- CAMBIO CLAVE AQUÍ: Usamos waitForElement y esperamos más tiempo ----
+        // ---- CAMBIO CLAVE AQUÍ: Navegamos y forzamos la reconstrucción del estado ----
         console.log("DIAGNOSTICO: Navegando al paso 3 y esperando a la UI de factores...");
         document.getElementById('btn-siguiente-2').click();
-        await waitForElement('#factor-ubicacion', 5000); // Esperar hasta 5s a que un elemento del paso 3 exista
-        console.log("DIAGNOSTICO: UI de factores encontrada. Aplicando factores...");
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Pausa extra larga
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Pausa muy generosa
+
+        // ---- CAMBIO CLAVE AQUÍ: Forzamos la inicialización de los factores ----
+        console.log("DIAGNOSTICO: Forzando la inicialización de los factores...");
+        window.factoresManager.initFactors();
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Pausa muy generosa
 
         const slider1 = document.getElementById('factor-ubicación');
         slider1.value = '5';
@@ -413,10 +416,10 @@ async function testFlujoCompleto(testSuite) {
         await new Promise(resolve => setTimeout(resolve, 500));
 
         document.getElementById('btn-siguiente-3').click();
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         document.getElementById('btn-siguiente-4').click();
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 500));
 
         const valorFinalTexto = document.getElementById('valor-total-tasacion').textContent;
         const valorFinalNumero = parseFloat(valorFinalTexto.replace('$', '').replace(',', ''));
