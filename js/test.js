@@ -1,5 +1,5 @@
 /**
- * Versión limpia con tests para una aplicación corregida.
+ * Versión corregida con el test de comparables completo.
  */
 
 console.log("test.js: Script cargado");
@@ -186,7 +186,7 @@ function testDatosInmueble(testSuite) {
 }
 
 // ========================================
-// FUNCIÓN DE TEST DE COMPARABLES (VERSIÓN LIMPIA Y NATURAL)
+// FUNCIÓN DE TEST DE COMPARABLES (CORREGIDA Y COMPLETA)
 // ========================================
 async function testComparables(testSuite) {
     testSuite.test('Debe agregar y eliminar un comparable correctamente', async () => {
@@ -202,17 +202,21 @@ async function testComparables(testSuite) {
         
         testSuite.assertEqual(window.tasacionApp.currentStep, 2, 'No se pudo avanzar al paso 2 para probar comparables');
 
-        // 2. Abrimos el modal y rellenamos los datos de forma natural
+        // 2. Abrimos el modal y rellenamos TODOS los datos obligatorios
         window.comparablesManager.openComparableModal();
         await new Promise(resolve => setTimeout(resolve, 100));
         
+        // --- CAMBIOS AQUÍ ---
+        document.getElementById('comp-tipo-propiedad').value = 'departamento'; // Campo que faltaba
         document.getElementById('comp-precio').value = '150000';
         document.getElementById('comp-direccion').value = 'Calle Falsa 456';
         document.getElementById('comp-localidad').value = 'CABA';
         document.getElementById('comp-barrio').value = 'Caballito';
+        document.getElementById('comp-antiguedad').value = '10'; // Campo que faltaba
+        document.getElementById('comp-calidad').value = 'buena'; // Campo que faltaba
         document.getElementById('comp-sup-cubierta').value = '80';
         
-        // 3. Guardamos el comparable haciendo click en el botón (ahora debería funcionar)
+        // 3. Guardamos el comparable
         document.getElementById('btn-guardar-comparable').click();
         await new Promise(resolve => setTimeout(resolve, 200));
         
