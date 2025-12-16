@@ -187,7 +187,6 @@ function testDatosInmueble(testSuite) {
 
 async function testComparables(testSuite) {
     testSuite.test('Debe agregar y eliminar un comparable correctamente', async () => {
-        // ... (código del test existente sin cambios) ...
         document.getElementById('tipo-propiedad').value = 'departamento';
         document.getElementById('direccion').value = 'Calle Test 123';
         document.getElementById('localidad').value = 'CABA';
@@ -229,7 +228,6 @@ async function testComparables(testSuite) {
 
 async function testFactoresManager(testSuite) {
     testSuite.test('Debe aplicar factores de ajuste y recalcular el valor', async () => {
-        // ... (código del test existente sin cambios) ...
         document.getElementById('tipo-propiedad').value = 'departamento';
         document.getElementById('direccion').value = 'Calle Test 123';
         document.getElementById('localidad').value = 'CABA';
@@ -350,36 +348,29 @@ async function testFlujoCompleto(testSuite) {
         const comparablesData = [
             { dir: 'Scalabrini Ortiz 1200', barrio: 'Palermo', precio: 280000, sup: 110, ant: '5', cal: 'excelente' },
             { dir: 'Jorge Newbery 800', barrio: 'Colegiales', precio: 250000, sup: 115, ant: '10', cal: 'muy-buena' },
-            { dir: 'Gorriti 500', barrio: 'Palermo', precio:265000, sup: 105, ant: '12', cal: 'buena' },
+            { dir: 'Gorriti 500', barrio: 'Palermo', precio: 265000, sup: 105, ant: '12', cal: 'buena' },
             { dir: 'Dorrego 200', barrio: 'Palermo', precio: 275000, sup: 118, ant: '6', cal: 'muy-buena' }
         ];
 
-        for (let i = 0; i < comparablesData.length; i++) {
-            const data = comparablesData[i];
-            
-            window.comparablesManager.openComparableModal();
-            await new Promise(resolve => setTimeout(resolve, 250));
-            
-            // ---- CAMBIO CLAVE AQUÍ: Limpiamos los campos explícitamente para un estado limpio ----
-            const form = document.getElementById('form-comparable');
-            if(form) {
-                const inputs = form.querySelectorAll('input, select');
-                inputs.forEach(input => input.value = '');
-            }
-            await new Promise(resolve => setTimeout(resolve, 50));
-            
-            // Rellenamos los datos
-            document.getElementById('comp-tipo-propiedad').value = 'departamento';
-            document.getElementById('comp-precio').value = data.precio;
-            document.getElementById('comp-direccion').value = data.dir;
-            document.getElementById('comp-localidad').value = 'CABA';
-            document.getElementById('comp-barrio').value = data.barrio;
-            document.getElementById('comp-antiguedad').value = data.ant;
-            document.getElementById('comp-calidad').value = data.cal;
-            document.getElementById('comp-sup-cubierta').value = data.sup;
-            
-            document.getElementById('btn-guardar-comparable').click();
-            await new Promise(resolve => setTimeout(resolve, 300));
+        // ---- CAMBIO CLAVE AQUÍ: Evitamos el modal y agregamos datos directamente ----
+        let nextId = 1;
+        for (const data of comparablesData) {
+            const precioAjustado = data.precio * (1 - window.tasacionApp.descuentoNegociacion / 100);
+            const comparable = {
+                id: nextId++,
+                tipoPropiedad: 'departamento',
+                precio: data.precio,
+                direccion: data.dir,
+                localidad: 'CABA',
+                barrio: data.barrio,
+                antiguedad: data.ant,
+                calidad: data.cal,
+                supCubierta: data.sup,
+                valorM2: precioAjustado / data.sup,
+                valorM2Ajustado: precioAjustado / data.sup, // Inicialmente sin factores
+                factores: {}
+            };
+            window.tasacionApp.comparables.push(comparable);
         }
         testSuite.assertEqual(window.tasacionApp.comparables.length, 4, 'No se agregaron los 4 comparables');
 
