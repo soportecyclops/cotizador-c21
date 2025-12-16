@@ -82,10 +82,6 @@ class ComparablesManager {
         
         for (const fieldId of requiredFields) {
             const field = document.getElementById(fieldId);
-            
-            // >>> LÍNEA DE DIAGNÓSTICO AÑADIDA AQUÍ <<<
-            console.log(`DIAGNOSTICO_VALIDACION: Revisando campo ${fieldId}. Elemento encontrado: ${!!field}. Valor: "${field ? field.value : 'N/A'}"`);
-            
             if (!field || !field.value || typeof field.value !== 'string' || !field.value.trim()) {
                 window.tasacionApp.showNotification(`Por favor, complete todos los campos obligatorios (${fieldId})`, 'error');
                 if (field) field.focus();
@@ -214,10 +210,6 @@ class ComparablesManager {
         }
     }
 
-    // CAMBIO: Renombrado de resetComparables a reset para consistencia.
-    /**
-     * Resetea la lista de comparables y el ID siguiente.
-     */
     reset() {
         window.tasacionApp.comparables = [];
         this.nextId = 1;
