@@ -465,29 +465,32 @@ async function testFlujoCompleto(testSuite) {
         document.getElementById('btn-siguiente-4').click();
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        // 7. ESPERAR a que el valor final se calcule y tenga el formato correcto
-        console.log("DIAGNOSTICO: Esperando a que el valor final se calcule y se formatee...");
+        // 7. ESPERAR a que el valor final se calcule y sea mayor que cero
+        console.log("DIAGNOSTICO: Esperando a que el valor final se calcule y sea mayor a cero...");
         await waitForCondition(() => {
             const valorFinalElement = document.getElementById('valor-total-tasacion');
-            return valorFinalElement && valorFinalElement.textContent.startsWith('$');
+            return valorFinalElement && parseFloat(valorFinalElement.textContent.replace(',', '')) > 0;
         });
-        console.log("DIAGNOSTICO: Valor final calculado y formateado.");
+        console.log("DIAGNOSTICO: Valor final calculado.");
 
         // 8. Verificar resultados finales
         const valorFinalElement = document.getElementById('valor-total-tasacion');
         testSuite.assert(valorFinalElement, 'El elemento valor-total-tasacion no existe en el DOM');
         
         const valorFinalTexto = valorFinalElement.textContent;
-        const valorFinalNumero = parseFloat(valorFinalTexto.replace('$', '').replace(',', ''));
+        const valorFinalNumero = parseFloat(valorFinalTexto.replace(',', ''));
         
-        testSuite.assert(valorFinalTexto.startsWith('$'), 'El valor final no tiene el formato de moneda correcto');
+        // CORRECCIÓN: Verificar el formato en el elemento padre que contiene el '$'
+        const valorFinalContainer = valorFinalElement.parentElement;
+        testSuite.assert(valorFinalContainer.textContent.startsWith('$'), 'El valor final no tiene el formato de moneda correcto');
+        
         testSuite.assert(valorFinalNumero > 0, 'El valor final no es un número positivo');
         
         const valorM2RefTexto = document.getElementById('valor-m2-referencia').textContent;
         const valorM2RefNumero = parseFloat(valorM2RefTexto.replace('$', ''));
         testSuite.assert(valorM2RefNumero > 0, 'El valor de referencia por m² no es un número positivo');
         
-        console.log(`%c📊 Flujo Completo: Valor Final de Tasación: ${valorFinalTexto}`, 'color: #17a2b8; font-weight: bold;');
+        console.log(`%c📊 Flujo Completo: Valor Final de Tasación: ${valorFinalContainer.textContent}`, 'color: #17a2b8; font-weight: bold;');
     });
 }
 
