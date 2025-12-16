@@ -376,7 +376,13 @@ class TasacionApp {
      * Es una función más robusta para ser usada por los tests y el botón de reinicio.
      */
     resetForm() {
-        // Limpiar los campos del paso 1 uno por uno
+        // Resetear variables de la aplicación
+        this.inmuebleData = {};
+        this.comparables = [];
+        this.valorM2Referencia = 0;
+        this.descuentoNegociacion = 10; // Valor por defecto
+
+        // Resetear campos del formulario del paso 1
         document.getElementById('tipo-propiedad').value = '';
         document.getElementById('direccion').value = '';
         document.getElementById('piso').value = '';
@@ -391,20 +397,27 @@ class TasacionApp {
         document.getElementById('sup-balcon').value = '';
         document.getElementById('sup-terreno').value = '';
         document.getElementById('cochera').value = 'no';
-
-        // Resetear variables de la aplicación
-        this.inmuebleData = {};
-        this.comparables = [];
-        this.valorM2Referencia = 0;
-        this.descuentoNegociacion = 10; // Valor por defecto
         document.getElementById('descuento-negociacion').value = 10;
 
         // Volver al paso 1 y actualizar UI
         this.goToStep(1);
 
-        // Resetear otros componentes si existen
+        // Resetear otros componentes llamando a su método reset()
+        // Esto evita re-instanciarlos, que era la causa del bug.
         if (window.comparablesManager) {
-            window.comparablesManager.resetComparables();
+            window.comparablesManager.reset();
+        }
+        if (window.factoresManager) {
+            window.factoresManager.reset();
+        }
+        if (window.composicionManager) {
+            window.composicionManager.reset();
+        }
+
+        // CORRECCIÓN: Ocultar el modal, no eliminarlo del DOM
+        const modal = document.getElementById('modal-comparable');
+        if (modal) {
+            modal.style.display = 'none';
         }
     }
 
