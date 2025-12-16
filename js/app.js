@@ -11,8 +11,23 @@ class TasacionApp {
     }
 
     init() {
+        // NUEVO: Verificar si el usuario está autenticado al iniciar
+        if (!isAuthenticated()) {
+            window.location.href = 'login.html';
+            return;
+        }
+        
         this.setupEventListeners();
         this.updateProgressIndicator();
+        this.showWelcomeMessage();
+    }
+
+    // NUEVO: Muestra un mensaje de bienvenida al usuario logueado
+    showWelcomeMessage() {
+        const userName = localStorage.getItem('userName');
+        if (userName) {
+            this.showNotification(`¡Bienvenido/a, ${userName}!`, 'success');
+        }
     }
 
     setupEventListeners() {
@@ -38,9 +53,15 @@ class TasacionApp {
             this.calculateReferenceValue();
         });
         
-        // Eventos de exportación y reinicio
+        // MODIFICADO: Eventos de exportación, reinicio y guardado
         document.getElementById('btn-exportar').addEventListener('click', () => this.exportReport());
         document.getElementById('btn-reiniciar').addEventListener('click', () => this.resetApp());
+        
+        // NUEVO: Evento para guardar en el backend
+        const saveButton = document.getElementById('btn-guardar-backend');
+        if (saveButton) {
+            saveButton.addEventListener('click', () => this.saveQuotationToBackend());
+        }
     }
 
     validateAndNext(step) {
@@ -322,82 +343,209 @@ class TasacionApp {
         }, 5000);
     }
 
+    // ==========================================================
+    // MÉTODOS PARA EL BACKEND Y EXPORTACIÓN
+    // ==========================================================
+
+    // NUEVO: Guardar la cotización en el backend
+    async saveQuotationToBackend() {
+        if (!isAuthenticated()) {
+            this.showNotification('Debes estar logueado para guardar una cotización.', 'error');
+            return;
+        }
+
+        const quotationData = {
+            inmuebleData: this.inmuebleData,
+            comparables: this.comparables,
+            valorM2Referencia: this.valorM2Referencia,
+            valorFinal: document.getElementById('valor-total-tasacion').textContent,
+            fecha: new Date().toISOString()
+        };
+
+        try {
+            const response = await fetch('https://tu-api.com/api/quotations', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${getAuthToken()}`
+                },
+                body: JSON.stringify(quotationData)
+            });
+
+            if (!response.ok) {
+                throw new Error('No se pudo guardar la cotización.');
+            }
+
+            const result = await response.json();
+            this.showNotification(`Cotización guardada con ID: ${result.id}`, 'success');
+
+        } catch (error) {
+            this.showNotification(error.message, 'error');
+        }
+    }
+
+    // NUEVO: Cargar una cotización desde el backend
+    async loadQuotationFromBackend(quotationId) {
+        if (!isAuthenticated()) {
+            this.showNotification('Debes estar logueado para cargar una cotización.', 'error');
+            return;
+        }
+
+        try {
+            const response = await fetch(`https://tu-api.com/api/quotations/${quotationId}`, {
+                headers: {
+                    'Authorization': `Bearer ${getAuthToken()}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('No se pudo cargar la cotización.');
+            }
+
+            const data = await response.json();
+            
+            // Cargar los datos en la aplicación
+            this.inmuebleData = data.inmuebleData;
+            this.comparables = data.comparables;
+            this.valorM2Referencia = data.valorM2Referencia;
+            
+            // Actualizar la UI con los datos cargados
+            this.updateUIWithLoadedData();
+            this.goToStep(5); // Llevar al usuario al resultado final
+
+            this.showNotification('Cotización cargada correctamente.', 'success');
+
+        } catch (error) {
+            this.showNotification(error.message, 'error');
+        }
+    }
+
+    // NUEVO: Lógica para rellenar la UI con datos cargados (requiere implementación detallada)
+    updateUIWithLoadedData() {
+        // Esta función es compleja y debe rellenar todos los campos del formulario
+        // y la UI con los datos de this.inmuebleData y this.comparables.
+        // Por ahora, es un placeholder para la lógica.
+        console.log("Actualizando UI con datos cargados:", this.inmuebleData, this.comparables);
+        // Ejemplo:
+        // document.getElementById('direccion').value = this.inmuebleData.direccion;
+        // ... y así con todos los campos
+    }
+
+    // MODIFICADO: Mejora del informe PDF
     exportReport() {
-        // Crear un nuevo documento PDF
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        
-        // Agregar título
-        doc.setFontSize(20);
-        doc.text('Informe de Tasación Inmobiliaria', 105, 20, { align: 'center' });
-        
-        // Agregar fecha
+
+        // Fuentes y colores
+        doc.setFont("helvetica");
+        const primaryColor = [0, 51, 102]; // Un azul corporativo
+        const secondaryColor = [100, 100, 100];
+
+        // --- ENCABEZADO ---
+        doc.setFillColor(...primaryColor);
+        doc.rect(0, 0, 210, 40, 'F'); // Rectángulo de color en la parte superior
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(22);
+        doc.text("INFORME DE TASACIÓN", 105, 20, { align: 'center' });
         doc.setFontSize(12);
-        doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 20, 30);
-        
-        // Agregar datos del inmueble
+        doc.text("Century21 Inmobiliaria", 105, 28, { align: 'center' });
+        doc.text(`Fecha: ${new Date().toLocaleDateString('es-AR')}`, 105, 35, { align: 'center' });
+
+        // --- DATOS DEL INMUEBLE ---
+        doc.setTextColor(0, 0, 0);
         doc.setFontSize(16);
-        doc.text('Datos del Inmueble', 20, 45);
-        
-        doc.setFontSize(12);
-        let yPos = 55;
-        doc.text(`Dirección: ${this.inmuebleData.direccion}`, 20, yPos);
-        yPos += 10;
-        doc.text(`Tipo: ${this.inmuebleData.tipoPropiedad}`, 20, yPos);
-        yPos += 10;
-        doc.text(`Localidad: ${this.inmuebleData.localidad}, ${this.inmuebleData.barrio}`, 20, yPos);
-        yPos += 10;
-        doc.text(`Antigüedad: ${this.inmuebleData.antiguedad} años`, 20, yPos);
-        yPos += 10;
-        doc.text(`Calidad: ${this.inmuebleData.calidad}`, 20, yPos);
-        yPos += 10;
-        doc.text(`Superficie Cubierta: ${this.inmuebleData.supCubierta} m²`, 20, yPos);
-        
-        // Agregar comparables
-        yPos += 20;
-        doc.setFontSize(16);
-        doc.text('Comparables', 20, yPos);
-        
-        doc.setFontSize(12);
-        yPos += 10;
-        this.comparables.forEach(comparable => {
-            doc.text(`Comparable ${comparable.id}: $${comparable.valorM2Ajustado.toFixed(2)}/m²`, 20, yPos);
-            yPos += 10;
+        doc.text("1. Datos del Inmueble", 20, 55);
+        doc.setDrawColor(...secondaryColor);
+        doc.line(20, 57, 190, 57);
+
+        doc.setFontSize(11);
+        let yPos = 65;
+        const lineHeight = 7;
+
+        const datosInmueble = [
+            `Dirección: ${this.inmuebleData.direccion}`,
+            `Tipo: ${this.inmuebleData.tipoPropiedad}`,
+            `Ubicación: ${this.inmuebleData.localidad}, ${this.inmuebleData.barrio}`,
+            `Antigüedad: ${this.inmuebleData.antiguedad} años`,
+            `Calidad: ${this.inmuebleData.calidad}`,
+            `Sup. Cubierta: ${this.inmuebleData.supCubierta} m²`,
+            `Sup. Semicubierta: ${this.inmuebleData.supSemicubierta} m²`,
+            `Sup. Descubierta: ${this.inmuebleData.supDescubierta} m²`,
+        ];
+
+        datosInmueble.forEach(line => {
+            doc.text(line, 20, yPos);
+            yPos += lineHeight;
         });
-        
-        // Agregar valor de referencia
-        yPos += 20;
+
+        // --- COMPARABLES ---
+        yPos += 10;
         doc.setFontSize(16);
-        doc.text('Valor de Referencia', 20, yPos);
+        doc.text("2. Análisis de Comparables", 20, yPos);
+        doc.line(20, yPos + 2, 190, yPos + 2);
+        yPos += 10;
+
+        doc.setFontSize(10);
+        doc.text("Se analizaron las siguientes propiedades similares para determinar el valor de referencia:", 20, yPos);
+        yPos += lineHeight;
+
+        // Tabla simple de comparables
+        const headers = ["Dirección", "Precio Venta", "Valor m² Ajustado"];
+        const data = this.comparables.map(c => [
+            c.direccion,
+            `$${c.precio.toLocaleString('es-AR')}`,
+            `$${c.valorM2Ajustado.toFixed(2)}`
+        ]);
         
+        let xPos = 20;
+        headers.forEach(header => {
+            doc.text(header, xPos, yPos);
+            xPos += 60;
+        });
+        yPos += lineHeight;
+        doc.line(20, yPos-1, 190, yPos-1);
+
+        data.forEach(row => {
+            xPos = 20;
+            row.forEach(cell => {
+                doc.text(cell, xPos, yPos);
+                xPos += 60;
+            });
+            yPos += lineHeight;
+        });
+
+
+        // --- VALOR FINAL ---
+        yPos += 10;
+        doc.setFontSize(16);
+        doc.text("3. Valor de Tasación", 20, yPos);
+        doc.line(20, yPos + 2, 190, yPos + 2);
+        yPos += 15;
+
         doc.setFontSize(12);
-        yPos += 10;
-        doc.text(`Valor por m²: $${this.valorM2Referencia.toFixed(2)}`, 20, yPos);
+        doc.text(`Valor de Referencia por m²: $${this.valorM2Referencia.toFixed(2)}`, 20, yPos);
+        yPos += lineHeight * 2;
         
-        // Agregar valor total
-        yPos += 20;
-        doc.setFontSize(16);
-        doc.text('Valor Total de Tasación', 20, yPos);
+        doc.setFontSize(18);
+        doc.setTextColor(...primaryColor);
+        const valorFinalTexto = document.getElementById('valor-total-tasacion').textContent;
+        doc.text(`Valor Final de Tasación: $${valorFinalTexto}`, 20, yPos);
         
-        doc.setFontSize(14);
-        yPos += 10;
-        const valorTotal = document.getElementById('valor-total-tasacion').textContent;
-        doc.text(`$${valorTotal}`, 20, yPos);
-        
+        // --- PIE DE PÁGINA ---
+        doc.setFontSize(10);
+        doc.setTextColor(...secondaryColor);
+        doc.text("Este informe es una estimación y puede variar según las condiciones del mercado.", 105, 280, { align: 'center' });
+        doc.text("Generado por Cotizador Inmobiliario Century21 V2.0", 105, 285, { align: 'center' });
+
         // Guardar el PDF
-        doc.save('informe_tasacion.pdf');
-        
+        doc.save(`informe_tasacion_${this.inmuebleData.direccion.replace(/ /g, '_')}.pdf`);
         this.showNotification('Informe exportado correctamente', 'success');
     }
 
     // ==========================================================
-    // MÉTODOS CORREGIDOS / AÑADIDOS
+    // MÉTODOS DE RESET Y APLICACIÓN
     // ==========================================================
     
-    /**
-     * Resetea el estado de la aplicación y los campos del formulario.
-     * Es una función más robusta para ser usada por los tests y el botón de reinicio.
-     */
     resetForm() {
         // Resetear variables de la aplicación
         this.inmuebleData = {};
@@ -427,7 +575,6 @@ class TasacionApp {
         this.goToStep(1);
 
         // Resetear otros componentes llamando a su método reset()
-        // Esto evita re-instanciarlos, que era la causa del bug.
         if (window.comparablesManager) {
             window.comparablesManager.reset();
         }
@@ -445,13 +592,9 @@ class TasacionApp {
         }
     }
 
-    /**
-     * Resetea la aplicación mostrando un diálogo de confirmación.
-     * Ahora utiliza el método resetForm() para la lógica principal.
-     */
     resetApp() {
         if (confirm('¿Está seguro de que desea reiniciar la aplicación? Se perderán todos los datos ingresados.')) {
-            this.resetForm(); // <-- Usar la nueva función
+            this.resetForm();
             this.showNotification('Aplicación reiniciada correctamente', 'success');
         }
     }
