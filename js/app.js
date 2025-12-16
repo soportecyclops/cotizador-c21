@@ -68,8 +68,11 @@ class TasacionApp {
                 }
                 break;
             case 4:
-                this.calculateComposition();
-                this.goToStep(5);
+                isValid = true; // Siempre válido para pasar al paso 5
+                if (isValid) {
+                    this.calculateComposition();
+                    this.goToStep(5);
+                }
                 break;
         }
     }
@@ -193,11 +196,11 @@ class TasacionApp {
             balcon: 0.33
         };
         
-        // Actualizar valores en la tabla con los NUEVOS IDs para evitar conflictos
-        document.getElementById('resumen-sup-cubierta').textContent = this.inmuebleData.supCubierta.toFixed(2);
-        document.getElementById('resumen-sup-semicubierta').textContent = this.inmuebleData.supSemicubierta.toFixed(2);
-        document.getElementById('resumen-sup-descubierta').textContent = this.inmuebleData.supDescubierta.toFixed(2);
-        document.getElementById('resumen-sup-balcon').textContent = this.inmuebleData.supBalcon.toFixed(2);
+        // Actualizar valores en la tabla con los IDs correctos del HTML
+        document.getElementById('comp-sup-cubierta').textContent = this.inmuebleData.supCubierta.toFixed(2);
+        document.getElementById('comp-sup-semicubierta').textContent = this.inmuebleData.supSemicubierta.toFixed(2);
+        document.getElementById('comp-sup-descubierta').textContent = this.inmuebleData.supDescubierta.toFixed(2);
+        document.getElementById('comp-sup-balcon').textContent = this.inmuebleData.supBalcon.toFixed(2);
         
         // Calcular valores parciales
         const valorCubierta = this.inmuebleData.supCubierta * coeficientes.cubierta * this.valorM2Referencia;
@@ -209,21 +212,21 @@ class TasacionApp {
         const valorCochera = this.inmuebleData.cochera === 'propia' ? 5000 : 
                              this.inmuebleData.cochera === 'comun' ? 2000 : 0;
         
-        // Actualizar valores en la tabla con los NUEVOS IDs
-        document.getElementById('resumen-valor-m2').textContent = `$${this.valorM2Referencia.toFixed(2)}`;
-        document.getElementById('resumen-valor-cubierta').textContent = `$${valorCubierta.toFixed(2)}`;
+        // Actualizar valores en la tabla con los IDs correctos del HTML
+        document.getElementById('comp-valor-m2').textContent = `$${this.valorM2Referencia.toFixed(2)}`;
+        document.getElementById('comp-valor-cubierta').textContent = `$${valorCubierta.toFixed(2)}`;
         
-        document.getElementById('resumen-valor-m2-semi').textContent = `$${(this.valorM2Referencia * coeficientes.semicubierta).toFixed(2)}`;
-        document.getElementById('resumen-valor-semicubierta').textContent = `$${valorSemicubierta.toFixed(2)}`;
+        document.getElementById('comp-valor-m2-semi').textContent = `$${(this.valorM2Referencia * coeficientes.semicubierta).toFixed(2)}`;
+        document.getElementById('comp-valor-semicubierta').textContent = `$${valorSemicubierta.toFixed(2)}`;
         
-        document.getElementById('resumen-valor-m2-desc').textContent = `$${(this.valorM2Referencia * coeficientes.descubierta).toFixed(2)}`;
-        document.getElementById('resumen-valor-descubierta').textContent = `$${valorDescubierta.toFixed(2)}`;
+        document.getElementById('comp-valor-m2-desc').textContent = `$${(this.valorM2Referencia * coeficientes.descubierta).toFixed(2)}`;
+        document.getElementById('comp-valor-descubierta').textContent = `$${valorDescubierta.toFixed(2)}`;
         
-        document.getElementById('resumen-valor-m2-balc').textContent = `$${(this.valorM2Referencia * coeficientes.balcon).toFixed(2)}`;
-        document.getElementById('resumen-valor-balcon').textContent = `$${valorBalcon.toFixed(2)}`;
+        document.getElementById('comp-valor-m2-balc').textContent = `$${(this.valorM2Referencia * coeficientes.balcon).toFixed(2)}`;
+        document.getElementById('comp-valor-balcon').textContent = `$${valorBalcon.toFixed(2)}`;
         
-        document.getElementById('resumen-valor-m2-cochera').textContent = 'Global';
-        document.getElementById('resumen-valor-cochera').textContent = `$${valorCochera.toFixed(2)}`;
+        document.getElementById('comp-valor-m2-cochera').textContent = 'Global';
+        document.getElementById('comp-valor-cochera').textContent = `$${valorCochera.toFixed(2)}`;
         
         // Calcular valor total
         const valorTotal = valorCubierta + valorSemicubierta + valorDescubierta + valorBalcon + valorCochera;
@@ -245,7 +248,25 @@ class TasacionApp {
         
         // Si vamos al paso 3, inicializar los factores de ajuste
         if (step === 3) {
-            window.factoresManager.initFactors();
+            setTimeout(() => {
+                if (window.factoresManager) {
+                    window.factoresManager.initFactors();
+                }
+            }, 300);
+        }
+        
+        // Si vamos al paso 4, calcular el valor de referencia
+        if (step === 4) {
+            setTimeout(() => {
+                this.calculateReferenceValue();
+            }, 300);
+        }
+        
+        // Si vamos al paso 5, calcular la composición
+        if (step === 5) {
+            setTimeout(() => {
+                this.calculateComposition();
+            }, 300);
         }
     }
 
@@ -281,7 +302,9 @@ class TasacionApp {
         });
         
         // Actualizar UI
-        window.comparablesManager.updateComparablesUI();
+        if (window.comparablesManager) {
+            window.comparablesManager.updateComparablesUI();
+        }
     }
 
     showNotification(message, type = 'info') {
