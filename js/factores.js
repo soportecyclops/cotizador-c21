@@ -273,6 +273,25 @@ class FactoresManager {
             document.head.appendChild(styles);
         }
     }
+
+    // CAMBIO: Añadido el método reset().
+    /**
+     * Resetea los factores de todos los comparables y limpia la UI.
+     */
+    reset() {
+        // Limpiar los factores de cada comparable en la aplicación
+        if (window.tasacionApp && window.tasacionApp.comparables) {
+            window.tasacionApp.comparables.forEach(comparable => {
+                comparable.factores = {};
+            });
+        }
+        
+        // Limpiar la UI de factores si está visible
+        const tabsContainer = document.querySelector('.factor-tabs');
+        const factorsContent = document.getElementById('factors-content');
+        if (tabsContainer) tabsContainer.innerHTML = '';
+        if (factorsContent) factorsContent.innerHTML = '';
+    }
 }
 
 // Inicializar el gestor de factores
