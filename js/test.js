@@ -1,5 +1,5 @@
 /**
- * Versión final con un test de flujo completo simplificado y más diagnóstico.
+ * Versión final con un test de flujo completo robusto contra condiciones de carrera.
  */
 
 console.log("test.js: Script cargado");
@@ -187,7 +187,6 @@ function testDatosInmueble(testSuite) {
 
 async function testComparables(testSuite) {
     testSuite.test('Debe agregar y eliminar un comparable correctamente', async () => {
-        // ... (código del test existente sin cambios) ...
         document.getElementById('tipo-propiedad').value = 'departamento';
         document.getElementById('direccion').value = 'Calle Test 123';
         document.getElementById('localidad').value = 'CABA';
@@ -229,7 +228,6 @@ async function testComparables(testSuite) {
 
 async function testFactoresManager(testSuite) {
     testSuite.test('Debe aplicar factores de ajuste y recalcular el valor', async () => {
-        // ... (código del test existente sin cambios) ...
         document.getElementById('tipo-propiedad').value = 'departamento';
         document.getElementById('direccion').value = 'Calle Test 123';
         document.getElementById('localidad').value = 'CABA';
@@ -274,7 +272,6 @@ async function testFactoresManager(testSuite) {
 
 async function testComposicionManager(testSuite) {
     testSuite.test('Debe calcular el valor total de la tasación', async () => {
-        // ... (código del test existente sin cambios) ...
         document.getElementById('tipo-propiedad').value = 'departamento';
         document.getElementById('direccion').value = 'Calle Test 123';
         document.getElementById('localidad').value = 'CABA';
@@ -311,7 +308,7 @@ async function testComposicionManager(testSuite) {
 }
 
 // ========================================
-// NUEVO TEST DE FLUJO COMPLETO (END-TO-END) SIMPLIFICADO
+// NUEVO TEST DE FLUJO COMPLETO (END-TO-END) ROBUSTO
 // ========================================
 async function testFlujoCompleto(testSuite) {
     testSuite.test('Debe completar el flujo completo de tasación y calcular el valor final', async () => {
@@ -335,19 +332,37 @@ async function testFlujoCompleto(testSuite) {
         const comparablesData = [
             { dir: 'Scalabrini Ortiz 1200', barrio: 'Palermo', precio: 280000, sup: 110, ant: '5', cal: 'excelente' },
             { dir: 'Jorge Newbery 800', barrio: 'Colegiales', precio: 250000, sup: 115, ant: '10', cal: 'muy-buena' },
-            { dir: 'Gorriti 500', barrio: 'Palermo', precio:265000, sup: 105, ant: '12', cal: 'buena' },
+            { dir: 'Gorriti 500', barrio: 'Palermo', precio: 265000, sup: 105, ant: '12', cal: 'buena' },
             { dir: 'Dorrego 200', barrio: 'Palermo', precio: 275000, sup: 118, ant: '6', cal: 'muy-buena' }
         ];
+
+        // Función auxiliar para esperar a que un campo esté vacío (robusta contra race conditions)
+        const waitForFieldToBeEmpty = (fieldId, timeout = 1000) => {
+            return new Promise((resolve, reject) => {
+                const startTime = Date.now();
+                const checkField = () => {
+                    const field = document.getElementById(fieldId);
+                    if (field && field.value === '') {
+                        resolve();
+                    } else if (Date.now() - startTime > timeout) {
+                        reject(new Error(`Timeout waiting for field ${fieldId} to be empty.`));
+                    } else {
+                        requestAnimationFrame(checkField);
+                    }
+                };
+                requestAnimationFrame(checkField);
+            });
+        };
 
         for (let i = 0; i < comparablesData.length; i++) {
             const data = comparablesData[i];
             console.log(`DIAGNOSTICO: Iniciando agregado del comparable ${i + 1}: ${data.dir}`);
             
             window.comparablesManager.openComparableModal();
-            await new Promise(resolve => setTimeout(resolve, 200)); // Pausa un poco más larga
             
-            // ---- CAMBIO CLAVE AQUÍ: Eliminamos la limpieza manual y nos fiamos de form.reset() ----
-            
+            // Esperamos de forma robusta a que el campo de precio esté vacío, señal de que el form.reset() ha terminado.
+            await waitForFieldToBeEmpty('comp-precio');
+
             // Rellenamos los datos
             document.getElementById('comp-tipo-propiedad').value = 'departamento';
             document.getElementById('comp-precio').value = data.precio;
@@ -358,11 +373,14 @@ async function testFlujoCompleto(testSuite) {
             document.getElementById('comp-calidad').value = data.cal;
             document.getElementById('comp-sup-cubierta').value = data.sup;
             
-            document.getElementById('btn-guardar-comparable').click();
-            await new Promise(resolve => setTimeout(resolve, 300)); // Pausa más larga para asegurar guardado
+            // Verificación final antes de guardar
+            const precioField = document.getElementById('comp-precio');
+            if (!precioField || precioField.value !== String(data.precio)) {
+                throw new Error(`El campo de precio no se rellenó correctamente antes de guardar. Valor actual: "${precioField ? precioField.value : 'N/A'}"`);
+            }
 
-            // Línea de diagnóstico para ver qué pasa en cada vuelta
-            console.log(`DIAGNOSTICO: Fin de la iteración ${i + 1}. Total de comparables guardados: ${window.tasacionApp.comparables.length}`);
+            document.getElementById('btn-guardar-comparable').click();
+            await new Promise(resolve => setTimeout(resolve, 300));
         }
 
         testSuite.assertEqual(window.tasacionApp.comparables.length, 4, `No se agregaron los 4 comparables. Se agregaron ${window.tasacionApp.comparables.length}.`);
