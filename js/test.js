@@ -1,5 +1,5 @@
 /**
- * Versión corregida eliminando la llamada redundante a initFactors().
+ * Versión final. Mockea window.confirm para evitar interferencias entre tests.
  */
 
 console.log("test.js: Script cargado");
@@ -185,6 +185,9 @@ function testDatosInmueble(testSuite) {
     });
 }
 
+// ========================================
+// FUNCIÓN DE TEST DE COMPARABLES (CORREGIDA CON MOCK)
+// ========================================
 async function testComparables(testSuite) {
     testSuite.test('Debe agregar y eliminar un comparable correctamente', async () => {
         // 1. Preparamos el entorno para llegar al paso 2
@@ -220,11 +223,19 @@ async function testComparables(testSuite) {
         testSuite.assertEqual(window.tasacionApp.comparables.length, 1, 'No se agregó el comparable');
         testSuite.assertEqual(window.tasacionApp.comparables[0].direccion, 'Calle Falsa 456', 'La dirección del comparable no es la esperada');
         
-        // 5. Eliminamos el comparable
+        // 5. ---- CAMBIO CLAVE AQUÍ ----
+        // Mockeamos window.confirm para que no detenga el test
+        const originalConfirm = window.confirm;
+        window.confirm = () => true; // Simula que el usuario siempre hace clic en "Aceptar"
+
+        // 6. Eliminamos el comparable (ahora sin pausas)
         const idAEliminar = window.tasacionApp.comparables[0].id;
         window.comparablesManager.deleteComparable(idAEliminar);
+
+        // 7. Restauramos la función original para no afectar a otros tests
+        window.confirm = originalConfirm;
         
-        // 6. Verificamos que se eliminó correctamente
+        // 8. Verificamos que se eliminó correctamente
         testSuite.assertEqual(window.tasacionApp.comparables.length, 0, 'El comparable no se eliminó correctamente');
     });
 }
