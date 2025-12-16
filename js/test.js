@@ -1,5 +1,5 @@
 /**
- * Versión simplificada del test.js para diagnosticar problemas
+ * Versión corregida del test.js para diagnosticar problemas
  */
 
 console.log("test.js: Script cargado");
@@ -194,19 +194,23 @@ function addTestButton() {
 // ========================================
 console.log("test.js: Configurando evento DOMContentLoaded");
 
-document.addEventListener('DOMContentLoaded', () => {
-    console.log("test.js: DOMContentLoaded disparado");
-    addTestButton();
-});
-
-// Si el DOM ya está cargado, agregar el botón inmediatamente
-if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    console.log("test.js: DOM ya está cargado, agregando botón inmediatamente");
+// Función asíncrona para inicializar cuando el DOM esté listo
+async function initializeTests() {
+    console.log("initializeTests: Inicializando tests");
     addTestButton();
 }
 
-// Intentar agregar el botón después de un tiempo como respaldo
-setTimeout(() => {
-    console.log("test.js: Intento de respaldo para agregar botón");
-    addTestButton();
+// Usar DOMContentLoaded para inicializar
+document.addEventListener('DOMContentLoaded', initializeTests);
+
+// Si el DOM ya está cargado, inicializar inmediatamente
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    console.log("test.js: DOM ya está cargado, inicializando inmediatamente");
+    initializeTests();
+}
+
+// Intentar inicializar después de un tiempo como respaldo
+setTimeout(async () => {
+    console.log("test.js: Intento de respaldo para inicializar");
+    await initializeTests();
 }, 1000);
