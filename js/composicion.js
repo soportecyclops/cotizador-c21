@@ -1,55 +1,84 @@
 // Gestión de composición del valor
 class ComposicionManager {
     constructor() {
+        // Los coeficientes son constantes y representan el peso de cada tipo de superficie
+        // en el valor final de la tasación.
         this.coeficientes = {
-            cubierta: 1.0,
-            semicubierta: 0.5,
-            descubierta: 0.2,
-            balcon: 0.33
+            cubierta: 1.0,      // 100% del valor por m²
+            semicubierta: 0.5,  // 50% del valor por m²
+            descubierta: 0.2,  // 20% del valor por m²
+            balcon: 0.33        // 33% del valor por m²
         };
         this.init();
     }
 
     init() {
         // Este componente se inicializa principalmente desde la aplicación principal
-        // cuando se calcula la composición del valor
+        // cuando se calcula la composición del valor en el paso 5.
+        // No requiere una inicialización compleja por sí mismo.
     }
 
+    /**
+     * Calcula el valor total de la tasación basándose en los datos del inmueble
+     * y el valor de referencia por m².
+     * @returns {number} El valor total calculado.
+     */
     calculateValorTotal() {
-        const inmueble = window.tasacionApp.inmuebleData;
+        const inmuebleData = window.tasacionApp.inmuebleData;
         const valorM2Referencia = window.tasacionApp.valorM2Referencia;
-        
-        if (!inmueble || !valorM2Referencia) return 0;
-        
-        // Calcular valores parciales
-        const valorCubierta = inmueble.supCubierta * this.coeficientes.cubierta * valorM2Referencia;
-        const valorSemicubierta = inmueble.supSemicubierta * this.coeficientes.semicubierta * valorM2Referencia;
-        const valorDescubierta = inmueble.supDescubierta * this.coeficientes.descubierta * valorM2Referencia;
-        const valorBalcon = inmueble.supBalcon * this.coeficientes.balcon * valorM2Referencia;
-        
-        // Valor estimado para cochera
-        const valorCochera = inmueble.cochera === 'propia' ? 5000 : 
-                             inmueble.cochera === 'comun' ? 2000 : 0;
-        
-        // Calcular valor total
-        const valorTotal = valorCubierta + valorSemicubierta + valorDescubierta + valorBalcon + valorCochera;
-        
+
+        // Validar que los datos necesarios existan antes de calcular
+        if (!inmuebleData || !valorM2Referencia) {
+            console.error("Datos del inmueble o valor de referencia no disponibles para el cálculo.");
+            return 0;
+        }
+
+        let valorTotal = 0;
+
+        // Calcular el valor para cada tipo de superficie y sumarlo
+        if (inmuebleData.supCubierta) {
+            valorTotal += inmuebleData.supCubierta * this.coeficientes.cubierta * valorM2Referencia;
+        }
+        if (inmuebleData.supSemicubierta) {
+            valorTotal += inmuebleData.supSemicubierta * this.coeficientes.semicubierta * valorM2Referencia;
+        }
+        if (inmuebleData.supDescubierta) {
+            valorTotal += inmuebleData.supDescubierta * this.coeficientes.descubierta * valorM2Referencia;
+        }
+        if (inmuebleData.supBalcon) {
+            valorTotal += inmuebleData.supBalcon * this.coeficientes.balcon * valorM2Referencia;
+        }
+
+        // Valor estimado para cochera (puede ser un valor fijo o un porcentaje del total)
+        let valorCochera = 0;
+        if (inmuebleData.cochera === 'propia') {
+            valorCochera = 5000; // Valor fijo para cochera propia
+        } else if (inmuebleData.cochera === 'comun') {
+            valorCochera = 2000; // Valor fijo para cochera común
+        }
+        valorTotal += valorCochera;
+
         return valorTotal;
     }
 
+    /**
+     * Genera un gráfico de composición del valor (placeholder).
+     * En una versión futura, se podría usar una librería como Chart.js
+     * para visualizar los datos de forma más atractiva.
+     */
     generateCompositionChart() {
-        // Esta función podría generar un gráfico de composición del valor
-        // usando una librería como Chart.js si se desea agregar en el futuro
+        // Placeholder para una futura implementación de gráficos.
+        console.log("Generando gráfico de composición del valor...");
     }
 
-    // CAMBIO: Añadido el método reset() por consistencia.
     /**
      * Resetea el estado del gestor de composición.
-     * Actualmente no mantiene estado, pero el método se añade para consistencia.
+     * Actualmente no mantiene estado interno, pero el método se añade
+     * por consistencia con el patrón de otros managers.
      */
     reset() {
         // No hay estado interno que limpiar, pero el método es necesario para el flujo de reset general.
-        // Si en el futuro se almacenan datos o gráficos, se limpiarían aquí.
+        console.log("ComposicionManager reseteado.");
     }
 }
 
