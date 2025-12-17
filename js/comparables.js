@@ -1,15 +1,13 @@
 // Gestión de comparables
 class ComparablesManager {
     constructor() {
-        // La propiedad nextId ya no es necesaria si calculamos el ID dinámicamente
-        // this.nextId = 1; 
         this.init();
     }
 
     init() {
         // Evento para agregar comparable
         document.getElementById('btn-agregar-comparable').addEventListener('click', () => {
-            this.openComparableModal();
+            this.openComparableModal(); // Llama sin ID para añadir
         });
         
         // Eventos del modal
@@ -29,17 +27,17 @@ class ComparablesManager {
     openComparableModal(comparableId = null) {
         const modal = document.getElementById('modal-comparable');
         const form = document.getElementById('form-comparable');
-        
-        // Resetear formulario
-        form.reset();
-        
+        const modalTitle = document.getElementById('modal-title');
+        const comparableIdInput = document.getElementById('comparable-id');
+
         if (comparableId) {
-            // Modo edición
+            // MODO EDICIÓN: No resetear el formulario.
+            modalTitle.textContent = 'Editar Comparable';
+            comparableIdInput.value = comparableId;
+            
+            // Buscar el comparable a editar
             const comparable = window.tasacionApp.comparables.find(c => c.id === comparableId);
             if (comparable) {
-                document.getElementById('modal-title').textContent = 'Editar Comparable';
-                document.getElementById('comparable-id').value = comparable.id;
-                
                 // Cargar datos del comparable en el formulario
                 document.getElementById('comp-tipo-propiedad').value = comparable.tipoPropiedad;
                 document.getElementById('comp-precio').value = comparable.precio;
@@ -55,11 +53,17 @@ class ComparablesManager {
                 document.getElementById('comp-sup-terreno').value = comparable.supTerreno || '';
                 document.getElementById('comp-cochera').value = comparable.cochera;
                 document.getElementById('comp-observaciones').value = comparable.observaciones || '';
+            } else {
+                // Si por alguna razón no se encuentra el comparable, muestra un error.
+                window.tasacionApp.showNotification('Error: No se pudo encontrar el comparable para editar.', 'error');
+                this.closeComparableModal();
+                return;
             }
         } else {
-            // Modo agregación
-            document.getElementById('modal-title').textContent = 'Agregar Comparable';
-            document.getElementById('comparable-id').value = '';
+            // MODO AGREGACIÓN: Resetear el formulario para limpiar campos de una edición anterior.
+            form.reset(); 
+            modalTitle.textContent = 'Agregar Comparable';
+            comparableIdInput.value = '';
         }
         
         // Mostrar modal
@@ -83,8 +87,9 @@ class ComparablesManager {
         
         for (const fieldId of requiredFields) {
             const field = document.getElementById(fieldId);
-            if (!field || !field.value || typeof field.value !== 'string' || !field.value.trim()) {
-                window.tasacionApp.showNotification(`Por favor, complete todos los campos obligatorios (${fieldId})`, 'error');
+            // Comprobación más robusta: el campo debe existir y tener un valor que no sea solo espacios en blanco.
+            if (!field || !field.value || !field.value.trim()) {
+                window.tasacionApp.showNotification(`Por favor, complete el campo obligatorio: "${fieldId.replace('comp-', '').replace('-', ' ')}"`, 'error');
                 if (field) field.focus();
                 return;
             }
@@ -92,7 +97,6 @@ class ComparablesManager {
         
         // Crear objeto comparable
         const comparable = {
-            // <-- CORRECCIÓN CLAVE AQUÍ: Calcular el ID de forma robusta
             id: isEdit ? parseInt(id) : this.getNextId(), 
             tipoPropiedad: document.getElementById('comp-tipo-propiedad').value,
             precio: parseFloat(document.getElementById('comp-precio').value),
@@ -150,12 +154,10 @@ class ComparablesManager {
         );
     }
 
-    // <-- CORRECCIÓN CLAVE: Nueva función para obtener el siguiente ID de forma segura
     getNextId() {
         if (window.tasacionApp.comparables.length === 0) {
             return 1;
         }
-        // Encuentra el ID más alto en el array y súmale 1
         const maxId = Math.max(...window.tasacionApp.comparables.map(c => c.id));
         return maxId + 1;
     }
@@ -181,10 +183,8 @@ class ComparablesManager {
             noComparables.style.display = 'none';
             document.getElementById('btn-siguiente-2').disabled = window.tasacionApp.comparables.length < 4;
             
-            // Limpiar contenedor
             container.innerHTML = '';
             
-            // Agregar cada comparable
             window.tasacionApp.comparables.forEach(comparable => {
                 const card = document.createElement('div');
                 card.className = 'comparable-card';
@@ -225,7 +225,6 @@ class ComparablesManager {
     reset() {
         // Este método ahora no limpia los comparables, solo la UI.
         // El estado real (this.comparables) se maneja en app.js
-        // this.comparables = []; // <-- COMENTADO O ELIMINADO
         this.updateComparablesUI();
     }
 }
