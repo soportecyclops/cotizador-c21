@@ -1,7 +1,8 @@
 // Gestión de comparables
 class ComparablesManager {
     constructor() {
-        this.nextId = 1;
+        // La propiedad nextId ya no es necesaria si calculamos el ID dinámicamente
+        // this.nextId = 1; 
         this.init();
     }
 
@@ -91,7 +92,8 @@ class ComparablesManager {
         
         // Crear objeto comparable
         const comparable = {
-            id: isEdit ? parseInt(id) : this.nextId++,
+            // <-- CORRECCIÓN CLAVE AQUÍ: Calcular el ID de forma robusta
+            id: isEdit ? parseInt(id) : this.getNextId(), 
             tipoPropiedad: document.getElementById('comp-tipo-propiedad').value,
             precio: parseFloat(document.getElementById('comp-precio').value),
             direccion: document.getElementById('comp-direccion').value,
@@ -146,6 +148,16 @@ class ComparablesManager {
             isEdit ? 'Comparable actualizado correctamente' : 'Comparable agregado correctamente', 
             'success'
         );
+    }
+
+    // <-- CORRECCIÓN CLAVE: Nueva función para obtener el siguiente ID de forma segura
+    getNextId() {
+        if (window.tasacionApp.comparables.length === 0) {
+            return 1;
+        }
+        // Encuentra el ID más alto en el array y súmale 1
+        const maxId = Math.max(...window.tasacionApp.comparables.map(c => c.id));
+        return maxId + 1;
     }
 
     deleteComparable(comparableId) {
@@ -211,8 +223,9 @@ class ComparablesManager {
     }
 
     reset() {
-        window.tasacionApp.comparables = [];
-        this.nextId = 1;
+        // Este método ahora no limpia los comparables, solo la UI.
+        // El estado real (this.comparables) se maneja en app.js
+        // this.comparables = []; // <-- COMENTADO O ELIMINADO
         this.updateComparablesUI();
     }
 }
