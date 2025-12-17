@@ -587,3 +587,36 @@ button:disabled {
     }
 }
 }
+/* Añade estas reglas al final de tu archivo styles.css */
+
+/* ========================================
+   CORRECCIONES DE LAYOUT Y MODAL
+   ======================================== */
+
+/* Modal con Scroll */
+.modal-content {
+    /* ... estilos existentes ... */
+    max-height: 90vh; /* Altura máxima del 90% de la ventana */
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-body {
+    /* ... estilos existentes ... */
+    overflow-y: auto; /* <-- AÑADIR: Permite el scroll vertical */
+    flex-grow: 1; /* <-- AÑADIR: Hace que el body ocupe el espacio disponible */
+}
+
+/* Contenedor de comparables más flexible */
+.comparables-container {
+    display: flex; /* <-- MODIFICADO: Cambiado de grid a flex */
+    flex-wrap: wrap; /* <-- MODIFICADO: Permite que las tarjetas se ajusten */
+    gap: 20px; /* <-- MODIFICADO: Espacio entre tarjetas */
+}
+
+.comparable-card {
+    /* ... estilos existentes ... */
+    flex: 1 1 300px; /* <-- MODIFICADO: Hace que las tarjetas sean flexibles y crezcan */
+    min-width: 300px; /* Ancho mínimo para cada tarjeta */
+    box-sizing: border-box;
+}
