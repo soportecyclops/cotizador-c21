@@ -11,24 +11,25 @@ class TasacionApp {
     }
 
     init() {
-        // NUEVO: Verificar si el usuario está autenticado al iniciar
-        if (!isAuthenticated()) {
-            window.location.href = 'login.html';
-            return;
-        }
+        // MODIFICADO: Se elimina la verificación de autenticación para permitir el acceso directo.
+        // if (!isAuthenticated()) {
+        //     window.location.href = 'login.html';
+        //     return;
+        // }
         
         this.setupEventListeners();
         this.updateProgressIndicator();
-        this.showWelcomeMessage();
+        // MODIFICADO: Se elimina el mensaje de bienvenida ya que no hay login de usuario.
+        // this.showWelcomeMessage();
     }
 
-    // NUEVO: Muestra un mensaje de bienvenida al usuario logueado
-    showWelcomeMessage() {
-        const userName = localStorage.getItem('userName');
-        if (userName) {
-            this.showNotification(`¡Bienvenido/a, ${userName}!`, 'success');
-        }
-    }
+    // MODIFICADO: Esta función ya no se necesita, pero se deja por si se usa en el futuro.
+    // showWelcomeMessage() {
+    //     const userName = localStorage.getItem('userName');
+    //     if (userName) {
+    //         this.showNotification(`¡Bienvenido/a, ${userName}!`, 'success');
+    //     }
+    // }
 
     setupEventListeners() {
         // Eventos de navegación entre pasos
@@ -53,14 +54,14 @@ class TasacionApp {
             this.calculateReferenceValue();
         });
         
-        // MODIFICADO: Eventos de exportación, reinicio y guardado
+        // MODIFICADO: Eventos de exportación, reinicio y guardado (sin autenticación)
         document.getElementById('btn-exportar').addEventListener('click', () => this.exportReport());
         document.getElementById('btn-reiniciar').addEventListener('click', () => this.resetApp());
         
-        // NUEVO: Evento para guardar en el backend
+        // El botón de guardar en backend ahora guardará localmente sin pedir login
         const saveButton = document.getElementById('btn-guardar-backend');
         if (saveButton) {
-            saveButton.addEventListener('click', () => this.saveQuotationToBackend());
+            saveButton.addEventListener('click', () => this.saveQuotationLocally());
         }
     }
 
@@ -145,7 +146,6 @@ class TasacionApp {
     }
 
     validateFactors() {
-        // Verificar que todos los comparables tengan factores de ajuste aplicados
         for (const comparable of this.comparables) {
             if (!comparable.factores || Object.keys(comparable.factores).length === 0) {
                 this.showNotification(`Debe aplicar factores de ajuste al Comparable ${comparable.id}`, 'error');
@@ -167,7 +167,6 @@ class TasacionApp {
                 valorReferencia = valoresAjustados.reduce((sum, val) => sum + val, 0) / valoresAjustados.length;
                 break;
             case 'promedio-ponderado':
-                // Implementar lógica de promedio ponderado si es necesario
                 valorReferencia = valoresAjustados.reduce((sum, val) => sum + val, 0) / valoresAjustados.length;
                 break;
             case 'mediana':
@@ -181,10 +180,7 @@ class TasacionApp {
         
         this.valorM2Referencia = valorReferencia;
         
-        // Actualizar UI
         document.getElementById('valor-m2-referencia').textContent = valorReferencia.toFixed(2);
-        
-        // Mostrar valores ajustados
         this.displayAdjustedValues();
     }
 
@@ -209,7 +205,6 @@ class TasacionApp {
     }
 
     calculateComposition() {
-        // Obtener coeficientes según tipo de superficie
         const coeficientes = {
             cubierta: 1.0,
             semicubierta: 0.5,
@@ -217,23 +212,19 @@ class TasacionApp {
             balcon: 0.33
         };
         
-        // Actualizar valores en la tabla con los IDs correctos del HTML
         document.getElementById('comp-sup-cubierta').textContent = this.inmuebleData.supCubierta.toFixed(2);
         document.getElementById('comp-sup-semicubierta').textContent = this.inmuebleData.supSemicubierta.toFixed(2);
         document.getElementById('comp-sup-descubierta').textContent = this.inmuebleData.supDescubierta.toFixed(2);
         document.getElementById('comp-sup-balcon').textContent = this.inmuebleData.supBalcon.toFixed(2);
         
-        // Calcular valores parciales
         const valorCubierta = this.inmuebleData.supCubierta * coeficientes.cubierta * this.valorM2Referencia;
         const valorSemicubierta = this.inmuebleData.supSemicubierta * coeficientes.semicubierta * this.valorM2Referencia;
         const valorDescubierta = this.inmuebleData.supDescubierta * coeficientes.descubierta * this.valorM2Referencia;
         const valorBalcon = this.inmuebleData.supBalcon * coeficientes.balcon * this.valorM2Referencia;
         
-        // Valor estimado para cochera (puede ser un valor fijo o un porcentaje del total)
         const valorCochera = this.inmuebleData.cochera === 'propia' ? 5000 : 
                              this.inmuebleData.cochera === 'comun' ? 2000 : 0;
         
-        // Actualizar valores en la tabla con los IDs correctos del HTML
         document.getElementById('comp-valor-m2').textContent = `$${this.valorM2Referencia.toFixed(2)}`;
         document.getElementById('comp-valor-cubierta').textContent = `$${valorCubierta.toFixed(2)}`;
         
@@ -249,25 +240,16 @@ class TasacionApp {
         document.getElementById('comp-valor-m2-cochera').textContent = 'Global';
         document.getElementById('comp-valor-cochera').textContent = `$${valorCochera.toFixed(2)}`;
         
-        // Calcular valor total
         const valorTotal = valorCubierta + valorSemicubierta + valorDescubierta + valorBalcon + valorCochera;
         document.getElementById('valor-total-tasacion').textContent = valorTotal.toFixed(2);
     }
 
     goToStep(step) {
-        // Ocultar paso actual
         document.getElementById(`step-${this.currentStep}`).classList.remove('active');
-        
-        // Mostrar nuevo paso
         document.getElementById(`step-${step}`).classList.add('active');
-        
-        // Actualizar paso actual
         this.currentStep = step;
-        
-        // Actualizar indicador de progreso
         this.updateProgressIndicator();
         
-        // Si vamos al paso 3, inicializar los factores de ajuste
         if (step === 3) {
             setTimeout(() => {
                 if (window.factoresManager) {
@@ -276,14 +258,12 @@ class TasacionApp {
             }, 300);
         }
         
-        // Si vamos al paso 4, calcular el valor de referencia
         if (step === 4) {
             setTimeout(() => {
                 this.calculateReferenceValue();
             }, 300);
         }
         
-        // Si vamos al paso 5, calcular la composición
         if (step === 5) {
             setTimeout(() => {
                 this.calculateComposition();
@@ -292,15 +272,12 @@ class TasacionApp {
     }
 
     updateProgressIndicator() {
-        // Actualizar pasos anteriores como completados
         for (let i = 1; i < this.currentStep; i++) {
             document.querySelector(`.progress-step[data-step="${i}"]`).classList.add('completed');
         }
         
-        // Actualizar paso actual como activo
         document.querySelector(`.progress-step[data-step="${this.currentStep}"]`).classList.add('active');
         
-        // Limpiar pasos siguientes
         for (let i = this.currentStep + 1; i <= this.totalSteps; i++) {
             const step = document.querySelector(`.progress-step[data-step="${i}"]`);
             step.classList.remove('completed', 'active');
@@ -308,12 +285,10 @@ class TasacionApp {
     }
 
     updateComparableValues() {
-        // Actualizar valores de todos los comparables con el nuevo descuento
         this.comparables.forEach(comparable => {
             const precioAjustado = comparable.precio * (1 - this.descuentoNegociacion / 100);
             comparable.valorM2 = precioAjustado / comparable.supCubierta;
             
-            // Si ya tiene factores de ajuste, recalcular el valor ajustado
             if (comparable.factores && Object.keys(comparable.factores).length > 0) {
                 const correccionTotal = Object.values(comparable.factores).reduce((sum, val) => sum + val, 0);
                 comparable.valorM2Ajustado = comparable.valorM2 * (1 + correccionTotal / 100);
@@ -322,7 +297,6 @@ class TasacionApp {
             }
         });
         
-        // Actualizar UI
         if (window.comparablesManager) {
             window.comparablesManager.updateComparablesUI();
         }
@@ -337,24 +311,19 @@ class TasacionApp {
         
         container.appendChild(notification);
         
-        // Eliminar notificación después de 5 segundos
         setTimeout(() => {
             notification.remove();
         }, 5000);
     }
 
     // ==========================================================
-    // MÉTODOS PARA EL BACKEND Y EXPORTACIÓN
+    // MÉTODOS DE GUARDADO Y EXPORTACIÓN
     // ==========================================================
 
-    // NUEVO: Guardar la cotización en el backend
-    async saveQuotationToBackend() {
-        if (!isAuthenticated()) {
-            this.showNotification('Debes estar logueado para guardar una cotización.', 'error');
-            return;
-        }
-
+    // MODIFICADO: Ahora guarda localmente sin pedir autenticación.
+    async saveQuotationLocally() {
         const quotationData = {
+            id: new Date().getTime(),
             inmuebleData: this.inmuebleData,
             comparables: this.comparables,
             valorM2Referencia: this.valorM2Referencia,
@@ -363,55 +332,33 @@ class TasacionApp {
         };
 
         try {
-            const response = await fetch('https://tu-api.com/api/quotations', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${getAuthToken()}`
-                },
-                body: JSON.stringify(quotationData)
-            });
+            let savedQuotations = JSON.parse(localStorage.getItem('savedQuotations') || '[]');
+            savedQuotations.push(quotationData);
+            localStorage.setItem('savedQuotations', JSON.stringify(savedQuotations));
 
-            if (!response.ok) {
-                throw new Error('No se pudo guardar la cotización.');
-            }
-
-            const result = await response.json();
-            this.showNotification(`Cotización guardada con ID: ${result.id}`, 'success');
+            this.showNotification(`Cotización guardada localmente con ID: ${quotationData.id}`, 'success');
 
         } catch (error) {
-            this.showNotification(error.message, 'error');
+            this.showNotification('No se pudo guardar la cotización localmente.', 'error');
         }
     }
 
-    // NUEVO: Cargar una cotización desde el backend
-    async loadQuotationFromBackend(quotationId) {
-        if (!isAuthenticated()) {
-            this.showNotification('Debes estar logueado para cargar una cotización.', 'error');
-            return;
-        }
-
+    // MODIFICADO: La función de carga ahora también es local.
+    async loadQuotationLocally(quotationId) {
         try {
-            const response = await fetch(`https://tu-api.com/api/quotations/${quotationId}`, {
-                headers: {
-                    'Authorization': `Bearer ${getAuthToken()}`
-                }
-            });
+            const savedQuotations = JSON.parse(localStorage.getItem('savedQuotations') || '[]');
+            const data = savedQuotations.find(q => q.id == quotationId);
 
-            if (!response.ok) {
-                throw new Error('No se pudo cargar la cotización.');
+            if (!data) {
+                throw new Error('No se encontró la cotización.');
             }
-
-            const data = await response.json();
             
-            // Cargar los datos en la aplicación
             this.inmuebleData = data.inmuebleData;
             this.comparables = data.comparables;
             this.valorM2Referencia = data.valorM2Referencia;
             
-            // Actualizar la UI con los datos cargados
             this.updateUIWithLoadedData();
-            this.goToStep(5); // Llevar al usuario al resultado final
+            this.goToStep(5);
 
             this.showNotification('Cotización cargada correctamente.', 'success');
 
@@ -420,30 +367,20 @@ class TasacionApp {
         }
     }
 
-    // NUEVO: Lógica para rellenar la UI con datos cargados (requiere implementación detallada)
     updateUIWithLoadedData() {
-        // Esta función es compleja y debe rellenar todos los campos del formulario
-        // y la UI con los datos de this.inmuebleData y this.comparables.
-        // Por ahora, es un placeholder para la lógica.
         console.log("Actualizando UI con datos cargados:", this.inmuebleData, this.comparables);
-        // Ejemplo:
-        // document.getElementById('direccion').value = this.inmuebleData.direccion;
-        // ... y así con todos los campos
     }
 
-    // MODIFICADO: Mejora del informe PDF
     exportReport() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
 
-        // Fuentes y colores
         doc.setFont("helvetica");
-        const primaryColor = [0, 51, 102]; // Un azul corporativo
+        const primaryColor = [0, 51, 102];
         const secondaryColor = [100, 100, 100];
 
-        // --- ENCABEZADO ---
         doc.setFillColor(...primaryColor);
-        doc.rect(0, 0, 210, 40, 'F'); // Rectángulo de color en la parte superior
+        doc.rect(0, 0, 210, 40, 'F');
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(22);
         doc.text("INFORME DE TASACIÓN", 105, 20, { align: 'center' });
@@ -451,7 +388,6 @@ class TasacionApp {
         doc.text("Century21 Inmobiliaria", 105, 28, { align: 'center' });
         doc.text(`Fecha: ${new Date().toLocaleDateString('es-AR')}`, 105, 35, { align: 'center' });
 
-        // --- DATOS DEL INMUEBLE ---
         doc.setTextColor(0, 0, 0);
         doc.setFontSize(16);
         doc.text("1. Datos del Inmueble", 20, 55);
@@ -478,7 +414,6 @@ class TasacionApp {
             yPos += lineHeight;
         });
 
-        // --- COMPARABLES ---
         yPos += 10;
         doc.setFontSize(16);
         doc.text("2. Análisis de Comparables", 20, yPos);
@@ -489,7 +424,6 @@ class TasacionApp {
         doc.text("Se analizaron las siguientes propiedades similares para determinar el valor de referencia:", 20, yPos);
         yPos += lineHeight;
 
-        // Tabla simple de comparables
         const headers = ["Dirección", "Precio Venta", "Valor m² Ajustado"];
         const data = this.comparables.map(c => [
             c.direccion,
@@ -514,8 +448,6 @@ class TasacionApp {
             yPos += lineHeight;
         });
 
-
-        // --- VALOR FINAL ---
         yPos += 10;
         doc.setFontSize(16);
         doc.text("3. Valor de Tasación", 20, yPos);
@@ -531,33 +463,24 @@ class TasacionApp {
         const valorFinalTexto = document.getElementById('valor-total-tasacion').textContent;
         doc.text(`Valor Final de Tasación: $${valorFinalTexto}`, 20, yPos);
         
-        // --- PIE DE PÁGINA ---
         doc.setFontSize(10);
         doc.setTextColor(...secondaryColor);
         doc.text("Este informe es una estimación y puede variar según las condiciones del mercado.", 105, 280, { align: 'center' });
         doc.text("Generado por Cotizador Inmobiliario Century21 V2.0", 105, 285, { align: 'center' });
 
-        // Guardar el PDF
         doc.save(`informe_tasacion_${this.inmuebleData.direccion.replace(/ /g, '_')}.pdf`);
         this.showNotification('Informe exportado correctamente', 'success');
     }
-
-    // ==========================================================
-    // MÉTODOS DE RESET Y APLICACIÓN
-    // ==========================================================
     
     resetForm() {
-        // Resetear variables de la aplicación
         this.inmuebleData = {};
         this.comparables = [];
         this.valorM2Referencia = 0;
-        this.descuentoNegociacion = 10; // Valor por defecto
+        this.descuentoNegociacion = 10;
 
-        // Resetear campos del formulario del paso 1
         document.getElementById('tipo-propiedad').value = '';
         document.getElementById('direccion').value = '';
         document.getElementById('piso').value = '';
-        document.getElementById('depto').value = '';
         document.getElementById('depto').value = '';
         document.getElementById('localidad').value = '';
         document.getElementById('barrio').value = '';
@@ -571,10 +494,8 @@ class TasacionApp {
         document.getElementById('cochera').value = 'no';
         document.getElementById('descuento-negociacion').value = 10;
 
-        // Volver al paso 1 y actualizar UI
         this.goToStep(1);
 
-        // Resetear otros componentes llamando a su método reset()
         if (window.comparablesManager) {
             window.comparablesManager.reset();
         }
@@ -585,7 +506,6 @@ class TasacionApp {
             window.composicionManager.reset();
         }
 
-        // CORRECCIÓN: Ocultar el modal, no eliminarlo del DOM
         const modal = document.getElementById('modal-comparable');
         if (modal) {
             modal.style.display = 'none';
