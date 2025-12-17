@@ -1,11 +1,12 @@
 // Gestión de factores de ajuste
 class FactoresManager {
     constructor() {
+        this.currentComparable = 1;
         this.factors = [
             { concepto: 'Ubicación', peso: 15, valor: 0 },
-            { concepto: 'Estado General', peso: 12, valor: 0 },
-            { concepto: 'Calidad de Construcción', peso: 10, valor: 0 },
-            { concepto: 'Antigüedad', peso: 8, valor: 0 },
+            { concepto: 'Calidad de Construcción', peso: 12, valor: 0 },
+            { concepto: 'Expectativa de Vida', peso: 8, valor: 0 },
+            { concepto: 'Estado de Mantenimiento', peso: 15, valor: 0 },
             { concepto: 'Conservación', peso: 15, valor: 0 },
             { concepto: 'Superficie Cubierta', peso: 7, valor: 0 },
             { concepto: 'Dimensión/Sup. Descubierta', peso: 10, valor: 0 },
@@ -25,16 +26,17 @@ class FactoresManager {
         // Eventos para las pestañas de comparables
         document.querySelectorAll('.factor-tab').forEach(tab => {
             tab.addEventListener('click', (e) => {
-                this.showComparableFactors(e.target.dataset.comparable);
+                const comparableId = parseInt(e.target.dataset.comparable);
+                this.switchComparable(comparableId);
             });
         });
     }
 
-    showComparableFactors(comparableId) {
+    switchComparable(comparableId) {
         // Actualizar pestañas activas
         document.querySelectorAll('.factor-tab').forEach(t => t.classList.remove('active'));
         document.querySelector(`.factor-tab[data-comparable="${comparableId}"]`).classList.add('active');
-
+        
         // Mostrar factores del comparable seleccionado
         this.renderFactors(comparableId);
     }
@@ -49,16 +51,19 @@ class FactoresManager {
         for (const [name, config] of Object.entries(this.factors)) {
             const factorDiv = document.createElement('div');
             factorDiv.className = 'factor-item';
+            // CORRECCIÓN CLAVE: El ID del slider se genera dinámicamente y de forma segura
+            const factorId = `factor-${name.toLowerCase().replace(/\s+/g, '-')}`;
             factorDiv.innerHTML = `
                 <label>${name}:</label>
-                <input type="range" class="factor-slider" min="${-config.peso}" max="${config.peso}" value="${comparable.factores[name] || config.valor}" data-factor="${name}">
-                <span class="factor-value">${comparable.factores[name] || config.valor}%</span>
+                <input type="range" class="factor-slider" min="${-config.peso}" max="${config.peso}" value="${comparable.factores[name] || config.default}" data-factor="${name}">
+                <span class="factor-value">${comparable.factores[name] || config.default}%</span>
             `;
             container.appendChild(factorDiv);
 
-            const slider = factorDiv.querySelector('.factor-slider');
+            // CORRECCIÓN CLAVE: El ID del slider se genera dinámicamente y de forma segura
+            const slider = factorDiv.querySelector(`#${factorId}`);
             const valueSpan = factorDiv.querySelector('.factor-value');
-
+            
             slider.addEventListener('input', (e) => {
                 const value = e.target.value;
                 valueSpan.textContent = `${value}%`;
@@ -109,6 +114,7 @@ class FactoresManager {
     }
 }
 
+// Inicializar el gestor de factores
 document.addEventListener('DOMContentLoaded', () => {
     window.factoresManager = new FactoresManager();
 });
