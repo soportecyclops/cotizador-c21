@@ -1,41 +1,41 @@
 /*
  * STYLES.CSS PARA COTIZADOR INMOBILIARIO - CENTURY21
- * Versión fusionada y corregida
- * - Sin reglas duplicadas
- * - Modal con scroll funcional
- * - Comparables flexibles
+ * Versión fusionada y corregida.
+ * Diseño robusto, responsive y con modal funcional.
  */
 
 /* ========================================
-   VARIABLES DE LA MARCA
+   VARIABLES DE LA MARCA (PERSONALIZABLE AQUÍ)
    ======================================== */
 :root {
-    --brand-color: #3498db;
-    --brand-color-light: #0055a4;
-    --brand-color-dark: #002244;
-    --text-color: #333;
-    --background-color: #f4f7f9;
-    --container-bg: #ffffff;
-    --card-bg: #ffffff;
-    --border-color: #dee2e6;
-    --success-color: #28a745;
-    --error-color: #dc3545;
-    --light-color: #ecf0f1;
-    --dark-color: #2c3e50;
-    --gray-color: #95a5a6;
-    --border-radius: 8px;
+    --brand-color: #3498db; /* Azul corporativo principal */
+    --brand-color-light: #0055a4; /* Azul más claro */
+    --brand-color-dark: #002244; /* Azul más oscuro */
+    --text-color: #333; /* Color de texto principal */
+    --background-color: #f4f7f9; /* Fondo muy claro */
+    --container-bg: #ffffff; /* Fondo del contenedor principal */
+    --card-bg: #ffffff; /* Fondo de las tarjetas */
+    --border-color: #dee2e6; /* Color de bordes */
+    --success-color: #28a745; /* Color para éxito/confirmación */
+    --error-color: #dc3545; /* Color para errores/notificaciones */
+    --light-color: #ecf0f1; /* Color para textos secundarios */
+    --dark-color: #2c3e50; /* Color de texto principal */
+    --gray-color: #95a5a6; /* Color de texto secundario */
+    --border-radius: 8px; /* Bordes redondeados */
     --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    --transition: all 0.3s ease;
+    --transition: all 0.3s ease; /* Transiciones suaves */
 }
 
 /* ========================================
-   ESTILOS GENERALES
+   ESTILOS GENERALES Y DE LAYOUT
    ======================================== */
 body {
     font-family: Arial, sans-serif;
     background-color: var(--background-color);
     color: var(--text-color);
+    line-height: 1.6;
     margin: 0;
+    padding: 0;
 }
 
 .container {
@@ -45,56 +45,179 @@ body {
 }
 
 /* ========================================
-   HEADER
+   CABECERA (HEADER)
    ======================================== */
 header {
     background-color: var(--brand-color);
-    color: #fff;
+    color: white;
     padding: 2rem 0;
     text-align: center;
+    box-shadow: var(--box-shadow);
+}
+
+header h1 {
+    margin: 0;
+    font-size: 2.5rem;
+    font-weight: 700;
+}
+
+header .tagline {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 300;
+    opacity: 0.8;
+}
+
+/* ========================================
+   INDICADOR DE PROGRESO
+   ======================================== */
+.progress-indicator {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem 2rem;
+    margin-bottom: 2rem;
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    box-shadow: var(--box-shadow);
+}
+
+.progress-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.progress-step.active {
+    background-color: var(--brand-color);
+    color: white;
+    font-weight: 500;
+}
+
+.progress-step.completed {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.progress-step .step-number {
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.progress-step .step-label {
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+}
+
+/* ========================================
+   CONTENIDO DE PASOS (FORMULARIOS, TARJETAS, ETC.)
+   ======================================== */
+.step-content {
+    display: none;
+    background-color: var(--container-bg);
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    margin-bottom: 2rem;
+}
+
+.step-content.active {
+    display: block;
+}
+
+.step-header h2 {
+    color: var(--brand-color);
+    margin-bottom: 0.5rem;
+}
+
+.step-header p {
+    color: var(--text-color);
 }
 
 /* ========================================
    FORMULARIOS
    ======================================== */
-.form-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 1.5rem;
-}
-
 .form-group label {
     display: block;
-    margin-bottom: 0.5rem;
     font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
 }
 
 .form-group input,
-.form-group select {
+.form-group select,
+.form-group textarea {
     width: 100%;
     padding: 0.75rem;
     border: 1px solid var(--border-color);
     border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--brand-color);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
 }
 
 /* ========================================
    BOTONES
    ======================================== */
-.btn-primary {
-    background-color: var(--brand-color);
-    color: #fff;
-    border: none;
+.btn-primary,
+.btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
     padding: 0.75rem 1.5rem;
     border-radius: 5px;
+    font-size: 1rem;
+    font-weight: 500;
     cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background-color: var(--brand-color);
+    color: white;
 }
 
 .btn-primary:hover {
     background-color: var(--brand-color-dark);
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background-color: transparent;
+    color: var(--brand-color);
+    border: 1px solid var(--brand-color);
+    border-radius: 5px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background-color: var(--brand-color);
+    color: white;
+}
+
+button:disabled {
+    background-color: #ccc;
+    color: #666;
+    cursor: not-allowed;
+    transform: none;
 }
 
 /* ========================================
-   COMPARABLES (FLEX)
+   COMPARABLES
    ======================================== */
 .comparables-container {
     display: flex;
@@ -105,16 +228,93 @@ header {
 .comparable-card {
     background-color: var(--card-bg);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: var(--border-radius);
     padding: 1.5rem;
     box-shadow: var(--box-shadow);
-    flex: 1 1 300px;
-    min-width: 300px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    flex: 1 1 300px; /* <-- CLAVE: Hace que las tarjetas sean flexibles y crezcan */
+    min-width: 300px; /* Ancho mínimo para cada tarjeta */
     box-sizing: border-box;
 }
 
+.comparable-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.comparable-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.comparable-id {
+    background-color: var(--brand-color);
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.comparable-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.comparable-actions button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #888;
+    font-size: 1rem;
+    padding: 0.25rem;
+    transition: color 0.2s ease;
+}
+
+.comparable-actions button:hover {
+    color: var(--error-color);
+}
+
+.comparable-info p {
+    margin: 0.25rem 0;
+    font-size: 0.9rem;
+}
+
+.comparable-values {
+    text-align: right;
+    margin-top: 1rem;
+}
+
+.comparable-price {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-color);
+}
+
+.comparable-price-m2 {
+    font-size: 1rem;
+    color: #666;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #999;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
 /* ========================================
-   MODAL (VERSIÓN DEFINITIVA CON SCROLL)
+   MODAL
    ======================================== */
 .modal {
     display: none;
@@ -135,28 +335,241 @@ header {
     border-radius: 8px;
     max-width: 600px;
     width: 90%;
-    max-height: 90vh;
+    max-height: 90vh; /* <-- CLAVE: Altura máxima del 90% de la ventana */
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    position: relative;
+    animation: modalFadeIn 0.3s ease;
+    /* <-- CLAVE: Usar Flexbox para la estructura interna */
     display: flex;
     flex-direction: column;
 }
 
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: var(--text-color);
+}
+
+.close-modal {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #aaa;
+    cursor: pointer;
+    background: none;
+    border: none;
+}
+
+.close-modal:hover {
+    color: var(--text-color);
+}
+
 .modal-body {
-    overflow-y: auto;
-    flex-grow: 1;
+    /* <-- CLAVE: Esta es la regla más importante para el scroll */
+    overflow-y: auto; /* Permite el scroll vertical */
+    flex-grow: 1; /* <-- CLAVE: Hace que el body ocupe todo el espacio vertical disponible */
     padding-top: 1rem;
     padding-bottom: 1rem;
 }
 
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+
 /* ========================================
-   RESPONSIVE
+   FACTORES DE AJUSTE
+   ======================================== */
+.factor-tabs {
+    display: flex;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid var(--light-color);
+}
+
+.factor-tab {
+    background: none;
+    border: none;
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    font-size: 1rem;
+    color: var(--gray-color);
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.factor-tab.active {
+    color: var(--brand-color);
+    border-bottom-color: var(--brand-color);
+    font-weight: 500;
+}
+
+.factors-content {
+    padding: 1.5rem 0;
+}
+
+.factor-item {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr auto;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.factor-label {
+    font-weight: 500;
+}
+
+.factor-weight {
+    width: 80px;
+    text-align: center;
+}
+
+.factor-control {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.factor-slider {
+    flex-grow: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 6px;
+    background: #ddd;
+    border-radius: 3px;
+    outline: none;
+}
+
+.factor-value {
+    font-weight: 500;
+    min-width: 45px;
+    text-align: center;
+}
+
+/* ========================================
+   COMPOSICIÓN DEL VALOR
+   ======================================== */
+.composition-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1.5rem;
+    font-size: 0.9rem;
+}
+
+.composition-table th,
+.composition-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.composition-table th {
+    background-color: var(--light-color);
+    font-weight: 600;
+}
+
+.composition-table td {
+    background-color: var(--card-bg);
+}
+
+.total-value {
+    text-align: center;
+    margin-top: 2rem;
+}
+
+.total-label {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.total-amount {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--brand-color);
+}
+
+/* ========================================
+   NOTIFICACIONES
+   ======================================== */
+#notification-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+}
+
+.notification {
+    background-color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 5px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    margin-bottom: 10px;
+    animation: slideInRight 0.3s ease-out;
+}
+
+.notification.success {
+    border-left: 5px solid var(--success-color);
+}
+
+.notification.error {
+    border-left: 5px solid var(--error-color);
+}
+
+@keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
    ======================================== */
 @media (max-width: 768px) {
     .form-container {
         grid-template-columns: 1fr;
     }
-
+    
     .comparables-container {
-        flex-direction: column;
+        grid-template-columns: 1fr;
+    }
+    
+    .factor-tabs {
+        flex-wrap: wrap;
+    }
+    
+    .composition-table {
+        font-size: 0.8rem;
+    }
+    
+    .composition-table th,
+    .composition-table td {
+        padding: 0.5rem;
+    }
+    
+    .total-value {
+        text-align: center;
+    }
+    
+    .modal-content {
+        width: 95%;
+        max-height: 95vh;
     }
 }
