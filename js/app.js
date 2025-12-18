@@ -16,20 +16,23 @@ class TasacionApp {
         this.trackPageView();
     }
 
-    // Nuevo método para rastrear vistas de página
+    // CORRECCIÓN 1: Nueva función para formatear moneda
+    formatCurrency(value) {
+        if (isNaN(value) || value === null) return 'USD 0,00';
+        const number = parseFloat(value);
+        // Usamos 'es-AR' que usa punto como separador de miles y coma para decimales
+        const formattedNumber = new Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(number);
+        return `USD ${formattedNumber}`;
+    }
+
     trackPageView() {
-        // En un entorno real, esto podría enviar datos a Google Analytics
-        // o a un servicio de análisis personalizado
         console.log(`Página vista: Paso ${this.currentStep}`);
-        
-        // Para un contador más avanzado, podrías registrar cada paso del proceso
         let stepViews = JSON.parse(localStorage.getItem('stepViews') || '{}');
         stepViews[`step-${this.currentStep}`] = (stepViews[`step-${this.currentStep}`] || 0) + 1;
         localStorage.setItem('stepViews', JSON.stringify(stepViews));
     }
 
     setupEventListeners() {
-        // Eventos de navegación entre pasos
         document.getElementById('btn-siguiente-1').addEventListener('click', () => this.validateAndNext(1));
         document.getElementById('btn-siguiente-2').addEventListener('click', () => this.validateAndNext(2));
         document.getElementById('btn-siguiente-3').addEventListener('click', () => this.validateAndNext(3));
@@ -40,22 +43,18 @@ class TasacionApp {
         document.getElementById('btn-anterior-4').addEventListener('click', () => this.goToStep(3));
         document.getElementById('btn-anterior-5').addEventListener('click', () => this.goToStep(4));
         
-        // Evento de descuento de negociación
         document.getElementById('descuento-negociacion').addEventListener('change', (e) => {
             this.descuentoNegociacion = parseFloat(e.target.value);
             this.updateComparableValues();
         });
         
-        // Evento de método de cálculo
         document.getElementById('metodo-calculo').addEventListener('change', () => {
             this.calculateReferenceValue();
         });
         
-        // Eventos de exportación, reinicio y guardado
         document.getElementById('btn-exportar').addEventListener('click', () => this.exportReport());
         document.getElementById('btn-reiniciar').addEventListener('click', () => this.resetApp());
         
-        // El botón de guardar en backend ahora guardará localmente sin pedir login
         const saveButton = document.getElementById('btn-guardar-backend');
         if (saveButton) {
             saveButton.addEventListener('click', () => this.saveQuotationLocally());
@@ -87,9 +86,8 @@ class TasacionApp {
                 }
                 break;
             case 4:
-                isValid = true; // Siempre válido para pasar al paso 5
+                isValid = true;
                 if (isValid) {
-                    this.calculateComposition();
                     this.goToStep(5);
                 }
                 break;
@@ -111,7 +109,6 @@ class TasacionApp {
             }
         }
         
-        // Validación adicional para asegurar que los valores numéricos sean válidos
         const superficie = parseFloat(document.getElementById('sup-cubierta').value);
         if (isNaN(superficie) || superficie <= 0) {
             this.showNotification('La superficie cubierta debe ser un número mayor a cero', 'error');
@@ -146,22 +143,24 @@ class TasacionApp {
             this.showNotification('Debe agregar al menos 4 comparables para continuar', 'error');
             return false;
         }
-        
         return true;
     }
 
+    // CORRECCIÓN 4: La validación de factores ahora siempre es true
     validateFactors() {
-        for (const comparable of this.comparables) {
-            if (!comparable.factores || Object.keys(comparable.factores).length === 0) {
-                this.showNotification(`Debe aplicar factores de ajuste al Comparable ${comparable.id}`, 'error');
-                return false;
-            }
-        }
-        
+        // Los factores por defecto son 0, así que siempre es válido.
+        // Se permite al usuario avanzar sin tener que ajustarlos.
         return true;
     }
 
     calculateReferenceValue() {
+        if (!this.comparables || this.comparables.length === 0) {
+            document.getElementById('valor-m2-referencia').textContent = this.formatCurrency(0);
+            this.valorM2Referencia = 0;
+            this.displayAdjustedValues();
+            return;
+        }
+
         const metodo = document.getElementById('metodo-calculo').value;
         const valoresAjustados = this.comparables.map(c => c.valorM2Ajustado);
         
@@ -172,8 +171,6 @@ class TasacionApp {
                 valorReferencia = valoresAjustados.reduce((sum, val) => sum + val, 0) / valoresAjustados.length;
                 break;
             case 'promedio-ponderado':
-                // Para un promedio ponderado real, necesitaríamos pesos para cada comparable
-                // Por ahora, usaremos el promedio simple como placeholder
                 valorReferencia = valoresAjustados.reduce((sum, val) => sum + val, 0) / valoresAjustados.length;
                 break;
             case 'mediana':
@@ -187,7 +184,8 @@ class TasacionApp {
         
         this.valorM2Referencia = valorReferencia;
         
-        document.getElementById('valor-m2-referencia').textContent = valorReferencia.toFixed(2);
+        // CORRECCIÓN 1: Usar la nueva función de formato
+        document.getElementById('valor-m2-referencia').textContent = this.formatCurrency(valorReferencia);
         this.displayAdjustedValues();
     }
 
@@ -195,15 +193,18 @@ class TasacionApp {
         const container = document.getElementById('valores-ajustados-container');
         container.innerHTML = '';
         
+        if (!this.comparables || this.comparables.length === 0) return;
+
         const adjustedValues = document.createElement('div');
         adjustedValues.className = 'adjusted-values';
         
         this.comparables.forEach(comparable => {
             const valueItem = document.createElement('div');
             valueItem.className = 'adjusted-value-item';
+            // CORRECCIÓN 1: Usar la nueva función de formato
             valueItem.innerHTML = `
                 <div class="adjusted-value-label">Comparable ${comparable.id}</div>
-                <div class="adjusted-value-amount">$${comparable.valorM2Ajustado.toFixed(2)}/m²</div>
+                <div class="adjusted-value-amount">${this.formatCurrency(comparable.valorM2Ajustado)}/m²</div>
             `;
             adjustedValues.appendChild(valueItem);
         });
@@ -232,23 +233,25 @@ class TasacionApp {
         const valorCochera = this.inmuebleData.cochera === 'propia' ? 5000 : 
                              this.inmuebleData.cochera === 'comun' ? 2000 : 0;
         
-        document.getElementById('comp-valor-m2').textContent = `$${this.valorM2Referencia.toFixed(2)}`;
-        document.getElementById('comp-valor-cubierta').textContent = `$${valorCubierta.toFixed(2)}`;
+        // CORRECCIÓN 1: Usar la nueva función de formato en todos los valores
+        document.getElementById('comp-valor-m2').textContent = this.formatCurrency(this.valorM2Referencia);
+        document.getElementById('comp-valor-cubierta').textContent = this.formatCurrency(valorCubierta);
         
-        document.getElementById('comp-valor-m2-semi').textContent = `$${(this.valorM2Referencia * coeficientes.semicubierta).toFixed(2)}`;
-        document.getElementById('comp-valor-semicubierta').textContent = `$${valorSemicubierta.toFixed(2)}`;
+        document.getElementById('comp-valor-m2-semi').textContent = this.formatCurrency(this.valorM2Referencia * coeficientes.semicubierta);
+        document.getElementById('comp-valor-semicubierta').textContent = this.formatCurrency(valorSemicubierta);
         
-        document.getElementById('comp-valor-m2-desc').textContent = `$${(this.valorM2Referencia * coeficientes.descubierta).toFixed(2)}`;
-        document.getElementById('comp-valor-descubierta').textContent = `$${valorDescubierta.toFixed(2)}`;
+        document.getElementById('comp-valor-m2-desc').textContent = this.formatCurrency(this.valorM2Referencia * coeficientes.descubierta);
+        document.getElementById('comp-valor-descubierta').textContent = this.formatCurrency(valorDescubierta);
         
-        document.getElementById('comp-valor-m2-balc').textContent = `$${(this.valorM2Referencia * coeficientes.balcon).toFixed(2)}`;
-        document.getElementById('comp-valor-balcon').textContent = `$${valorBalcon.toFixed(2)}`;
+        document.getElementById('comp-valor-m2-balc').textContent = this.formatCurrency(this.valorM2Referencia * coeficientes.balcon);
+        document.getElementById('comp-valor-balcon').textContent = this.formatCurrency(valorBalcon);
         
         document.getElementById('comp-valor-m2-cochera').textContent = 'Global';
-        document.getElementById('comp-valor-cochera').textContent = `$${valorCochera.toFixed(2)}`;
+        document.getElementById('comp-valor-cochera').textContent = this.formatCurrency(valorCochera);
         
         const valorTotal = valorCubierta + valorSemicubierta + valorDescubierta + valorBalcon + valorCochera;
-        document.getElementById('valor-total-tasacion').textContent = `$${valorTotal.toFixed(2)}`;
+        // CORRECCIÓN 1: Formato final correcto
+        document.getElementById('valor-total-tasacion').textContent = this.formatCurrency(valorTotal);
     }
 
     goToStep(step) {
@@ -256,7 +259,7 @@ class TasacionApp {
         document.getElementById(`step-${step}`).classList.add('active');
         this.currentStep = step;
         this.updateProgressIndicator();
-        this.trackPageView(); // Registrar vista de la nueva página
+        this.trackPageView();
         
         if (step === 3) {
             setTimeout(() => {
@@ -272,8 +275,19 @@ class TasacionApp {
             }, 300);
         }
         
+        // CORRECCIÓN 3 y 5: Lógica actualizada para los pasos 2 y 5
+        if (step === 2) {
+            // CORRECCIÓN 5: Forzar actualización de la UI de comparables al volver
+            setTimeout(() => {
+                this.updateComparableValues();
+            }, 300);
+        }
+
         if (step === 5) {
             setTimeout(() => {
+                // CORRECCIÓN 3: Asegurarse que el valor de referencia esté actualizado
+                this.calculateReferenceValue();
+                // Luego calcular la composición con el valor correcto
                 this.calculateComposition();
             }, 300);
         }
@@ -281,12 +295,14 @@ class TasacionApp {
 
     updateProgressIndicator() {
         for (let i = 1; i < this.currentStep; i++) {
-            document.querySelector(`.progress-step[data-step="${i}"]`).classList.add('completed');
-            document.querySelector(`.progress-step[data-step="${i}"]`).setAttribute('aria-selected', 'false');
+            const stepEl = document.querySelector(`.progress-step[data-step="${i}"]`);
+            stepEl.classList.add('completed');
+            stepEl.setAttribute('aria-selected', 'false');
         }
         
-        document.querySelector(`.progress-step[data-step="${this.currentStep}"]`).classList.add('active');
-        document.querySelector(`.progress-step[data-step="${this.currentStep}"]`).setAttribute('aria-selected', 'true');
+        const currentStepEl = document.querySelector(`.progress-step[data-step="${this.currentStep}"]`);
+        currentStepEl.classList.add('active');
+        currentStepEl.setAttribute('aria-selected', 'true');
         
         for (let i = this.currentStep + 1; i <= this.totalSteps; i++) {
             const step = document.querySelector(`.progress-step[data-step="${i}"]`);
@@ -326,10 +342,6 @@ class TasacionApp {
             notification.remove();
         }, 5000);
     }
-
-    // ==========================================================
-    // MÉTODOS DE GUARDADO Y EXPORTACIÓN
-    // ==========================================================
 
     async saveQuotationLocally() {
         const quotationData = {
@@ -377,7 +389,6 @@ class TasacionApp {
     }
 
     updateUIWithLoadedData() {
-        // Cargar datos del inmueble
         document.getElementById('tipo-propiedad').value = this.inmuebleData.tipoPropiedad || '';
         document.getElementById('direccion').value = this.inmuebleData.direccion || '';
         document.getElementById('piso').value = this.inmuebleData.piso || '';
@@ -393,14 +404,9 @@ class TasacionApp {
         document.getElementById('sup-terreno').value = this.inmuebleData.supTerreno || '';
         document.getElementById('cochera').value = this.inmuebleData.cochera || 'no';
         
-        // Cargar comparables
         if (window.comparablesManager) {
             window.comparablesManager.loadComparables(this.comparables);
         }
-        
-        // Recalcular valores
-        this.calculateReferenceValue();
-        this.calculateComposition();
     }
 
     exportReport() {
@@ -457,10 +463,11 @@ class TasacionApp {
         yPos += lineHeight;
 
         const headers = ["Dirección", "Precio Venta", "Valor m² Ajustado"];
+        // CORRECCIÓN 1: Formatear valores para el PDF
         const data = this.comparables.map(c => [
             c.direccion,
-            `$${c.precio.toLocaleString('es-AR')}`,
-            `$${c.valorM2Ajustado.toFixed(2)}`
+            this.formatCurrency(c.precio),
+            `${this.formatCurrency(c.valorM2Ajustado)}/m²`
         ]);
         
         let xPos = 20;
@@ -487,7 +494,7 @@ class TasacionApp {
         yPos += 15;
 
         doc.setFontSize(12);
-        doc.text(`Valor de Referencia por m²: $${this.valorM2Referencia.toFixed(2)}`, 20, yPos);
+        doc.text(`Valor de Referencia por m²: ${this.formatCurrency(this.valorM2Referencia)}`, 20, yPos);
         yPos += lineHeight * 2;
         
         doc.setFontSize(18);
@@ -552,7 +559,6 @@ class TasacionApp {
     }
 }
 
-// Inicializar la aplicación cuando el DOM esté cargado
 document.addEventListener('DOMContentLoaded', () => {
     window.tasacionApp = new TasacionApp();
 });
