@@ -1,36 +1,44 @@
 /*
  * STYLES.CSS PARA COTIZADOR INMOBILIARIO - CENTURY21
- * Versión fusionada y corregida.
+ * Versión con identidad de marca oficial.
  * Diseño robusto, responsive y con modal funcional.
  */
 
 /* ========================================
-   VARIABLES DE LA MARCA (PERSONALIZABLE AQUÍ)
+   VARIABLES DE LA MARCA (IDENTIDAD CENTURY 21)
    ======================================== */
 :root {
-    --brand-color: #3498db; /* Azul corporativo principal */
-    --brand-color-light: #0055a4; /* Azul más claro */
-    --brand-color-dark: #002244; /* Azul más oscuro */
-    --text-color: #333; /* Color de texto principal */
-    --background-color: #f4f7f9; /* Fondo muy claro */
-    --container-bg: #ffffff; /* Fondo del contenedor principal */
-    --card-bg: #ffffff; /* Fondo de las tarjetas */
-    --border-color: #dee2e6; /* Color de bordes */
-    --success-color: #28a745; /* Color para éxito/confirmación */
-    --error-color: #dc3545; /* Color para errores/notificaciones */
-    --light-color: #ecf0f1; /* Color para textos secundarios */
-    --dark-color: #2c3e50; /* Color de texto principal */
-    --gray-color: #95a5a6; /* Color de texto secundario */
-    --border-radius: 8px; /* Bordes redondeados */
-    --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    --transition: all 0.3s ease; /* Transiciones suaves */
+    /* --- Paleta de Colores Century 21 --- */
+    --c21-gold: #FFD700; /* Dorado principal */
+    --c21-dark-gold: #E6C300; /* Dorado oscuro para hover */
+    --c21-black: #000000; /* Negro principal */
+    --c21-dark-gray: #222222; /* Gris muy oscuro para texto */
+    --c21-medium-gray: #555555; /* Gris medio */
+    --c21-light-gray: #F5F5F5; /* Fondo muy claro */
+    --c21-white: #FFFFFF; /* Blanco puro */
+
+    /* --- Tipografía --- */
+    --c21-font: 'Montserrat', 'Helvetica Neue', Arial, sans-serif;
+
+    /* --- Variables de UI (re-escaladas) --- */
+    --text-color: var(--c21-dark-gray);
+    --background-color: var(--c21-light-gray);
+    --container-bg: var(--c21-white);
+    --card-bg: var(--c21-white);
+    --border-color: #E0E0E0;
+    --success-color: #28a745;
+    --error-color: #dc3545;
+    --border-radius: 8px;
+    --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --transition: all 0.3s ease;
 }
 
 /* ========================================
    ESTILOS GENERALES Y DE LAYOUT
    ======================================== */
 body {
-    font-family: 'Roboto', Arial, sans-serif;
+    /* CAMBIO: Aplicar la tipografía de Century 21 */
+    font-family: var(--c21-font);
     background-color: var(--background-color);
     color: var(--text-color);
     line-height: 1.6;
@@ -48,24 +56,35 @@ body {
    CABECERA (HEADER)
    ======================================== */
 header {
-    background-color: var(--brand-color);
-    color: white;
+    /* CAMBIO: Fondo negro y texto blanco */
+    background-color: var(--c21-black);
+    color: var(--c21-white);
     padding: 2rem 0;
     text-align: center;
     box-shadow: var(--box-shadow);
+    border-bottom: 4px solid var(--c21-gold); /* Toque de marca */
+}
+
+/* CAMBIO: Estilos para el logo de Century 21 */
+header .logo {
+    max-height: 60px;
+    width: auto;
+    margin-bottom: 1rem;
 }
 
 header h1 {
     margin: 0;
     font-size: 2.5rem;
     font-weight: 700;
+    color: var(--c21-gold); /* Título en dorado */
 }
 
 header .tagline {
     margin: 0;
     font-size: 1rem;
     font-weight: 300;
-    opacity: 0.8;
+    color: var(--c21-white);
+    opacity: 0.9;
 }
 
 /* ========================================
@@ -77,7 +96,7 @@ header .tagline {
     padding: 1rem 2rem;
     margin-bottom: 2rem;
     background-color: var(--card-bg);
-    border-radius: 8px;
+    border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
 }
 
@@ -87,20 +106,21 @@ header .tagline {
     align-items: center;
     padding: 0.5rem 1rem;
     border-radius: 5px;
-    transition: all 0.3s ease;
+    transition: var(--transition);
     text-align: center;
     cursor: pointer;
 }
 
 .progress-step.active {
-    background-color: var(--brand-color);
-    color: white;
-    font-weight: 500;
+    /* CAMBIO: Paso activo con fondo dorado */
+    background-color: var(--c21-gold);
+    color: var(--c21-black);
+    font-weight: 600;
 }
 
 .progress-step.completed {
-    background-color: var(--success-color);
-    color: white;
+    background-color: var(--c21-medium-gray);
+    color: var(--c21-white);
 }
 
 .progress-step .step-number {
@@ -123,6 +143,7 @@ header .tagline {
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
     margin-bottom: 2rem;
+    border-top: 3px solid var(--c21-gold); /* Toque de marca */
 }
 
 .step-content.active {
@@ -136,8 +157,10 @@ header .tagline {
 }
 
 .step-header h2 {
-    color: var(--brand-color);
+    /* CAMBIO: Títulos de sección en dorado */
+    color: var(--c21-gold);
     margin-bottom: 0.5rem;
+    font-weight: 600;
 }
 
 .step-header p {
@@ -166,7 +189,7 @@ header .tagline {
 
 .form-group label {
     display: block;
-    font-weight: 500;
+    font-weight: 600; /* Más negrita para mejor legibilidad */
     margin-bottom: 0.5rem;
     color: var(--text-color);
 }
@@ -179,15 +202,17 @@ header .tagline {
     border: 1px solid var(--border-color);
     border-radius: 4px;
     font-size: 1rem;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    font-family: var(--c21-font); /* Mantener la tipografía */
+    transition: var(--transition);
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
     outline: none;
-    border-color: var(--brand-color);
-    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+    /* CAMBIO: Borde de foco dorado */
+    border-color: var(--c21-gold);
+    box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.3);
 }
 
 .form-actions {
@@ -209,31 +234,36 @@ header .tagline {
     padding: 0.75rem 1.5rem;
     border-radius: 5px;
     font-size: 1rem;
-    font-weight: 500;
+    font-weight: 600; /* Más negrita */
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: var(--transition);
     border: none;
+    font-family: var(--c21-font);
 }
 
 .btn-primary {
-    background-color: var(--brand-color);
-    color: white;
+    /* CAMBIO: Botón primario dorado con texto negro */
+    background-color: var(--c21-gold);
+    color: var(--c21-black);
+    box-shadow: 0 4px 8px rgba(255, 215, 0, 0.2);
 }
 
 .btn-primary:hover {
-    background-color: var(--brand-color-dark);
+    background-color: var(--c21-dark-gold);
     transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(255, 215, 0, 0.3);
 }
 
 .btn-secondary {
     background-color: transparent;
-    color: var(--brand-color);
-    border: 1px solid var(--brand-color);
+    /* CAMBIO: Botón secundario con borde y texto dorados */
+    color: var(--c21-gold);
+    border: 2px solid var(--c21-gold);
 }
 
 .btn-secondary:hover {
-    background-color: var(--brand-color);
-    color: white;
+    background-color: var(--c21-gold);
+    color: var(--c21-black);
 }
 
 button:disabled {
@@ -241,6 +271,7 @@ button:disabled {
     color: #666;
     cursor: not-allowed;
     transform: none;
+    box-shadow: none;
 }
 
 /* ========================================
@@ -259,7 +290,7 @@ button:disabled {
     border-radius: var(--border-radius);
     padding: 1.5rem;
     box-shadow: var(--box-shadow);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: var(--transition);
     flex: 1 1 300px;
     min-width: 300px;
     box-sizing: border-box;
@@ -267,7 +298,7 @@ button:disabled {
 
 .comparable-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
 .comparable-header {
@@ -278,8 +309,9 @@ button:disabled {
 }
 
 .comparable-id {
-    background-color: var(--brand-color);
-    color: white;
+    /* CAMBIO: ID del comparable con fondo dorado */
+    background-color: var(--c21-gold);
+    color: var(--c21-black);
     width: 30px;
     height: 30px;
     border-radius: 50%;
@@ -322,12 +354,13 @@ button:disabled {
 .comparable-price {
     font-size: 1.2rem;
     font-weight: 700;
-    color: var(--text-color);
+    /* CAMBIO: Precio en dorado */
+    color: var(--c21-gold);
 }
 
 .comparable-price-m2 {
     font-size: 1rem;
-    color: #666;
+    color: var(--c21-medium-gray);
 }
 
 .empty-state {
@@ -339,6 +372,7 @@ button:disabled {
 .empty-state i {
     font-size: 3rem;
     margin-bottom: 1rem;
+    color: var(--c21-medium-gray);
 }
 
 /* ========================================
@@ -369,6 +403,7 @@ button:disabled {
     animation: modalFadeIn 0.3s ease;
     display: flex;
     flex-direction: column;
+    border-top: 4px solid var(--c21-gold); /* Toque de marca */
 }
 
 .modal-header {
@@ -382,7 +417,9 @@ button:disabled {
 
 .modal-header h3 {
     margin: 0;
-    color: var(--text-color);
+    /* CAMBIO: Título del modal en dorado */
+    color: var(--c21-gold);
+    font-weight: 600;
 }
 
 .close-modal {
@@ -425,7 +462,7 @@ button:disabled {
 .factor-tabs {
     display: flex;
     margin-bottom: 2rem;
-    border-bottom: 2px solid var(--light-color);
+    border-bottom: 2px solid var(--border-color);
 }
 
 .factor-tab {
@@ -434,15 +471,16 @@ button:disabled {
     padding: 1rem 1.5rem;
     cursor: pointer;
     font-size: 1rem;
-    color: var(--gray-color);
+    color: var(--c21-medium-gray);
     border-bottom: 2px solid transparent;
-    transition: all 0.2s ease;
+    transition: var(--transition);
 }
 
 .factor-tab.active {
-    color: var(--brand-color);
-    border-bottom-color: var(--brand-color);
-    font-weight: 500;
+    /* CAMBIO: Pestaña activa en dorado */
+    color: var(--c21-gold);
+    border-bottom-color: var(--c21-gold);
+    font-weight: 600;
 }
 
 .factors-content {
@@ -484,10 +522,38 @@ button:disabled {
     outline: none;
 }
 
+/* CAMBIO: Estilo personalizado para el thumb del slider */
+.factor-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    background: var(--c21-gold);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.factor-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    background: var(--c21-gold);
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+}
+
 .factor-value {
-    font-weight: 500;
+    font-weight: 600;
     min-width: 45px;
     text-align: center;
+    color: var(--c21-dark-gray);
+}
+
+/* CAMBIO: Estilo para los límites del factor */
+.factor-limits {
+    font-size: 0.75rem;
+    color: #888;
+    font-style: italic;
 }
 
 /* ========================================
@@ -508,8 +574,9 @@ button:disabled {
 }
 
 .composition-table th {
-    background-color: var(--light-color);
+    background-color: var(--c21-light-gray);
     font-weight: 600;
+    color: var(--c21-dark-gray);
 }
 
 .composition-table td {
@@ -519,18 +586,23 @@ button:disabled {
 .total-value {
     text-align: center;
     margin-top: 2rem;
+    padding: 1.5rem;
+    background-color: var(--c21-black);
+    border-radius: var(--border-radius);
+    color: var(--c21-white);
 }
 
 .total-label {
     font-size: 1.2rem;
     font-weight: 600;
-    color: var(--text-color);
+    color: var(--c21-white);
 }
 
 .total-amount {
     font-size: 2.5rem;
     font-weight: 700;
-    color: var(--brand-color);
+    /* CAMBIO: Valor total en dorado */
+    color: var(--c21-gold);
 }
 
 /* ========================================
@@ -551,6 +623,7 @@ button:disabled {
     margin-bottom: 10px;
     animation: slideInRight 0.3s ease-out;
     max-width: 300px;
+    border-left: 5px solid var(--c21-gold); /* Toque de marca */
 }
 
 .notification.success {
