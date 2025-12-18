@@ -234,8 +234,8 @@
                 
                 <div class="reference-result">
                     <div class="result-label">Valor por m² de Referencia</div>
-                    <!-- CORRECCIÓN FINAL: Eliminar el $ hardcoded para que formatCurrency() haga todo el trabajo -->
-                    <div class="result-value"><span id="valor-m2-referencia">USD 0,00</span></div>
+                    <!-- CORRECCIÓN: Añadir data-raw-value para el test -->
+                    <div class="result-value"><span id="valor-m2-referencia" data-raw-value="0">USD 0,00</span></div>
                 </div>
                 
                 <div class="comparables-adjusted">
@@ -313,7 +313,8 @@
                 
                 <div class="total-value">
                     <div class="total-label">TOTAL VALOR DE TASACIÓN</div>
-                    <div class="total-amount"><span id="valor-total-tasacion">USD 0,00</span></div>
+                    <!-- CORRECCIÓN: Añadir data-raw-value para el test -->
+                    <div class="total-amount"><span id="valor-total-tasacion" data-raw-value="0">USD 0,00</span></div>
                 </div>
             </div>
             
@@ -487,5 +488,8 @@
     <script src="js/factores.js"></script>
     <script src="js/composicion.js"></script>
     <script src="js/test.js"></script>
+
+    <!-- CONTADOR DE VISITAS EXTERNO -->
+    <div id="sfc21ef83zmf33dxcbu6mn2g69kpne5rbls"></div><script type="text/javascript" src="https://counter1.optistats.ovh/private/counter.js?c=21ef83zmf33dxcbu6mn2g69kpne5rbls&down=async" async></script><noscript><a href="https://www.contadorvisitasgratis.com" title="contador de visitas"><img src="https://counter1.optistats.ovh/private/contadorvisitasgratis.php?c=21ef83zmf33dxcbu6mn2g69kpne5rbls" border="0" title="contador de visitas" alt="contador de visitas"></a></noscript>
 </body>
 </html>
