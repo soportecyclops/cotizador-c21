@@ -33,7 +33,6 @@ class FactoresManager {
         });
     }
 
-    // MÉTODO FALTANTE AÑADIDO
     showComparableFactors(comparableId) {
         // Actualizar la pestaña activa
         this.currentComparable = comparableId;
@@ -62,10 +61,10 @@ class FactoresManager {
             const factorDiv = document.createElement('div');
             factorDiv.className = 'factor-item';
             
-            // CORRECCIÓN CLAVE: Usar la 'key' para generar un ID único y predecible
             const factorId = `factor-${key}`;
             const savedValue = comparable.factores[config.concepto] || config.valor;
 
+            // CORRECCIÓN 4: Añadir visualización de los límites del factor
             factorDiv.innerHTML = `
                 <label>${config.concepto}:</label>
                 <input type="range" 
@@ -76,6 +75,7 @@ class FactoresManager {
                        value="${savedValue}" 
                        data-factor="${config.concepto}">
                 <span class="factor-value">${savedValue > 0 ? '+' : ''}${savedValue}%</span>
+                <small class="factor-limits">Rango: ${-config.peso}% a +${config.peso}%</small>
             `;
             container.appendChild(factorDiv);
 
