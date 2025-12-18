@@ -352,8 +352,10 @@ async function testComposicionManager(testSuite) {
     });
 }
 
+// VERSIÓN CORREGIDA Y DEFINITIVA DE testFlujoCompleto
 async function testFlujoCompleto(testSuite) {
     testSuite.test('Debe completar el flujo completo de tasación y calcular el valor final', async () => {
+        // 1. Completar paso 1
         document.getElementById('tipo-propiedad').value = 'departamento';
         document.getElementById('direccion').value = 'Uriarte 1500';
         document.getElementById('piso').value = '5';
@@ -369,6 +371,7 @@ async function testFlujoCompleto(testSuite) {
         document.getElementById('btn-siguiente-1').click();
         await new Promise(resolve => setTimeout(resolve, 500));
 
+        // 2. Agregar comparables programáticamente
         const comparablesData = [
             { dir: 'Scalabrini Ortiz 1200', barrio: 'Palermo', precio: 280000, sup: 110, ant: '5', cal: 'excelente' },
             { dir: 'Jorge Newbery 800', barrio: 'Colegiales', precio: 250000, sup: 115, ant: '10', cal: 'muy-buena' },
@@ -397,6 +400,7 @@ async function testFlujoCompleto(testSuite) {
         }
         testSuite.assertEqual(window.tasacionApp.comparables.length, 4, 'No se agregaron los 4 comparables');
 
+        // 3. Navegar al paso 3 y ajustar factores
         console.log("DIAGNOSTICO: Navegando al paso 3 y esperando a la UI de factores...");
         document.getElementById('btn-siguiente-2').click();
         await new Promise(resolve => setTimeout(resolve, 2000));
@@ -406,7 +410,6 @@ async function testFlujoCompleto(testSuite) {
         await new Promise(resolve => setTimeout(resolve, 2000));
 
         console.log("DIAGNOSTICO: Esperando a que los sliders de factores aparezcan en el DOM...");
-        // CORRECCIÓN AQUÍ: Usar los selectores correctos
         const slider1 = await waitForElement('#factor-ubicacion');
         const slider2 = await waitForElement('#factor-calidad-de-construccion');
         console.log("DIAGNOSTICO: Sliders de factores encontrados.");
@@ -418,19 +421,29 @@ async function testFlujoCompleto(testSuite) {
         slider2.dispatchEvent(new Event('input', { bubbles: true }));
         await new Promise(resolve => setTimeout(resolve, 500));
 
+        // 4. Navegar al paso 5
         document.getElementById('btn-siguiente-3').click();
         await new Promise(resolve => setTimeout(resolve, 500));
         
         document.getElementById('btn-siguiente-4').click();
         await new Promise(resolve => setTimeout(resolve, 500));
 
+        // 5. ESPERA ROBUSTA: Primero asegurarse de que el paso 5 esté activo
+        console.log("DIAGNOSTICO: Esperando a que el paso 5 esté activo...");
+        await waitForCondition(() => {
+            return document.getElementById('step-5').classList.contains('active');
+        }, 3000); // 3 segundos para que la navegación se complete
+        console.log("DIAGNOSTICO: Paso 5 está activo.");
+
+        // 6. ESPERA ROBUSTA: Ahora esperar a que el valor se calcule
         console.log("DIAGNOSTICO: Esperando a que el valor final se calcule y tenga el formato correcto...");
         await waitForCondition(() => {
             const valorFinalElement = document.getElementById('valor-total-tasacion');
-            return valorFinalElement && valorFinalElement.textContent.startsWith('$');
-        });
+            return valorFinalElement && valorFinalElement.textContent.startsWith('$') && !valorFinalElement.textContent.includes('0.00');
+        }, 5000); // Mantenemos 5 segundos para el cálculo
         console.log("DIAGNOSTICO: Valor final calculado y formateado.");
 
+        // 7. Verificar resultados finales
         const valorFinalElement = document.getElementById('valor-total-tasacion');
         testSuite.assert(valorFinalElement, 'El elemento valor-total-tasacion no existe en el DOM');
         
