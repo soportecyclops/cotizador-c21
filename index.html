@@ -5,10 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cotizador Inmobiliario Century v2.0</title>
     <link rel="stylesheet" href="css/styles.css">
-    <!-- NUEVO: CSS Responsivo -->
+    <!-- CSS Responsivo -->
     <link rel="stylesheet" href="css/responsive.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Open Graph para compartir en redes sociales -->
+    <meta property="og:title" content="Cotizador Inmobiliario Century 21">
+    <meta property="og:description" content="Herramienta profesional de tasación inmobiliaria">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://example.com/century21-image.jpg">
 </head>
 <body>
     <header>
@@ -20,31 +25,31 @@
 
     <div class="container">
         <!-- Indicador de progreso -->
-        <div class="progress-indicator">
-            <div class="progress-step active" data-step="1">
+        <div class="progress-indicator" role="tablist" aria-label="Pasos del cotizador">
+            <div class="progress-step active" data-step="1" role="tab" aria-selected="true" aria-controls="step-1">
                 <div class="step-number">1</div>
                 <div class="step-label">Datos del Inmueble</div>
             </div>
-            <div class="progress-step" data-step="2">
+            <div class="progress-step" data-step="2" role="tab" aria-selected="false" aria-controls="step-2">
                 <div class="step-number">2</div>
                 <div class="step-label">Comparables</div>
             </div>
-            <div class="progress-step" data-step="3">
+            <div class="progress-step" data-step="3" role="tab" aria-selected="false" aria-controls="step-3">
                 <div class="step-number">3</div>
                 <div class="step-label">Factores de Ajuste</div>
             </div>
-            <div class="progress-step" data-step="4">
+            <div class="progress-step" data-step="4" role="tab" aria-selected="false" aria-controls="step-4">
                 <div class="step-number">4</div>
                 <div class="step-label">Valor de Referencia</div>
             </div>
-            <div class="progress-step" data-step="5">
+            <div class="progress-step" data-step="5" role="tab" aria-selected="false" aria-controls="step-5">
                 <div class="step-number">5</div>
                 <div class="step-label">Composición del Valor</div>
             </div>
         </div>
 
         <!-- Paso 1: Datos del Inmueble -->
-        <section id="step-1" class="step-content active">
+        <section id="step-1" class="step-content active" role="tabpanel" aria-labelledby="step-1">
             <div class="step-header">
                 <h2><i class="fas fa-building"></i> Datos del Inmueble a Tasar</h2>
                 <p>Ingrese los datos objetivos del inmueble que será tasado</p>
@@ -54,7 +59,7 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="tipo-propiedad">Tipo de Propiedad</label>
-                        <select id="tipo-propiedad" required>
+                        <select id="tipo-propiedad" required aria-required="true">
                             <option value="">Seleccionar...</option>
                             <option value="casa">Casa</option>
                             <option value="ph">PH</option>
@@ -67,7 +72,7 @@
                     </div>
                     <div class="form-group">
                         <label for="direccion">Dirección</label>
-                        <input type="text" id="direccion" placeholder="Calle y número" required>
+                        <input type="text" id="direccion" placeholder="Calle y número" required aria-required="true">
                     </div>
                 </div>
                 
@@ -85,24 +90,23 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="localidad">Localidad</label>
-                        <input type="text" id="localidad" placeholder="Ej: CABA, La Plata, etc." required>
+                        <input type="text" id="localidad" placeholder="Ej: CABA, La Plata, etc." required aria-required="true">
                     </div>
                     <div class="form-group">
                         <label for="barrio">Barrio/Zona</label>
-                        <input type="text" id="barrio" placeholder="Ej: Palermo, Belgrano, etc." required>
+                        <input type="text" id="barrio" placeholder="Ej: Palermo, Belgrano, etc." required aria-required="true">
                     </div>
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="antiguedad">Antigüedad (años)</label>
-                        <input type="number" id="antiguedad" min="0" placeholder="Ej: 5" required>
+                        <input type="number" id="antiguedad" min="0" placeholder="Ej: 5" required aria-required="true">
                     </div>
                     <div class="form-group">
                         <label for="calidad">Calidad de Construcción</label>
-                        <select id="calidad" required>
+                        <select id="calidad" required aria-required="true">
                             <option value="">Seleccionar...</option>
-                            <!-- MODIFICADO: Se eliminan las opciones "regular" y "mala" -->
                             <option value="excelente">Excelente</option>
                             <option value="muy-buena">Muy Buena</option>
                             <option value="buena">Buena</option>
@@ -113,7 +117,7 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="sup-cubierta">Superficie Cubierta (m²)</label>
-                        <input type="number" id="sup-cubierta" min="0" step="0.01" placeholder="Ej: 85.50" required>
+                        <input type="number" id="sup-cubierta" min="0" step="0.01" placeholder="Ej: 85.50" required aria-required="true">
                     </div>
                     <div class="form-group">
                         <label for="sup-semicubierta">Superficie Semicubierta (m²)</label>
@@ -154,7 +158,7 @@
         </section>
 
         <!-- Paso 2: Comparables -->
-        <section id="step-2" class="step-content">
+        <section id="step-2" class="step-content" role="tabpanel" aria-labelledby="step-2">
             <div class="step-header">
                 <h2><i class="fas fa-chart-bar"></i> Comparables de Mercado</h2>
                 <p>Agregue al menos 4 propiedades similares para comparar</p>
@@ -185,18 +189,18 @@
         </section>
 
         <!-- Paso 3: Factores de Ajuste -->
-        <section id="step-3" class="step-content">
+        <section id="step-3" class="step-content" role="tabpanel" aria-labelledby="step-3">
             <div class="step-header">
                 <h2><i class="fas fa-sliders-h"></i> Factores de Ajuste</h2>
                 <p>Ajuste los comparables según características cualitativas</p>
             </div>
             
             <div class="factors-container">
-                <div class="factor-tabs">
-                    <button class="factor-tab active" data-comparable="1">Comparable 1</button>
-                    <button class="factor-tab" data-comparable="2">Comparable 2</button>
-                    <button class="factor-tab" data-comparable="3">Comparable 3</button>
-                    <button class="factor-tab" data-comparable="4">Comparable 4</button>
+                <div class="factor-tabs" role="tablist">
+                    <button class="factor-tab active" data-comparable="1" role="tab" aria-selected="true" aria-controls="factors-comparable-1">Comparable 1</button>
+                    <button class="factor-tab" data-comparable="2" role="tab" aria-selected="false" aria-controls="factors-comparable-2">Comparable 2</button>
+                    <button class="factor-tab" data-comparable="3" role="tab" aria-selected="false" aria-controls="factors-comparable-3">Comparable 3</button>
+                    <button class="factor-tab" data-comparable="4" role="tab" aria-selected="false" aria-controls="factors-comparable-4">Comparable 4</button>
                 </div>
                 
                 <div id="factors-content" class="factors-content">
@@ -211,7 +215,7 @@
         </section>
 
         <!-- Paso 4: Valor de Referencia -->
-        <section id="step-4" class="step-content">
+        <section id="step-4" class="step-content" role="tabpanel" aria-labelledby="step-4">
             <div class="step-header">
                 <h2><i class="fas fa-calculator"></i> Valor de Referencia</h2>
                 <p>Valor por metro cuadrado calculado a partir de los comparables ajustados</p>
@@ -247,7 +251,7 @@
         </section>
 
         <!-- Paso 5: Composición del Valor -->
-        <section id="step-5" class="step-content">
+        <section id="step-5" class="step-content" role="tabpanel" aria-labelledby="step-5">
             <div class="step-header">
                 <h2><i class="fas fa-chart-pie"></i> Composición del Valor</h2>
                 <p>Cálculo del valor total según composición de superficies</p>
@@ -313,7 +317,6 @@
             
             <div class="form-actions">
                 <button id="btn-anterior-5" class="btn-secondary"><i class="fas fa-arrow-left"></i> Anterior</button>
-                <!-- NUEVO: Botón para guardar en backend -->
                 <button id="btn-guardar-backend" class="btn-primary"><i class="fas fa-save"></i> Guardar en Servidor</button>
                 <button id="btn-exportar" class="btn-primary"><i class="fas fa-file-pdf"></i> Exportar Informe</button>
                 <button id="btn-reiniciar" class="btn-secondary"><i class="fas fa-redo"></i> Reiniciar</button>
@@ -322,11 +325,11 @@
     </div>
 
     <!-- Modal para agregar/editar comparables -->
-    <div id="modal-comparable" class="modal">
+    <div id="modal-comparable" class="modal" role="dialog" aria-labelledby="modal-title" aria-hidden="true">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="modal-title">Agregar Comparable</h3>
-                <span class="close-modal">&times;</span>
+                <span class="close-modal" aria-label="Cerrar">&times;</span>
             </div>
             <div class="modal-body">
                 <form id="form-comparable">
@@ -335,7 +338,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="comp-tipo-propiedad">Tipo de Propiedad</label>
-                            <select id="comp-tipo-propiedad" required>
+                            <select id="comp-tipo-propiedad" required aria-required="true">
                                 <option value="">Seleccionar...</option>
                                 <option value="casa">Casa</option>
                                 <option value="ph">PH</option>
@@ -348,14 +351,14 @@
                         </div>
                         <div class="form-group">
                             <label for="comp-precio">Precio de Venta (USD)</label>
-                            <input type="number" id="comp-precio" min="0" step="0.01" required>
+                            <input type="number" id="comp-precio" min="0" step="0.01" required aria-required="true">
                         </div>
                     </div>
                     
                     <div class="form-row">
                         <div class="form-group">
                             <label for="comp-direccion">Dirección</label>
-                            <input type="text" id="comp-direccion" required>
+                            <input type="text" id="comp-direccion" required aria-required="true">
                         </div>
                         <div class="form-group">
                             <label for="comp-numero">Número</label>
@@ -377,24 +380,23 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="comp-localidad">Localidad</label>
-                            <input type="text" id="comp-localidad" required>
+                            <input type="text" id="comp-localidad" required aria-required="true">
                         </div>
                         <div class="form-group">
                             <label for="comp-barrio">Barrio/Zona</label>
-                            <input type="text" id="comp-barrio" required>
+                            <input type="text" id="comp-barrio" required aria-required="true">
                         </div>
                     </div>
                     
                     <div class="form-row">
                         <div class="form-group">
                             <label for="comp-antiguedad">Antigüedad (años)</label>
-                            <input type="number" id="comp-antiguedad" min="0" required>
+                            <input type="number" id="comp-antiguedad" min="0" required aria-required="true">
                         </div>
                         <div class="form-group">
                             <label for="comp-calidad">Calidad de Construcción</label>
-                            <select id="comp-calidad" required>
+                            <select id="comp-calidad" required aria-required="true">
                                 <option value="">Seleccionar...</option>
-                                <!-- MODIFICADO: Se eliminan las opciones "regular" y "mala" -->
                                 <option value="excelente">Excelente</option>
                                 <option value="muy-buena">Muy Buena</option>
                                 <option value="buena">Buena</option>
@@ -405,7 +407,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="comp-sup-cubierta">Superficie Cubierta (m²)</label>
-                            <input type="number" id="comp-sup-cubierta" min="0" step="0.01" required>
+                            <input type="number" id="comp-sup-cubierta" min="0" step="0.01" required aria-required="true">
                         </div>
                         <div class="form-group">
                             <label for="comp-sup-terreno">Superficie Total del Terreno (m²)</label>
@@ -437,12 +439,25 @@
     </div>
 
     <!-- Contenedor para notificaciones -->
-    <div id="notification-container"></div>
+    <div id="notification-container" aria-live="polite"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
-    <!-- MODIFICADO: Orden de los scripts para que auth.js cargue primero -->
+    <!-- Contador de visitas -->
+    <script>
+        // Simple contador de visitas usando localStorage
+        document.addEventListener('DOMContentLoaded', () => {
+            let visitCount = localStorage.getItem('visitCount') || 0;
+            visitCount++;
+            localStorage.setItem('visitCount', visitCount);
+            console.log(`Visitas: ${visitCount}`);
+            
+            // Para un contador más robusto, podrías enviar estos datos a un servidor
+            // o usar un servicio como Google Analytics
+        });
+    </script>
+    
     <script src="js/auth.js"></script>
     <script src="js/app.js"></script>
     <script src="js/comparables.js"></script>
