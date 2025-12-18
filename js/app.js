@@ -155,7 +155,9 @@ class TasacionApp {
 
     calculateReferenceValue() {
         if (!this.comparables || this.comparables.length === 0) {
-            document.getElementById('valor-m2-referencia').textContent = this.formatCurrency(0);
+            const m2RefElement = document.getElementById('valor-m2-referencia');
+            m2RefElement.textContent = this.formatCurrency(0);
+            m2RefElement.setAttribute('data-raw-value', 0); // <-- CORRECCIÓN CLAVE
             this.valorM2Referencia = 0;
             this.displayAdjustedValues();
             return;
@@ -184,8 +186,11 @@ class TasacionApp {
         
         this.valorM2Referencia = valorReferencia;
         
-        // CORRECCIÓN 1: Usar la nueva función de formato
-        document.getElementById('valor-m2-referencia').textContent = this.formatCurrency(valorReferencia);
+        // CORRECCIÓN 1: Usar la nueva función de formato y guardar el valor bruto
+        const m2RefElement = document.getElementById('valor-m2-referencia');
+        m2RefElement.textContent = this.formatCurrency(valorReferencia);
+        m2RefElement.setAttribute('data-raw-value', valorReferencia); // <-- CORRECCIÓN CLAVE
+        
         this.displayAdjustedValues();
     }
 
@@ -250,8 +255,11 @@ class TasacionApp {
         document.getElementById('comp-valor-cochera').textContent = this.formatCurrency(valorCochera);
         
         const valorTotal = valorCubierta + valorSemicubierta + valorDescubierta + valorBalcon + valorCochera;
-        // CORRECCIÓN 1: Formato final correcto
-        document.getElementById('valor-total-tasacion').textContent = this.formatCurrency(valorTotal);
+        
+        // CORRECCIÓN 1: Formato final correcto y guardar valor bruto
+        const totalElement = document.getElementById('valor-total-tasacion');
+        totalElement.textContent = this.formatCurrency(valorTotal);
+        totalElement.setAttribute('data-raw-value', valorTotal); // <-- CORRECCIÓN CLAVE
     }
 
     goToStep(step) {
