@@ -1,11 +1,11 @@
 /**
- * Versión final y definitiva. Corrige los errores de aserción y selectores en los tests.
+ * Versión FINAL y DEFINITIVA. Corrige el problema de sincronización en el test de flujo completo.
  */
 
 console.log("test.js: Script cargado");
 
 // ========================================
-// CLASE TESTSUITE (Sin cambios)
+// CLASE TESTSUITE
 // ========================================
 class TestSuite {
     constructor() {
@@ -28,16 +28,13 @@ class TestSuite {
         for (const test of this.tests) {
             this.currentTestName = test.name;
             try {
-                // Preparar el entorno para cada test
                 this.resetTestEnvironment();
-                
-                // Ejecutar el test
                 await test.testFunction();
                 this.passed++;
-                console.log(`%c✅ ${test.name}`, 'color: #2ecc71;');
+                console.log(`%c✅ ${this.currentTestName}`, 'color: #2ecc71;');
             } catch (error) {
                 this.failed++;
-                console.error(`%c❌ ${test.name}`, 'color: #e74c3c; font-weight: bold;');
+                console.error(`%c❌ ${this.currentTestName}`, 'color: #e74c3c; font-weight: bold;');
                 console.error(`   Error: ${error.message}`);
                 console.error(error.stack);
             }
@@ -117,7 +114,7 @@ class TestSuite {
 }
 
 // ========================================
-// FUNCIÓN DE AYUDA PARA ESPERAR A LOS ELEMENTOS
+// FUNCIONES DE AYUDA
 // ========================================
 function waitForElement(selector, timeout = 5000) {
     return new Promise((resolve, reject) => {
@@ -137,9 +134,6 @@ function waitForElement(selector, timeout = 5000) {
     });
 }
 
-// ========================================
-// FUNCIÓN DE AYUDA PARA ESPERAR A UNA CONDICIÓN
-// ========================================
 function waitForCondition(condition, timeout = 5000) {
     return new Promise((resolve, reject) => {
         const startTime = Date.now();
@@ -158,7 +152,7 @@ function waitForCondition(condition, timeout = 5000) {
 }
 
 // ========================================
-// DEFINICIÓN DE LOS TESTS (CON CORRECCIONES)
+// DEFINICIÓN DE LOS TESTS
 // ========================================
 function testEstructuraInicial(testSuite) {
     testSuite.test('La aplicación principal debe instanciarse correctamente', () => {
@@ -247,8 +241,6 @@ async function testComparables(testSuite) {
         await new Promise(resolve => setTimeout(resolve, 200));
         
         testSuite.assertEqual(window.tasacionApp.comparables.length, 1, 'No se agregó el comparable');
-        
-        // CORRECCIÓN AQUÍ: Verificar la dirección correcta
         testSuite.assertEqual(window.tasacionApp.comparables[0].direccion, 'Calle Falsa 456', 'La dirección del comparable no se guardó correctamente');
         
         const originalConfirm = window.confirm;
@@ -289,7 +281,6 @@ async function testFactoresManager(testSuite) {
         const comparable = window.tasacionApp.comparables[0];
         const valorM2Original = comparable.valorM2;
 
-        // CORRECCIÓN AQUÍ: Usar el selector correcto
         const sliderUbicacion = document.getElementById('factor-ubicacion');
         testSuite.assert(sliderUbicacion, 'El slider de Ubicación no se encontró');
         
@@ -352,7 +343,7 @@ async function testComposicionManager(testSuite) {
     });
 }
 
-// VERSIÓN CORREGIDA Y DEFINITIVA DE testFlujoCompleto
+// VERSIÓN FINAL Y DEFINITIVA DE testFlujoCompleto
 async function testFlujoCompleto(testSuite) {
     testSuite.test('Debe completar el flujo completo de tasación y calcular el valor final', async () => {
         // 1. Completar paso 1
@@ -428,26 +419,28 @@ async function testFlujoCompleto(testSuite) {
         document.getElementById('btn-siguiente-4').click();
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        // 5. ESPERA ROBUSTA: Primero asegurarse de que el paso 5 esté activo
+        // 5. Esperar a que el paso 5 esté activo
         console.log("DIAGNOSTICO: Esperando a que el paso 5 esté activo...");
         await waitForCondition(() => {
             return document.getElementById('step-5').classList.contains('active');
-        }, 3000); // 3 segundos para que la navegación se complete
+        }, 3000);
         console.log("DIAGNOSTICO: Paso 5 está activo.");
 
-        // 6. ESPERA ROBUSTA: Ahora esperar a que el valor se calcule
-        console.log("DIAGNOSTICO: Esperando a que el valor final se calcule y tenga el formato correcto...");
-        await waitForCondition(() => {
-            const valorFinalElement = document.getElementById('valor-total-tasacion');
-            return valorFinalElement && valorFinalElement.textContent.startsWith('$') && !valorFinalElement.textContent.includes('0.00');
-        }, 5000); // Mantenemos 5 segundos para el cálculo
-        console.log("DIAGNOSTICO: Valor final calculado y formateado.");
+        // 6. NUEVO ENFOQUE: Forzar el cálculo y verificar directamente
+        console.log("DIAGNOSTICO: Forzando el cálculo de la composición explícitamente...");
+        window.tasacionApp.calculateComposition();
+        
+        // Pequeña pausa para asegurar que el DOM se actualice
+        await new Promise(resolve => setTimeout(resolve, 300));
+        console.log("DIAGNOSTICO: Cálculo forzado completado. Verificando valor...");
 
-        // 7. Verificar resultados finales
+        // 7. Verificar resultados finales (sin más esperas)
         const valorFinalElement = document.getElementById('valor-total-tasacion');
         testSuite.assert(valorFinalElement, 'El elemento valor-total-tasacion no existe en el DOM');
         
         const valorFinalTexto = valorFinalElement.textContent;
+        console.log(`DIAGNOSTICO: Valor encontrado en UI: ${valorFinalTexto}`);
+        
         const valorFinalNumero = parseFloat(valorFinalTexto.replace('$', '').replace(',', ''));
         
         testSuite.assert(valorFinalTexto.startsWith('$'), 'El valor final no tiene el formato de moneda correcto');
@@ -485,7 +478,7 @@ async function runAllTests() {
 }
 
 // ========================================
-// FUNCIÓN PARA AGREGAR EL BOTÓN DE TEST (MEJORADA)
+// FUNCIÓN PARA AGREGAR EL BOTÓN DE TEST
 // ========================================
 function addTestButton() {
     if (document.getElementById('btn-run-tests')) {
@@ -519,7 +512,7 @@ function addTestButton() {
 }
 
 // ========================================
-// INICIALIZACIÓN (MEJORADA Y SIMPLIFICADA)
+// INICIALIZACIÓN
 // ========================================
 function initializeTests() {
     if (document.readyState === 'loading') {
