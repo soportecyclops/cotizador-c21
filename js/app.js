@@ -86,7 +86,7 @@ class TasacionApp {
                 }
                 break;
             case 4:
-                isValid = true;
+                isValid = true; // Siempre válido para pasar al paso 5
                 if (isValid) {
                     this.goToStep(5);
                 }
@@ -157,7 +157,7 @@ class TasacionApp {
         if (!this.comparables || this.comparables.length === 0) {
             const m2RefElement = document.getElementById('valor-m2-referencia');
             m2RefElement.textContent = this.formatCurrency(0);
-            m2RefElement.setAttribute('data-raw-value', 0); // <-- CORRECCIÓN CLAVE
+            m2RefElement.setAttribute('data-raw-value', 0); // <-- CAMBIO CLAVE
             this.valorM2Referencia = 0;
             this.displayAdjustedValues();
             return;
@@ -189,7 +189,7 @@ class TasacionApp {
         // CORRECCIÓN 1: Usar la nueva función de formato y guardar el valor bruto
         const m2RefElement = document.getElementById('valor-m2-referencia');
         m2RefElement.textContent = this.formatCurrency(valorReferencia);
-        m2RefElement.setAttribute('data-raw-value', valorReferencia); // <-- CORRECCIÓN CLAVE
+        m2RefElement.setAttribute('data-raw-value', valorReferencia); // <-- CAMBIO CLAVE
         
         this.displayAdjustedValues();
     }
@@ -259,7 +259,7 @@ class TasacionApp {
         // CORRECCIÓN 1: Formato final correcto y guardar valor bruto
         const totalElement = document.getElementById('valor-total-tasacion');
         totalElement.textContent = this.formatCurrency(valorTotal);
-        totalElement.setAttribute('data-raw-value', valorTotal); // <-- CORRECCIÓN CLAVE
+        totalElement.setAttribute('data-raw-value', valorTotal); // <-- CAMBIO CLAVE
     }
 
     goToStep(step) {
