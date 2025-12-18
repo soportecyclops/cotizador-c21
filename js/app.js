@@ -241,8 +241,7 @@ class TasacionApp {
         document.getElementById('comp-valor-cochera').textContent = `$${valorCochera.toFixed(2)}`;
         
         const valorTotal = valorCubierta + valorSemicubierta + valorDescubierta + valorBalcon + valorCochera;
-        document.getElementById('valor-total-tasacion').textContent = valorTotal.toFixed(2);
-    }
+        document.getElementById('valor-total-tasacion').textContent = `$${valorTotal.toFixed(2)}`;    }
 
     goToStep(step) {
         document.getElementById(`step-${this.currentStep}`).classList.remove('active');
