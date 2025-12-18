@@ -49,15 +49,10 @@ class ComparablesManager {
                 document.getElementById('comp-barrio').value = comparable.barrio;
                 document.getElementById('comp-antiguedad').value = comparable.antiguedad;
                 document.getElementById('comp-calidad').value = comparable.calidad;
-                document.getElementById('comp-sup-cubierta').value = comparable.supCubierta || '';
-                document.getElementById('comp-sup-terreno').value = comparable.supTerreno || '';
+                document.getElementById('comp-sup-cubierta').value = comparable.supCubierta;
+                document.getElementById('comp-sup-terreno').value = comparable.supTerreno;
                 document.getElementById('comp-cochera').value = comparable.cochera;
                 document.getElementById('comp-observaciones').value = comparable.observaciones || '';
-                
-                // CORRECCIÓN 1: Cargar los nuevos campos al editar
-                document.getElementById('comp-sup-semicubierta').value = comparable.supSemicubierta || '';
-                document.getElementById('comp-sup-descubierta').value = comparable.supDescubierta || '';
-                document.getElementById('comp-sup-balcon').value = comparable.supBalcon || '';
             }
         } else {
             // Modo agregación
@@ -70,27 +65,31 @@ class ComparablesManager {
     }
 
     closeComparableModal() {
-        document.getElementById('modal-comparable').style.display = 'none';
+        const modal = document.getElementById('modal-comparable');
+        modal.style.display = 'none';
     }
 
     saveComparable() {
         const id = document.getElementById('comparable-id').value;
         const isEdit = id !== '';
         
-        // CORRECCIÓN 2: Actualizar la lista de campos obligatorios
+        // CORRECCIÓN CLAVE: Buscar elementos DENTRO del modal
+        const form = document.querySelector('#modal-comparable form');
+        
         const requiredFields = [
             'comp-tipo-propiedad', 'comp-precio', 'comp-direccion', 
-            'comp-localidad', 'comp-barrio', 'comp-antiguedad', 
-            'comp-calidad', 'comp-sup-cubierta', // <-- ¡CAMBIO AQUÍ!
-            'comp-sup-terreno', 'comp-sup-semicubierta', 'comp-sup-descubierta', 'comp-sup-balcon' // <-- ¡Y AQUÍ!
+            'comp-localidad', 'comp-barrio', 'comp-antiguedad', 'comp-calidad', 'comp-sup-cubierta', // <-- CAMBIO CLAVE
+            'comp-sup-semicubierta', 'comp-sup-descubierta', 'comp-sup-balcon' // <-- CAMBIO CLAVE
         ];
         
         for (const fieldId of requiredFields) {
-            const field = document.getElementById(fieldId);
+            // CORRECCIÓN CLAVE: Buscar dentro del formulario del modal
+            const field = form.querySelector(`#${fieldId}`);
             if (!field || !field.value || typeof field.value !== 'string' || !field.value.trim()) {
                 window.tasacionApp.showNotification(`Por favor, complete todos los campos obligatorios (${fieldId})`, 'error');
+                // CORRECCIÓN CLAVE: Enfocar el campo específico que faltó
                 if (field) field.focus();
-                return;
+                return false;
             }
         }
         
@@ -105,18 +104,23 @@ class ComparablesManager {
             antiguedad: parseInt(document.getElementById('comp-antiguedad').value),
             calidad: document.getElementById('comp-calidad').value,
             supCubierta: parseFloat(document.getElementById('comp-sup-cubierta').value),
-            supTerreno: parseFloat(document.getElementById('comp-sup-terreno').value),
+            supTerreno: parseFloat(document.getElementById('comp-sup-terreno').value) || 0,
             cochera: document.getElementById('comp-cochera').value,
             observaciones: document.getElementById('comp-observaciones').value,
             
-            // CORRECCIÓN 3: Capturar los valores de los nuevos campos
+            // CORRECCIÓN CLAVE: Capturar los valores de los nuevos campos
             supSemicubierta: parseFloat(document.getElementById('comp-sup-semicubierta').value) || 0,
             supDescubierta: parseFloat(document.getElementById('comp-sup-descubierta').value) || 0,
             supBalcon: parseFloat(document.getElementById('comp-sup-balcon').value) || 0
         };
         
+        // Calcular valor por m²
+        const precioAjustado = comparable.precio * (1 - window.tasacionApp.descuentoNegociacion / 100);
+        comparable.valorM2 = precioAjustado / comparable.supCubierta;
+        comparable.valorM2Ajustado = comparable.valorM2; // Inicialmente sin factores
+        
         if (isEdit) {
-            // Actualizar comparable existente
+            // Modo edición
             const index = window.tasacionApp.comparables.findIndex(c => c.id === comparable.id);
             if (index !== -1) {
                 // Mantener factores de ajuste si ya existen
@@ -132,7 +136,7 @@ class ComparablesManager {
                 window.tasacionApp.comparables[index] = comparable;
             }
         } else {
-            // Agregar nuevo comparable
+            // Modo agregación
             comparable.factores = {}; // Inicialmente sin factores de ajuste
             window.tasacionApp.comparables.push(comparable);
         }
@@ -154,7 +158,6 @@ class ComparablesManager {
         if (window.tasacionApp.comparables.length === 0) {
             return 1;
         }
-        // Encuentra el ID más alto en el array y súmale 1.
         const maxId = Math.max(...window.tasacionApp.comparables.map(c => c.id));
         return maxId + 1;
     }
@@ -171,7 +174,7 @@ class ComparablesManager {
         const container = document.getElementById('comparables-container');
         const noComparables = document.getElementById('no-comparables');
         const siguienteBtn = document.getElementById('btn-siguiente-2');
-        
+
         container.innerHTML = '';
 
         if (window.tasacionApp.comparables.length === 0) {
@@ -180,47 +183,34 @@ class ComparablesManager {
         } else {
             noComparables.style.display = 'none';
             siguienteBtn.disabled = false;
-
-            window.tasacionApp.comparables.forEach(comparable => {
-                const card = document.createElement('div');
-                card.className = 'comparable-card';
-                card.innerHTML = `
-                    <div class="comparable-header">
-                        <h4>Comparable ${comparable.id}</h4>
-                        <div class="comparable-actions">
-                            <button class="btn-edit" onclick="window.comparablesManager.openComparableModal(${comparable.id})"><i class="fas fa-edit"></i></button>
-                            <button class="btn-delete" onclick="window.comparablesManager.deleteComparable(${comparable.id})"><i class="fas fa-trash"></i></button>
-                        </div>
-                    </div>
-                    <div class="comparable-body">
-                        <p><i class="fas fa-map-marker-alt"></i> ${comparable.direccion}, ${comparable.barrio}</p>
-                        <p><i class="fas fa-tag"></i> Precio: ${window.tasacionApp.formatCurrency(comparable.precio)}</p>
-                        <p><i class="fas fa-ruler-combined"></i> Sup. Cubierta: ${comparable.supCubierta} m²</p>
-                        <p><i class="fas fa-calculator"></i> Valor m²: ${window.tasacionApp.formatCurrency(comparable.valorM2)}</p>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
         }
+
+        window.tasacionApp.comparables.forEach(comparable => {
+            const card = document.createElement('div');
+            card.className = 'comparable-card';
+            card.innerHTML = `
+                <div class="comparable-header">
+                    <h4>Comparable ${comparable.id}</h4>
+                    <div class="comparable-actions">
+                        <button class="btn-edit" onclick="window.comparablesManager.openComparableModal(${comparable.id})"><i class="fas fa-edit"></i></button>
+                        <button class="btn-delete" onclick="window.comparablesManager.deleteComparable(${comparable.id})"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+                <div class="comparable-body">
+                    <p><i class="fas fa-map-marker-alt"></i> ${comparable.direccion}, ${comparable.barrio}</p>
+                    <p><i class="fas fa-tag"></i> Precio: ${window.tasacionApp.formatCurrency(comparable.precio)}</p>
+                    <p><i class="fas fa-ruler-combined"></i> Sup. Cubierta: ${comparable.supCubierta} m²</p>
+                    <p><i class="fas fa-calculator"></i> Valor m²: ${window.tasacionApp.formatCurrency(comparable.valorM2Ajustado)}/m²</p>
+                </div>
+            `;
+            container.appendChild(card);
+        });
     }
 
-    // CORRECCIÓN 4: Actualizar `loadComparables` para poblar los nuevos campos
-    loadComparables(comparables) {
-        // Actualizar las pestañas de los factores si es necesario
-        if (window.factoresManager) {
-            window.factoresManager.updateTabs();
-        }
-
-        // Cargar los datos de cada comparable en el formulario principal y en el modal de edición
-        comparables.forEach(comparable => {
-            const card = document.querySelector(`.comparable-card[data-id="${comparable.id}"]`);
-            if (card) {
-                // Actualizar la información mostrada en la tarjeta
-                card.querySelector('.comparable-direccion').textContent = `${comparable.direccion}, ${comparable.barrio}`;
-                card.querySelector('.comparable-price').textContent = window.tasacionApp.formatCurrency(comparable.precio);
-                card.querySelector('.comparable-valor-m2').textContent = `${window.tasacionApp.formatCurrency(comparable.valorM2)}/m²`;
-            }
-        });
+    reset() {
+        // Este método ahora no limpia los datos, solo la UI.
+        // El estado real (this.comparables) se maneja en TasacionApp.resetForm()
+        this.updateComparablesUI();
     }
 }
 
