@@ -11,25 +11,22 @@ class TasacionApp {
     }
 
     init() {
-        // MODIFICADO: Se elimina la verificación de autenticación para permitir el acceso directo.
-        // if (!isAuthenticated()) {
-        //     window.location.href = 'login.html';
-        //     return;
-        // }
-        
         this.setupEventListeners();
         this.updateProgressIndicator();
-        // MODIFICADO: Se elimina el mensaje de bienvenida ya que no hay login de usuario.
-        // this.showWelcomeMessage();
+        this.trackPageView();
     }
 
-    // MODIFICADO: Esta función ya no se necesita, pero se deja por si se usa en el futuro.
-    // showWelcomeMessage() {
-    //     const userName = localStorage.getItem('userName');
-    //     if (userName) {
-    //         this.showNotification(`¡Bienvenido/a, ${userName}!`, 'success');
-    //     }
-    // }
+    // Nuevo método para rastrear vistas de página
+    trackPageView() {
+        // En un entorno real, esto podría enviar datos a Google Analytics
+        // o a un servicio de análisis personalizado
+        console.log(`Página vista: Paso ${this.currentStep}`);
+        
+        // Para un contador más avanzado, podrías registrar cada paso del proceso
+        let stepViews = JSON.parse(localStorage.getItem('stepViews') || '{}');
+        stepViews[`step-${this.currentStep}`] = (stepViews[`step-${this.currentStep}`] || 0) + 1;
+        localStorage.setItem('stepViews', JSON.stringify(stepViews));
+    }
 
     setupEventListeners() {
         // Eventos de navegación entre pasos
@@ -54,7 +51,7 @@ class TasacionApp {
             this.calculateReferenceValue();
         });
         
-        // MODIFICADO: Eventos de exportación, reinicio y guardado (sin autenticación)
+        // Eventos de exportación, reinicio y guardado
         document.getElementById('btn-exportar').addEventListener('click', () => this.exportReport());
         document.getElementById('btn-reiniciar').addEventListener('click', () => this.resetApp());
         
@@ -114,6 +111,14 @@ class TasacionApp {
             }
         }
         
+        // Validación adicional para asegurar que los valores numéricos sean válidos
+        const superficie = parseFloat(document.getElementById('sup-cubierta').value);
+        if (isNaN(superficie) || superficie <= 0) {
+            this.showNotification('La superficie cubierta debe ser un número mayor a cero', 'error');
+            document.getElementById('sup-cubierta').focus();
+            return false;
+        }
+        
         return true;
     }
 
@@ -167,6 +172,8 @@ class TasacionApp {
                 valorReferencia = valoresAjustados.reduce((sum, val) => sum + val, 0) / valoresAjustados.length;
                 break;
             case 'promedio-ponderado':
+                // Para un promedio ponderado real, necesitaríamos pesos para cada comparable
+                // Por ahora, usaremos el promedio simple como placeholder
                 valorReferencia = valoresAjustados.reduce((sum, val) => sum + val, 0) / valoresAjustados.length;
                 break;
             case 'mediana':
@@ -241,13 +248,15 @@ class TasacionApp {
         document.getElementById('comp-valor-cochera').textContent = `$${valorCochera.toFixed(2)}`;
         
         const valorTotal = valorCubierta + valorSemicubierta + valorDescubierta + valorBalcon + valorCochera;
-        document.getElementById('valor-total-tasacion').textContent = `$${valorTotal.toFixed(2)}`;    }
+        document.getElementById('valor-total-tasacion').textContent = `$${valorTotal.toFixed(2)}`;
+    }
 
     goToStep(step) {
         document.getElementById(`step-${this.currentStep}`).classList.remove('active');
         document.getElementById(`step-${step}`).classList.add('active');
         this.currentStep = step;
         this.updateProgressIndicator();
+        this.trackPageView(); // Registrar vista de la nueva página
         
         if (step === 3) {
             setTimeout(() => {
@@ -273,13 +282,16 @@ class TasacionApp {
     updateProgressIndicator() {
         for (let i = 1; i < this.currentStep; i++) {
             document.querySelector(`.progress-step[data-step="${i}"]`).classList.add('completed');
+            document.querySelector(`.progress-step[data-step="${i}"]`).setAttribute('aria-selected', 'false');
         }
         
         document.querySelector(`.progress-step[data-step="${this.currentStep}"]`).classList.add('active');
+        document.querySelector(`.progress-step[data-step="${this.currentStep}"]`).setAttribute('aria-selected', 'true');
         
         for (let i = this.currentStep + 1; i <= this.totalSteps; i++) {
             const step = document.querySelector(`.progress-step[data-step="${i}"]`);
             step.classList.remove('completed', 'active');
+            step.setAttribute('aria-selected', 'false');
         }
     }
 
@@ -319,7 +331,6 @@ class TasacionApp {
     // MÉTODOS DE GUARDADO Y EXPORTACIÓN
     // ==========================================================
 
-    // MODIFICADO: Ahora guarda localmente sin pedir autenticación.
     async saveQuotationLocally() {
         const quotationData = {
             id: new Date().getTime(),
@@ -342,7 +353,6 @@ class TasacionApp {
         }
     }
 
-    // MODIFICADO: La función de carga ahora también es local.
     async loadQuotationLocally(quotationId) {
         try {
             const savedQuotations = JSON.parse(localStorage.getItem('savedQuotations') || '[]');
@@ -367,7 +377,30 @@ class TasacionApp {
     }
 
     updateUIWithLoadedData() {
-        console.log("Actualizando UI con datos cargados:", this.inmuebleData, this.comparables);
+        // Cargar datos del inmueble
+        document.getElementById('tipo-propiedad').value = this.inmuebleData.tipoPropiedad || '';
+        document.getElementById('direccion').value = this.inmuebleData.direccion || '';
+        document.getElementById('piso').value = this.inmuebleData.piso || '';
+        document.getElementById('depto').value = this.inmuebleData.depto || '';
+        document.getElementById('localidad').value = this.inmuebleData.localidad || '';
+        document.getElementById('barrio').value = this.inmuebleData.barrio || '';
+        document.getElementById('antiguedad').value = this.inmuebleData.antiguedad || '';
+        document.getElementById('calidad').value = this.inmuebleData.calidad || '';
+        document.getElementById('sup-cubierta').value = this.inmuebleData.supCubierta || '';
+        document.getElementById('sup-semicubierta').value = this.inmuebleData.supSemicubierta || '';
+        document.getElementById('sup-descubierta').value = this.inmuebleData.supDescubierta || '';
+        document.getElementById('sup-balcon').value = this.inmuebleData.supBalcon || '';
+        document.getElementById('sup-terreno').value = this.inmuebleData.supTerreno || '';
+        document.getElementById('cochera').value = this.inmuebleData.cochera || 'no';
+        
+        // Cargar comparables
+        if (window.comparablesManager) {
+            window.comparablesManager.loadComparables(this.comparables);
+        }
+        
+        // Recalcular valores
+        this.calculateReferenceValue();
+        this.calculateComposition();
     }
 
     exportReport() {
@@ -460,7 +493,7 @@ class TasacionApp {
         doc.setFontSize(18);
         doc.setTextColor(...primaryColor);
         const valorFinalTexto = document.getElementById('valor-total-tasacion').textContent;
-        doc.text(`Valor Final de Tasación: $${valorFinalTexto}`, 20, yPos);
+        doc.text(`Valor Final de Tasación: ${valorFinalTexto}`, 20, yPos);
         
         doc.setFontSize(10);
         doc.setTextColor(...secondaryColor);
