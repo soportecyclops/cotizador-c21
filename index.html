@@ -234,7 +234,7 @@
                 
                 <div class="reference-result">
                     <div class="result-label">Valor por m² de Referencia</div>
-                    <!-- CORRECCIÓN: Añadir data-raw-value para el test -->
+                    <!-- CAMBIO CLAVE: Añadido data-raw-value para el test -->
                     <div class="result-value"><span id="valor-m2-referencia" data-raw-value="0">USD 0,00</span></div>
                 </div>
                 
@@ -313,7 +313,7 @@
                 
                 <div class="total-value">
                     <div class="total-label">TOTAL VALOR DE TASACIÓN</div>
-                    <!-- CORRECCIÓN: Añadir data-raw-value para el test -->
+                    <!-- CAMBIO CLAVE: Añadido data-raw-value para el test -->
                     <div class="total-amount"><span id="valor-total-tasacion" data-raw-value="0">USD 0,00</span></div>
                 </div>
             </div>
@@ -418,7 +418,7 @@
                         </div>
                     </div>
 
-                    <!-- CORRECCIÓN 2: Añadir los campos de superficie faltantes al modal -->
+                    <!-- CAMBIO: Añadir los campos de superficie faltantes al modal -->
                     <div class="form-row">
                         <div class="form-group">
                             <label for="comp-sup-semicubierta">Superficie Semicubierta (m²)</label>
@@ -468,20 +468,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
-    <!-- Contador de visitas -->
-    <script>
-        // Simple contador de visitas usando localStorage
-        document.addEventListener('DOMContentLoaded', () => {
-            let visitCount = localStorage.getItem('visitCount') || 0;
-            visitCount++;
-            localStorage.setItem('visitCount', visitCount);
-            console.log(`Visitas: ${visitCount}`);
-            
-            // Para un contador más robusto, podrías enviar estos datos a un servidor
-            // o usar un servicio como Google Analytics
-        });
-    </script>
-    
     <script src="js/auth.js"></script>
     <script src="js/app.js"></script>
     <script src="js/comparables.js"></script>
@@ -489,7 +475,7 @@
     <script src="js/composicion.js"></script>
     <script src="js/test.js"></script>
 
-    <!-- CONTADOR DE VISITAS EXTERNO -->
+    <!-- Contador de visitas -->
     <div id="sfc21ef83zmf33dxcbu6mn2g69kpne5rbls"></div><script type="text/javascript" src="https://counter1.optistats.ovh/private/counter.js?c=21ef83zmf33dxcbu6mn2g69kpne5rbls&down=async" async></script><noscript><a href="https://www.contadorvisitasgratis.com" title="contador de visitas"><img src="https://counter1.optistats.ovh/private/contadorvisitasgratis.php?c=21ef83zmf33dxcbu6mn2g69kpne5rbls" border="0" title="contador de visitas" alt="contador de visitas"></a></noscript>
 </body>
 </html>
