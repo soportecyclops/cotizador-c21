@@ -50,7 +50,11 @@ class FactoresManager {
         container.innerHTML = '';
 
         const comparable = window.tasacionApp.comparables.find(c => c.id === comparableId);
-        if (!comparable) return;
+        // CORRECCIÓN: Verificar si el comparable existe antes de continuar
+        if (!comparable) {
+            console.error(`No se encontró el comparable con ID ${comparableId}`);
+            return;
+        }
 
         // Asegurarse de que el objeto de factores exista en el comparable
         if (!comparable.factores) {
@@ -92,13 +96,17 @@ class FactoresManager {
 
     updateFactor(comparableId, factorName, value) {
         const comparable = window.tasacionApp.comparables.find(c => c.id === comparableId);
-        if (comparable) {
-            comparable.factores[factorName] = value;
-            this.recalculateAdjustedValue(comparable);
-            // Actualizar la UI de valores ajustados si estamos en el paso 4
-            if (window.tasacionApp.currentStep === 4) {
-                window.tasacionApp.displayAdjustedValues();
-            }
+        // CORRECCIÓN: Verificar si el comparable existe antes de continuar
+        if (!comparable) {
+            console.error(`No se encontró el comparable con ID ${comparableId} para actualizar el factor`);
+            return;
+        }
+        
+        comparable.factores[factorName] = value;
+        this.recalculateAdjustedValue(comparable);
+        // Actualizar la UI de valores ajustados si estamos en el paso 4
+        if (window.tasacionApp.currentStep === 4) {
+            window.tasacionApp.displayAdjustedValues();
         }
     }
 
