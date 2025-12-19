@@ -26,7 +26,7 @@ class TestSuite {
     }
 
     async run() {
-        console.log('%c🚀 Iniciando Suite de Tests del Cotizador', 'font-size: 16px; font-weight: band bold; color: #3498db;');
+        console.log('%c🚀 Iniciando Suite de Tests del Cotizador', 'font-size: 16px; font-weight: bold; color: #3498db;');
         console.log('=====================================================');
 
         const startTime = performance.now();
@@ -160,7 +160,8 @@ function waitForCondition(condition, timeout = 5000) {
                 reject(new Error(`La condición no se cumplió después de ${timeout}ms`));
             }
         }, 100);
-    }
+    });
+}
 
 // --- NUEVA FUNCIÓN DE AYUDA PARA REDUCIR CÓDIGO REPETITIVO ---
 async function fillAndSaveComparable(data) {
@@ -181,7 +182,7 @@ async function fillAndSaveComparable(data) {
     setFieldValue('comp-direccion', data.direccion);
     setFieldValue('comp-localidad', data.localidad);
     setFieldValue('comp-barrio', data.barrio);
-    setFieldValue('compar-antiguedad', data.antiguedad);
+    setFieldValue('comp-antiguedad', data.antiguedad);
     setFieldValue('comp-calidad', data.calidad);
     setFieldValue('comp-sup-cubierta', data.supCubierta);
     setFieldValue('comp-sup-semicubierta', data.supSemicubierta || 0);
@@ -391,7 +392,7 @@ async function testComposicionManager(testSuite) {
         const valorFinalNumero = parseFloat(valorTotalElement.getAttribute('data-raw-value'));
         console.log(`DIAGNÓSTICO: Valor numérico extraído en testComposicionManager: ${valorFinalNumero}`);
 
-        testSuite.assert(!isNaN(valorFinalNumero, 'El valor final es NaN, lo que indica un problema en los datos de entrada.');
+        testSuite.assert(!isNaN(valorFinalNumero), 'El valor final es NaN, lo que indica un problema en los datos de entrada.');
         testSuite.assert(valorFinalNumero > 0, 'El valor final no es un número positivo');
     });
 }
@@ -456,7 +457,7 @@ async function testFlujoCompleto(testSuite) {
 
         const valorFinalNumero = parseFloat(valorFinalElement.getAttribute('data-raw-value'));
 
-        testSuite.assert(!isNaN(valorFinalNumero, 'El valor final es NaN en el flujo completo.');
+        testSuite.assert(!isNaN(valorFinalNumero), 'El valor final es NaN en el flujo completo.');
         testSuite.assert(valorFinalNumero > 100000, 'El valor final no es un número positivo significativo');
     });
 }
@@ -598,58 +599,33 @@ async function runAllTests() {
 // ========================================
 // INICIALIZACIÓN Y AGREGAR BOTÓN DE TESTS
 // ========================================
-function addTestButton() {
-    // --- SOLUCIÓN CLAVE: Evitar creación duplicada ---
-    if (document.getElementById('btn-run-tests')) {
-        console.log("El botón de tests ya fue agregado. Evitando creación duplicada.");
-        return;
-    }
-    const step1Actions = document.querySelector('#step-1 .form-actions');
-    if (!step1Actions) {
-        console.error("No se encontró el contenedor .form-actions en el paso 1 para agregar el botón de tests.");
-        return;
-    }
-    const testButton = document.createElement('button');
-    testButton.id = 'btn-run-tests';
-    testButton.className = testButton.className || 'btn-secondary'; // Usa un estilo por defecto si no se encuentra el primero
-    testButton.innerHTML = '<i class="fas fa-flask"></i> Ejecutar Tests';
-    testButton.style.marginLeft = '10px';
-    step1Actions.appendChild(testButton);
-    testButton.addEventListener('click', async () => {
-        testButton.disabled = true;
-        testButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ejecutando...';
-        try {
-            await runAllTests();
-        } catch (e) {
-            console.error("Error durante la ejecución de tests:", e);
-        } finally {
-            testButton.disabled = false;
-            testButton.innerHTML = '<i class="fas fa-flask"></i> Ejecutar Tests';
-        }
-    });
-    console.log("Botón de tests agregado correctamente.");
-}
-
-// ========================================
-// INICIALIZACIÓN Y AGREGAR BOTÓN DE TESTS
-// ========================================
 function initializeTests() {
     // --- SOLUCIÓN CLAVE: Evitar creación duplicada ---
     if (window.testButtonAdded) {
         console.log("El botón de tests ya fue agregado. Evitando creación duplicada.");
         return;
     }
+    
+    // Esperar a que el DOM esté completamente cargado
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeTests);
+        return;
+    }
+    
     const step1Actions = document.querySelector('#step-1 .form-actions');
     if (!step1Actions) {
         console.error("No se encontró el contenedor .form-actions en el paso 1 para agregar el botón de tests.");
         return;
     }
+    
     const testButton = document.createElement('button');
     testButton.id = 'btn-run-tests';
-    testButton.className = testButton.className || 'btn-secondary'; // Usa un estilo por defecto si no se encuentra el primero
+    testButton.className = 'btn-secondary';
     testButton.innerHTML = '<i class="fas fa-flask"></i> Ejecutar Tests';
     testButton.style.marginLeft = '10px';
+    
     step1Actions.appendChild(testButton);
+    
     testButton.addEventListener('click', async () => {
         testButton.disabled = true;
         testButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ejecutando...';
@@ -662,9 +638,11 @@ function initializeTests() {
             testButton.innerHTML = '<i class="fas fa-flask"></i> Ejecutar Tests';
         }
     });
+    
+    // Marcar que el botón ya fue agregado
+    window.testButtonAdded = true;
     console.log("Botón de tests agregado correctamente.");
 }
 
 // Iniciar la inicialización de los tests.
 initializeTests();
-}
