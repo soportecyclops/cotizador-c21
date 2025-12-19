@@ -95,12 +95,6 @@ class ComparablesManager {
         const id = document.getElementById('comparable-id').value;
         const isEdit = id !== '';
         
-        // --- DIAGNÓSTICO SUPER PRECISO ---
-        const supCubiertaField = document.getElementById('comp-sup-cubierta');
-        console.log("DIAGNÓSTICO (SUPER PRECISO): Valor del campo supCubierta (.value):", supCubiertaField.value);
-        console.log("DIAGNÓSTICO (SUPER PRECISO): Valor del campo supCubierta (.valueAsNumber):", supCubiertaField.valueAsNumber);
-        // --- FIN DEL DIAGNÓSTICO ---
-        
         // Validación de campos obligatorios
         const requiredFields = [
             'comp-tipo-propiedad', 'comp-precio', 'comp-direccion', 
@@ -117,30 +111,46 @@ class ComparablesManager {
             }
         }
         
-        // Crear objeto comparable con los datos del formulario
-        // --- CAMBIO CLAVE: Usar valueAsNumber para mayor robustez ---
+        // --- FUNCIÓN DE LECTURA ROBUSTA PARA CAMPOS NUMÉRICOS ---
+        const getNumericValue = (fieldId) => {
+            const field = document.getElementById(fieldId);
+            if (!field) return 0;
+            // 1. Intentar con el método nativo más robusto
+            // 2. Si falla (NaN), intentar con parseFloat
+            // 3. Si todo falla, devolver 0 como último recurso
+            return field.valueAsNumber || parseFloat(field.value) || 0;
+        };
+        
+        // Crear objeto comparable con la nueva función robusta
         const formData = {
             id: isEdit ? parseInt(id) : this.getNextId(),
             tipoPropiedad: document.getElementById('comp-tipo-propiedad').value,
-            precio: document.getElementById('comp-precio').valueAsNumber,
+            precio: getNumericValue('comp-precio'),
             direccion: document.getElementById('comp-direccion').value,
             localidad: document.getElementById('comp-localidad').value,
             barrio: document.getElementById('comp-barrio').value,
-            antiguedad: document.getElementById('comp-antiguedad').valueAsNumber,
+            antiguedad: getNumericValue('comp-antiguedad'),
             calidad: document.getElementById('comp-calidad').value,
-            supCubierta: document.getElementById('comp-sup-cubierta').valueAsNumber,
-            supTerreno: document.getElementById('comp-sup-terreno').valueAsNumber || 0,
+            supCubierta: getNumericValue('comp-sup-cubierta'),
+            supTerreno: getNumericValue('comp-sup-terreno'),
             cochera: document.getElementById('comp-cochera').value,
             observaciones: document.getElementById('comp-observaciones').value,
             // Campos adicionales
             piso: document.getElementById('comp-piso').value,
             depto: document.getElementById('comp-depto').value,
-            supSemicubierta: document.getElementById('comp-sup-semicubierta').valueAsNumber || 0,
-            supDescubierta: document.getElementById('comp-sup-descubierta').valueAsNumber || 0,
-            supBalcon: document.getElementById('comp-sup-balcon').valueAsNumber || 0
+            supSemicubierta: getNumericValue('comp-sup-semicubierta'),
+            supDescubierta: getNumericValue('comp-sup-descubierta'),
+            supBalcon: getNumericValue('comp-sup-balcon')
         };
 
-        console.log("DIAGNÓSTICO (Guardado): Objeto formData construido con valueAsNumber:", formData);
+        // --- VALIDACIÓN DE INTEGRIDAD ---
+        if (formData.supCubierta <= 0) {
+            window.tasacionApp.showNotification('La superficie cubierta debe ser un número mayor a cero.', 'error');
+            return false;
+        }
+        // --- FIN DE LA VALIDACIÓN ---
+
+        console.log("DIAGNÓSTICO (Guardado): Objeto formData construido con lectura robusta:", formData);
 
         if (isEdit) {
             // MODO EDICIÓN
@@ -175,11 +185,8 @@ class ComparablesManager {
             window.tasacionApp.comparables.push(formData);
         }
         
-        // --- ACCIÓN CLAVE: Forzar una actualización completa de la UI ---
-        console.log("DIAGNÓSTICO (Guardado): Forzando actualización de la UI de comparables...");
+        // Actualizar UI
         this.updateComparablesUI();
-        console.log("DIAGNÓSTICO (Guardado): UI actualizada. Estado final del array:", window.tasacionApp.comparables);
-        // --- FIN DE LA ACCIÓN CLAVE ---
         
         // Cerrar modal
         this.closeComparableModal();
