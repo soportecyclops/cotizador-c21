@@ -34,7 +34,6 @@ class ComparablesManager {
         const form = document.getElementById('form-comparable');
         
         // Estrategia clara: resetear siempre el formulario y luego cargar los datos si es edición.
-        // Esto evita cualquier estado residual.
         form.reset();
 
         if (comparableId) {
@@ -46,7 +45,6 @@ class ComparablesManager {
             }
 
             console.log(`DIAGNÓSTICO (Edición): Abriendo modal para Comparable ${comparableId}. Datos originales:`, comparable);
-            console.log(`DIAGNÓSTICO (Edición): Valor de supCubierta en el objeto: ${comparable.supCubierta}`);
 
             document.getElementById('modal-title').textContent = 'Editar Comparable';
             document.getElementById('comparable-id').value = comparable.id;
@@ -64,16 +62,12 @@ class ComparablesManager {
             document.getElementById('comp-cochera').value = comparable.cochera || 'no';
             document.getElementById('comp-observaciones').value = comparable.observaciones || '';
             
-            // Cargar los valores de los campos adicionales que faltaban
+            // Cargar los valores de los campos adicionales
             document.getElementById('comp-piso').value = comparable.piso || '';
             document.getElementById('comp-depto').value = comparable.depto || '';
             document.getElementById('comp-sup-semicubierta').value = comparable.supSemicubierta || 0;
             document.getElementById('comp-sup-descubierta').value = comparable.supDescubierta || 0;
             document.getElementById('comp-sup-balcon').value = comparable.supBalcon || 0;
-            
-            // Verificación inmediata para asegurar que el valor se cargó en el campo
-            const valorEnCampo = document.getElementById('comp-sup-cubierta').value;
-            console.log(`DIAGNÓSTICO (Edición): Valor de supCubierta cargado en el campo del formulario: ${valorEnCampo}`);
 
         } else {
             // MODO AGREGACIÓN
@@ -117,14 +111,6 @@ class ComparablesManager {
             }
         }
         
-        // --- DIAGNÓSTICO CLAVE: Leer y verificar el valor de supCubierta directamente ---
-        const supCubiertaField = document.getElementById('comp-sup-cubierta');
-        const supCubiertaValueFromDOM = supCubiertaField.value;
-        const supCubiertaParsed = parseFloat(supCubiertaValueFromDOM);
-        console.log(`DIAGNÓSTICO (Guardado): Valor de supCubierta leído del DOM: "${supCubiertaValueFromDOM}"`);
-        console.log(`DIAGNÓSTICO (Guardado): Valor de supCubierta después de parseFloat: ${supCubiertaParsed}`);
-        // --- FIN DEL DIAGNÓSTICO ---
-        
         // Crear objeto comparable con los datos del formulario de forma explícita
         const formData = {
             id: isEdit ? parseInt(id) : this.getNextId(),
@@ -135,12 +121,10 @@ class ComparablesManager {
             barrio: document.getElementById('comp-barrio').value,
             antiguedad: parseInt(document.getElementById('comp-antiguedad').value),
             calidad: document.getElementById('comp-calidad').value,
-            // Usamos la variable que ya verificamos
-            supCubierta: supCubiertaParsed,
+            supCubierta: parseFloat(document.getElementById('comp-sup-cubierta').value),
             supTerreno: parseFloat(document.getElementById('comp-sup-terreno').value) || 0,
             cochera: document.getElementById('comp-cochera').value,
             observaciones: document.getElementById('comp-observaciones').value,
-            // Campos adicionales
             piso: document.getElementById('comp-piso').value,
             depto: document.getElementById('comp-depto').value,
             supSemicubierta: parseFloat(document.getElementById('comp-sup-semicubierta').value) || 0,
@@ -151,8 +135,10 @@ class ComparablesManager {
         console.log("DIAGNÓSTICO (Guardado): Objeto formData construido:", formData);
 
         if (isEdit) {
-            // MODO EDICIÓN
+            // --- SOLUCIÓN DE FUERZA BRUTA PARA LA EDICIÓN ---
+            console.log(`DIAGNÓSTICO (Edición): Modo edición detectado para el ID ${formData.id}.`);
             const index = window.tasacionApp.comparables.findIndex(c => c.id === formData.id);
+            
             if (index !== -1) {
                 // Mantener factores de ajuste si ya existen
                 const factoresExistentes = window.tasacionApp.comparables[index].factores || {};
@@ -165,15 +151,18 @@ class ComparablesManager {
                 const correccionTotal = Object.values(factoresExistentes).reduce((sum, val) => sum + val, 0);
                 formData.valorM2Ajustado = formData.valorM2 * (1 + correccionTotal / 100);
 
-                console.log("DIAGNÓSTICO (Guardado): Reemplazando objeto en el array. Objeto a guardar:", formData);
+                console.log("DIAGNÓSTICO (Edición): Objeto final a guardar (con factores y cálculos):", formData);
 
-                // SOLUCIÓN CLAVE: Reemplazar el objeto en el array
-                window.tasacionApp.comparables[index] = formData;
-                
-                // Verificación inmediata después de guardar
-                const objetoGuardado = window.tasacionApp.comparables[index];
-                console.log("DIAGNÓSTICO (Guardado): Verificando objeto en el array después de guardar. supCubierta:", objetoGuardado.supCubierta);
+                // ACCIÓN CLAVE: Eliminar el viejo y agregar el nuevo
+                window.tasacionApp.comparables.splice(index, 1);
+                window.tasacionApp.comparables.push(formData);
 
+                // Opcional: ordenar por ID para mantener el orden visual
+                window.tasacionApp.comparables.sort((a, b) => a.id - b.id);
+
+                console.log("DIAGNÓSTICO (Edición): Array de comparables después de la actualación forzada:", window.tasacionApp.comparables);
+            } else {
+                console.error(`DIAGNÓSTICO (Edición): Error, no se encontró el índice para el comparable ID ${formData.id}.`);
             }
         } else {
             // MODO AGREGACIÓN
@@ -234,10 +223,6 @@ class ComparablesManager {
         }
 
         window.tasacionApp.comparables.forEach(comparable => {
-            // --- DIAGNÓSTICO CLAVE: Verificar el valor justo antes de renderizar ---
-            console.log(`DIAGNÓSTICO (UI): Renderizando tarjeta para Comparable ${comparable.id}. supCubierta leído del objeto: ${comparable.supCubierta}`);
-            // --- FIN DEL DIAGNÓSTICO ---
-            
             const card = document.createElement('div');
             card.className = 'comparable-card';
             card.innerHTML = `
