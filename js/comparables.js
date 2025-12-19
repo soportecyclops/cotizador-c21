@@ -95,6 +95,12 @@ class ComparablesManager {
         const id = document.getElementById('comparable-id').value;
         const isEdit = id !== '';
         
+        // --- DIAGNÓSTICO SUPER PRECISO ---
+        const supCubiertaField = document.getElementById('comp-sup-cubierta');
+        console.log("DIAGNÓSTICO (SUPER PRECISO): Valor del campo supCubierta (.value):", supCubiertaField.value);
+        console.log("DIAGNÓSTICO (SUPER PRECISO): Valor del campo supCubierta (.valueAsNumber):", supCubiertaField.valueAsNumber);
+        // --- FIN DEL DIAGNÓSTICO ---
+        
         // Validación de campos obligatorios
         const requiredFields = [
             'comp-tipo-propiedad', 'comp-precio', 'comp-direccion', 
@@ -111,29 +117,30 @@ class ComparablesManager {
             }
         }
         
-        // Crear objeto comparable con los datos del formulario de forma explícita
+        // Crear objeto comparable con los datos del formulario
+        // --- CAMBIO CLAVE: Usar valueAsNumber para mayor robustez ---
         const formData = {
             id: isEdit ? parseInt(id) : this.getNextId(),
             tipoPropiedad: document.getElementById('comp-tipo-propiedad').value,
-            precio: parseFloat(document.getElementById('comp-precio').value),
+            precio: document.getElementById('comp-precio').valueAsNumber,
             direccion: document.getElementById('comp-direccion').value,
             localidad: document.getElementById('comp-localidad').value,
             barrio: document.getElementById('comp-barrio').value,
-            antiguedad: parseInt(document.getElementById('comp-antiguedad').value),
+            antiguedad: document.getElementById('comp-antiguedad').valueAsNumber,
             calidad: document.getElementById('comp-calidad').value,
-            supCubierta: parseFloat(document.getElementById('comp-sup-cubierta').value),
-            supTerreno: parseFloat(document.getElementById('comp-sup-terreno').value) || 0,
+            supCubierta: document.getElementById('comp-sup-cubierta').valueAsNumber,
+            supTerreno: document.getElementById('comp-sup-terreno').valueAsNumber || 0,
             cochera: document.getElementById('comp-cochera').value,
             observaciones: document.getElementById('comp-observaciones').value,
             // Campos adicionales
             piso: document.getElementById('comp-piso').value,
             depto: document.getElementById('comp-depto').value,
-            supSemicubierta: parseFloat(document.getElementById('comp-sup-semicubierta').value) || 0,
-            supDescubierta: parseFloat(document.getElementById('comp-sup-descubierta').value) || 0,
-            supBalcon: parseFloat(document.getElementById('comp-sup-balcon').value) || 0
+            supSemicubierta: document.getElementById('comp-sup-semicubierta').valueAsNumber || 0,
+            supDescubierta: document.getElementById('comp-sup-descubierta').valueAsNumber || 0,
+            supBalcon: document.getElementById('comp-sup-balcon').valueAsNumber || 0
         };
 
-        console.log("DIAGNÓSTICO (Guardado): Objeto formData construido:", formData);
+        console.log("DIAGNÓSTICO (Guardado): Objeto formData construido con valueAsNumber:", formData);
 
         if (isEdit) {
             // MODO EDICIÓN
