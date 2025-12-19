@@ -50,19 +50,26 @@ class ComparablesManager {
                 document.getElementById('comp-antiguedad').value = comparable.antiguedad;
                 document.getElementById('comp-calidad').value = comparable.calidad;
                 document.getElementById('comp-sup-cubierta').value = comparable.supCubierta;
-                document.getElementById('comp-sup-terreno').value = comparable.supTerreno;
-                document.getElementById('comp-cochera').value = comparable.cochera;
+                document.getElementById('comp-sup-terreno').value = comparable.supTerreno || 0;
+                document.getElementById('comp-cochera').value = comparable.cochera || 'no';
                 document.getElementById('comp-observaciones').value = comparable.observaciones || '';
                 
-                // CORRECCIÓN: Cargar los valores de los campos adicionales
-                if (comparable.supSemicubierta) document.getElementById('comp-sup-semicubierta').value = comparable.supSemicubierta;
-                if (comparable.supDescubierta) document.getElementById('comp-sup-descubierta').value = comparable.supDescubierta;
-                if (comparable.supBalcon) document.getElementById('comp-sup-balcon').value = comparable.supBalcon;
+                // Cargar los valores de los campos adicionales
+                document.getElementById('comp-sup-semicubierta').value = comparable.supSemicubierta || 0;
+                document.getElementById('comp-sup-descubierta').value = comparable.supDescubierta || 0;
+                document.getElementById('comp-sup-balcon').value = comparable.supBalcon || 0;
             }
         } else {
             // Modo agregación
             document.getElementById('modal-title').textContent = 'Agregar Comparable';
             document.getElementById('comparable-id').value = '';
+            
+            // Establecer valores por defecto para los campos opcionales
+            document.getElementById('comp-sup-semicubierta').value = 0;
+            document.getElementById('comp-sup-descubierta').value = 0;
+            document.getElementById('comp-sup-balcon').value = 0;
+            document.getElementById('comp-sup-terreno').value = 0;
+            document.getElementById('comp-cochera').value = 'no';
         }
         
         // Mostrar modal
@@ -78,45 +85,56 @@ class ComparablesManager {
         const id = document.getElementById('comparable-id').value;
         const isEdit = id !== '';
         
-        // CORRECCIÓN CLAVE: Buscar elementos DENTRO del modal
-        const form = document.querySelector('#modal-comparable form');
-        
         // CORRECCIÓN: Solo validar campos obligatorios realmente necesarios
         const requiredFields = [
             'comp-tipo-propiedad', 'comp-precio', 'comp-direccion', 
-            'comp-localidad', 'comp-barrio', 'comp-antiguedad', 'comp-calidad', 'comp-sup-cubierta'
+            'comp-localidad', 'comp-barrio', 'comp-antiguedad', 
+            'comp-calidad', 'comp-sup-cubierta'
         ];
         
+        // Validar campos obligatorios
         for (const fieldId of requiredFields) {
-            // CORRECCIÓN CLAVE: Buscar dentro del formulario del modal
-            const field = form.querySelector(`#${fieldId}`);
-            if (!field || !field.value || typeof field.value !== 'string' || !field.value.trim()) {
+            const field = document.getElementById(fieldId);
+            if (!field || !field.value || (typeof field.value === 'string' && !field.value.trim())) {
                 window.tasacionApp.showNotification(`Por favor, complete todos los campos obligatorios (${fieldId})`, 'error');
-                // CORRECCIÓN CLAVE: Enfocar el campo específico que faltó
                 if (field) field.focus();
                 return false;
             }
         }
         
+        // CORRECCIÓN: Obtener todos los valores del formulario de manera consistente
+        const getValue = (fieldId, defaultValue = 0) => {
+            const field = document.getElementById(fieldId);
+            if (!field) return defaultValue;
+            
+            // Para campos numéricos
+            if (fieldId.includes('sup-') || fieldId === 'comp-precio' || fieldId === 'comp-antiguedad') {
+                return parseFloat(field.value) || defaultValue;
+            }
+            
+            // Para campos de texto
+            return field.value || defaultValue;
+        };
+        
         // Crear objeto comparable
         const comparable = {
             id: isEdit ? parseInt(id) : this.getNextId(),
-            tipoPropiedad: document.getElementById('comp-tipo-propiedad').value,
-            precio: parseFloat(document.getElementById('comp-precio').value),
-            direccion: document.getElementById('comp-direccion').value,
-            localidad: document.getElementById('comp-localidad').value,
-            barrio: document.getElementById('comp-barrio').value,
-            antiguedad: parseInt(document.getElementById('comp-antiguedad').value),
-            calidad: document.getElementById('comp-calidad').value,
-            supCubierta: parseFloat(document.getElementById('comp-sup-cubierta').value),
-            supTerreno: parseFloat(document.getElementById('comp-sup-terreno').value) || 0,
-            cochera: document.getElementById('comp-cochera').value,
-            observaciones: document.getElementById('comp-observaciones').value,
+            tipoPropiedad: getValue('comp-tipo-propiedad', ''),
+            precio: getValue('comp-precio'),
+            direccion: getValue('comp-direccion', ''),
+            localidad: getValue('comp-localidad', ''),
+            barrio: getValue('comp-barrio', ''),
+            antiguedad: getValue('comp-antiguedad'),
+            calidad: getValue('comp-calidad', ''),
+            supCubierta: getValue('comp-sup-cubierta'),
+            supTerreno: getValue('comp-sup-terreno'),
+            cochera: getValue('comp-cochera', 'no'),
+            observaciones: getValue('comp-observaciones', ''),
             
-            // CORRECCIÓN CLAVE: Capturar los valores de los nuevos campos
-            supSemicubierta: parseFloat(document.getElementById('comp-sup-semicubierta').value) || 0,
-            supDescubierta: parseFloat(document.getElementById('comp-sup-descubierta').value) || 0,
-            supBalcon: parseFloat(document.getElementById('comp-sup-balcon').value) || 0
+            // Capturar los valores de los campos adicionales
+            supSemicubierta: getValue('comp-sup-semicubierta'),
+            supDescubierta: getValue('comp-sup-descubierta'),
+            supBalcon: getValue('comp-sup-balcon')
         };
         
         // Calcular valor por m²
@@ -157,6 +175,9 @@ class ComparablesManager {
             isEdit ? 'Comparable actualizado correctamente' : 'Comparable agregado correctamente', 
             'success'
         );
+        
+        // CORRECCIÓN: Devolver true para indicar que se guardó correctamente
+        return true;
     }
 
     getNextId() {
