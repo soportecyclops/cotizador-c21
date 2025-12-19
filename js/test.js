@@ -85,7 +85,7 @@ class TestSuite {
 
     assertNotEqual(actual, expected, message) {
         if (actual === expected) {
-            throw new Error(message || `Expected value to be different from "${expected}", but got "${actual}" in test: ${this.currentTestName}`);
+            throw new Error(message || `Expected value to be different from "${expected}", but got "${actual}" in test: `);
         }
     }
 
@@ -181,7 +181,7 @@ async function fillAndSaveComparable(data) {
     setFieldValue('comp-direccion', data.direccion);
     setFieldValue('comp-localidad', data.localidad);
     setFieldValue('comp-barrio', data.barrio);
-    setFieldValue('comp-antiguedad', data.antiguedad);
+    setFieldValue('compar-antiguedad', data.antiguedad);
     setFieldValue('comp-calidad', data.calidad);
     setFieldValue('comp-sup-cubierta', data.supCubierta);
     setFieldValue('comp-sup-semicubierta', data.supSemicubierta || 0);
@@ -383,7 +383,7 @@ async function testComposicionManager(testSuite) {
         window.tasacionApp.goToStep(4);
         await new Promise(resolve => setTimeout(resolve, 500));
         window.tasacionApp.calculateComposition();
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 500);
 
         const valorTotalElement = document.getElementById('valor-total-tasacion');
         testSuite.assert(valorTotalElement, 'El elemento valor-total-tasacion no existe en el DOM');
@@ -391,7 +391,7 @@ async function testComposicionManager(testSuite) {
         const valorFinalNumero = parseFloat(valorTotalElement.getAttribute('data-raw-value'));
         console.log(`DIAGNÓSTICO: Valor numérico extraído en testComposicionManager: ${valorFinalNumero}`);
 
-        testSuite.assert(!isNaN(valorFinalNumero), 'El valor final es NaN, lo que indica un problema en los datos de entrada.');
+        testSuite.assert(!isNaN(valorFinalNumero, 'El valor final es NaN, lo que indica un problema en los datos de entrada.');
         testSuite.assert(valorFinalNumero > 0, 'El valor final no es un número positivo');
     });
 }
@@ -419,7 +419,7 @@ async function testFlujoCompleto(testSuite) {
             { dir: 'Scalabrini Ortiz 1200', barrio: 'Palermo', precio: 280000, sup: 110, ant: '5', cal: 'excelente' },
             { dir: 'Jorge Newbery 800', barrio: 'Colegiales', precio: 250000, sup: 115, ant: '10', cal: 'muy-buena' },
             { dir: 'Gorriti 500', barrio: 'Palermo', precio: 265000, sup: 105, ant: '12', cal: 'buena' },
-            { dir: 'Dorrego 200', barrio: 'Paloermo', precio: 275000, sup: 118, ant: '8', cal: 'buena' }
+            { dir: 'Dorrego 200', barrio: 'Palermo', precio: 275000, sup: 118, ant: '8', cal: 'buena' }
         ];
 
         let nextId = 1;
@@ -456,7 +456,7 @@ async function testFlujoCompleto(testSuite) {
 
         const valorFinalNumero = parseFloat(valorFinalElement.getAttribute('data-raw-value'));
 
-        testSuite.assert(!isNaN(valorFinalNumero), 'El valor final es NaN en el flujo completo.');
+        testSuite.assert(!isNaN(valorFinalNumero, 'El valor final es NaN en el flujo completo.');
         testSuite.assert(valorFinalNumero > 100000, 'El valor final no es un número positivo significativo');
     });
 }
@@ -548,6 +548,7 @@ async function testModificacionComparables(testSuite) {
         // --- SOLUCIÓN CLAVE: Ir al paso 4 y forzar el recálculo del valor de referencia ---
         window.tasacionApp.goToStep(4);
         await waitForCondition(() => document.getElementById('step-4').classList.contains('active'), 3000);
+        // Llamar a calculateReferenceValue() que actualiza el valorM2Referencia
         window.tasacionApp.calculateReferenceValue();
         await new Promise(resolve => setTimeout(resolve, 500));
 
@@ -583,7 +584,7 @@ async function runAllTests() {
         testFactoresManager(testSuite);
         testComposicionManager(testSuite);
         testFlujoCompleto(testSuite);
-        testModificacionComparables(testSuite); // Nuevo test corregido
+        testModificacionComparables(testSuite);
         const allPassed = await testSuite.run();
         console.log("runAllTests: Tests finalizados, resultado:", allPassed);
         return allPassed;
