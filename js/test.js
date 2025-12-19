@@ -1,7 +1,7 @@
 /**
 * VERSIÓN CORREGIDA Y DEFINITIVA.
-* El test 'testModificacionComparables' ahora es autosuficiente y no depende de otros tests.
-* Esto evita el error de 'No hay comparables para modificar' causado por el reseteo entre tests.
+* El test 'testModificacionComparables' ahora fuerza el recálculo del valor de referencia (Paso 4) después de modificar los comparables.
+* Esto asegura que el cálculo final en el Paso 5 use los datos actualizados.
 */
 
 console.log("test.js: Script cargado");
@@ -172,7 +172,6 @@ async function fillAndSaveComparable(data) {
         const field = document.getElementById(id);
         if (field) {
             field.value = value;
-            // --- SOLUCIÓN CLAVE: Forzar el evento 'input' para que el navegador lo reconozca ---
             field.dispatchEvent(new Event('input', { bubbles: true }));
         }
     };
@@ -529,7 +528,6 @@ async function testModificacionComparables(testSuite) {
         for (const comparable of comparablesOriginales) {
             console.log(`DIAGNÓSTICO: Modificando Comparable ${comparable.id}...`);
             
-            // Abrir el modal de edición
             window.comparablesManager.openComparableModal(comparable.id);
             await new Promise(resolve => setTimeout(resolve, 300));
 
@@ -542,12 +540,18 @@ async function testModificacionComparables(testSuite) {
             await new Promise(resolve => setTimeout(resolve, 500));
             
             const comparableModificado = window.tasacionApp.comparables.find(c => c.id === comparable.id);
-            testSuite.assertEqual(comparableModificado.supCubierta, nuevaSuperficie, 
-                `La superficie del Comparable ${comparable.id} no se actualizó correctamente`);
+            testSuite.assertEqual(comparableModificado.supCubierta, nuevaSuperficie, `La superficie del Comparable ${comparable.id} no se actualizó correctamente`);
         }
 
-        // --- PASO 4: CALCULAR LA NUEVA COTIZACIÓN Y COMPARAR ---
-        console.log("DIAGNÓSTICO: Navegando al paso 5 para calcular la nueva cotización...");
+        // --- PASO 4: FORZAR RECÁLCULO DE REFERENCIA Y FINAL ---
+        console.log("DIAGNÓSTICO: Forzando recálculo de referencia y final...");
+        // --- SOLUCIÓN CLAVE: Ir al paso 4 y forzar el recálculo del valor de referencia ---
+        window.tasacionApp.goToStep(4);
+        await waitForCondition(() => document.getElementById('step-4').classList.contains('active'), 3000);
+        window.tasacionApp.calculateReferenceValue();
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // --- PASO 5: CALCULAR Y VERIFICAR EL NUEVO VALOR FINAL ---
         window.tasacionApp.goToStep(5);
         await waitForCondition(() => document.getElementById('step-5').classList.contains('active'), 3000);
         window.tasacionApp.calculateComposition();
