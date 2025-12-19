@@ -419,7 +419,7 @@ async function testFlujoCompleto(testSuite) {
             { dir: 'Scalabrini Ortiz 1200', barrio: 'Palermo', precio: 280000, sup: 110, ant: '5', cal: 'excelente' },
             { dir: 'Jorge Newbery 800', barrio: 'Colegiales', precio: 250000, sup: 115, ant: '10', cal: 'muy-buena' },
             { dir: 'Gorriti 500', barrio: 'Palermo', precio: 265000, sup: 105, ant: '12', cal: 'buena' },
-            { dir: 'Dorrego 200', barrio: 'Palermo', precio: 275000, sup: 118, ant: '8', cal: 'buena' }
+            { dir: 'Dorrego 200', barrio: 'Paloermo', precio: 275000, sup: 118, ant: '8', cal: 'buena' }
         ];
 
         let nextId = 1;
