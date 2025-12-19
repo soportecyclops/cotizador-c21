@@ -116,8 +116,8 @@ class ComparablesManager {
             return field.value || defaultValue;
         };
         
-        // Crear objeto comparable
-        const comparable = {
+        // Crear objeto comparable con los datos del formulario
+        const formData = {
             id: isEdit ? parseInt(id) : this.getNextId(),
             tipoPropiedad: getValue('comp-tipo-propiedad', ''),
             precio: getValue('comp-precio'),
@@ -130,39 +130,56 @@ class ComparablesManager {
             supTerreno: getValue('comp-sup-terreno'),
             cochera: getValue('comp-cochera', 'no'),
             observaciones: getValue('comp-observaciones', ''),
-            
-            // Capturar los valores de los campos adicionales
             supSemicubierta: getValue('comp-sup-semicubierta'),
             supDescubierta: getValue('comp-sup-descubierta'),
             supBalcon: getValue('comp-sup-balcon')
         };
-        
-        // Calcular valor por m²
-        const precioAjustado = comparable.precio * (1 - window.tasacionApp.descuentoNegociacion / 100);
-        comparable.valorM2 = precioAjustado / comparable.supCubierta;
-        comparable.valorM2Ajustado = comparable.valorM2; // Inicialmente sin factores
-        
+
+        // --- INICIO DE DIAGNÓSTICO ---
+        console.log("DIAGNÓSTICO: Datos leídos del formulario:", formData);
+        // --- FIN DE DIAGNÓSTICO ---
+
         if (isEdit) {
             // Modo edición
-            const index = window.tasacionApp.comparables.findIndex(c => c.id === comparable.id);
+            const index = window.tasacionApp.comparables.findIndex(c => c.id === formData.id);
             if (index !== -1) {
                 // Mantener factores de ajuste si ya existen
-                const factoresExistentes = window.tasacionApp.comparables[index].factores;
-                comparable.factores = factoresExistentes;
+                const factoresExistentes = window.tasacionApp.comparables[index].factores || {};
+                formData.factores = factoresExistentes;
                 
-                // Recalcular valor ajustado si hay factores
-                if (factoresExistentes && Object.keys(factoresExistentes).length > 0) {
-                    const correccionTotal = Object.values(factoresExistentes).reduce((sum, val) => sum + val, 0);
-                    comparable.valorM2Ajustado = comparable.valorM2 * (1 + correccionTotal / 100);
-                }
+                // Calcular valores
+                const precioAjustado = formData.precio * (1 - window.tasacionApp.descuentoNegociacion / 100);
+                formData.valorM2 = precioAjustado / formData.supCubierta;
                 
-                window.tasacionApp.comparables[index] = comparable;
+                const correccionTotal = Object.values(factoresExistentes).reduce((sum, val) => sum + val, 0);
+                formData.valorM2Ajustado = formData.valorM2 * (1 + correccionTotal / 100);
+
+                // --- INICIO DE DIAGNÓSTICO ---
+                console.log("DIAGNÓSTICO: Objeto a guardar (edición):", formData);
+                // --- FIN DE DIAGNÓSTICO ---
+
+                // SOLUCIÓN CLAVE: Reemplazar el objeto en el array para asegurar que la referencia se actualice
+                window.tasacionApp.comparables[index] = formData;
             }
         } else {
             // Modo agregación
-            comparable.factores = {}; // Inicialmente sin factores de ajuste
-            window.tasacionApp.comparables.push(comparable);
+            formData.factores = {}; // Inicialmente sin factores de ajuste
+            
+            // Calcular valores
+            const precioAjustado = formData.precio * (1 - window.tasacionApp.descuentoNegociacion / 100);
+            formData.valorM2 = precioAjustado / formData.supCubierta;
+            formData.valorM2Ajustado = formData.valorM2;
+
+            // --- INICIO DE DIAGNÓSTICO ---
+            console.log("DIAGNÓSTICO: Objeto a guardar (agregado):", formData);
+            // --- FIN DE DIAGNÓSTICO ---
+
+            window.tasacionApp.comparables.push(formData);
         }
+        
+        // --- INICIO DE DIAGNÓSTICO ---
+        console.log("DIAGNÓSTICO: Estado del array de comparables después de guardar:", window.tasacionApp.comparables);
+        // --- FIN DE DIAGNÓSTICO ---
         
         // Actualizar UI
         this.updateComparablesUI();
@@ -176,7 +193,6 @@ class ComparablesManager {
             'success'
         );
         
-        // CORRECCIÓN: Devolver true para indicar que se guardó correctamente
         return true;
     }
 
@@ -201,6 +217,10 @@ class ComparablesManager {
         const noComparables = document.getElementById('no-comparables');
         const siguienteBtn = document.getElementById('btn-siguiente-2');
 
+        // --- INICIO DE DIAGNÓSTICO ---
+        console.log("DIAGNÓSTICO: updateComparablesUI llamado. Estado actual del array:", window.tasacionApp.comparables);
+        // --- FIN DE DIAGNÓSTICO ---
+
         container.innerHTML = '';
 
         if (window.tasacionApp.comparables.length === 0) {
@@ -212,6 +232,10 @@ class ComparablesManager {
         }
 
         window.tasacionApp.comparables.forEach(comparable => {
+            // --- INICIO DE DIAGNÓSTICO ---
+            console.log(`DIAGNÓSTICO: Renderizando tarjeta para Comparable ${comparable.id} con supCubierta: ${comparable.supCubierta}`);
+            // --- FIN DE DIAGNÓSTICO ---
+            
             const card = document.createElement('div');
             card.className = 'comparable-card';
             card.innerHTML = `
