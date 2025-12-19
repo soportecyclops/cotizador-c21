@@ -2,9 +2,13 @@
 * Versión FINAL y DEFINITIVA. Corrige el problema de validación del test de flujo completo.
 * La clave es leer el valor numérico desde el atributo 'data-raw-value' en lugar del texto visible.
 * CORRECCIÓN: Se añade la navegación al paso 3 en el test de factores para que los sliders existan en el DOM.
+* MEJORA: Se añade un nuevo test para verificar la modificación de comparables y su impacto en la cotización final.
 */
 
 console.log("test.js: Script cargado");
+
+// Variable global para almacenar el valor de la cotización inicial
+let valorCotizacionInicial = 0;
 
 // ========================================
 // CLASE TESTSUITE
@@ -77,6 +81,12 @@ class TestSuite {
     assertClose(actual, expected, tolerance = 0.01, message) {
         if (Math.abs(actual - expected) > tolerance) {
             throw new Error(message || `Expected ${expected} ± ${tolerance}, but got ${actual} in test: ${this.currentTestName}`);
+        }
+    }
+
+    assertNotEqual(actual, expected, message) {
+        if (actual === expected) {
+            throw new Error(message || `Expected value to be different from "${expected}", but got "${actual}" in test: ${this.currentTestName}`);
         }
     }
 
@@ -404,6 +414,7 @@ async function testFlujoCompleto(testSuite) {
                 precio: data.precio,
                 direccion: data.dir,
                 barrio: data.barrio,
+                localidad: 'CABA',
                 antiguedad: data.ant,
                 calidad: data.cal,
                 supCubierta: data.sup,
@@ -432,7 +443,7 @@ async function testFlujoCompleto(testSuite) {
         await new Promise(resolve => setTimeout(resolve, 500));
         console.log("DIAGNOSTICO: Cálculo forzado completado. Verificando valor...");
 
-        // 5. Verificar resultados finales (sin más esperas)
+        // 5. Verificar resultados finales y guardar el valor inicial
         const valorFinalElement = document.getElementById('valor-total-tasacion');
         testSuite.assert(valorFinalElement, 'El elemento valor-total-tasacion no existe en el DOM');
 
@@ -442,9 +453,90 @@ async function testFlujoCompleto(testSuite) {
         const valorFinalNumero = parseFloat(valorFinalElement.getAttribute('data-raw-value'));
         console.log(`DIAGNOSTICO: Valor numérico extraído: ${valorFinalNumero}`);
 
+        // Guardar el valor inicial para el siguiente test
+        valorCotizacionInicial = valorFinalNumero;
+
         // Validaciones finales
         testSuite.assert(valorFinalTexto.startsWith('USD '), 'El valor final no tiene el prefijo de moneda correcto');
         testSuite.assert(valorFinalNumero > 100000, 'El valor final no es un número positivo significativo');
+    });
+}
+
+// NUEVO TEST: Modificación de comparables y verificación del impacto en la cotización
+async function testModificacionComparables(testSuite) {
+    testSuite.test('Debe modificar los comparables y recalcular la cotización final', async () => {
+        // Verificar que tenemos un valor inicial de cotización
+        testSuite.assert(valorCotizacionInicial > 0, 'No se encontró un valor inicial de cotización válido');
+
+        // 1. Navegar al paso 2 (comparables)
+        console.log("DIAGNOSTICO: Navegando al paso 2 para modificar comparables...");
+        window.tasacionApp.goToStep(2);
+        await waitForCondition(() => {
+            return document.getElementById('step-2').classList.contains('active');
+        }, 3000);
+        console.log("DIAGNOSTICO: Paso 2 está activo.");
+
+        // 2. Modificar cada comparable aumentando su superficie en un 20%
+        const comparablesOriginales = [...window.tasacionApp.comparables];
+        testSuite.assert(comparablesOriginales.length > 0, 'No hay comparables para modificar');
+
+        for (const comparable of comparablesOriginales) {
+            console.log(`DIAGNOSTICO: Modificando Comparable ${comparable.id}...`);
+            
+            // Abrir el modal de edición
+            window.comparablesManager.openComparableModal(comparable.id);
+            await new Promise(resolve => setTimeout(resolve, 300));
+
+            // Modificar la superficie cubierta aumentándola en un 20%
+            const nuevaSuperficie = Math.round(comparable.supCubierta * 1.2);
+            document.getElementById('comp-sup-cubierta').value = nuevaSuperficie;
+            
+            console.log(`DIAGNOSTICO: Cambiando supCubierta de ${comparable.supCubierta} a ${nuevaSuperficie}`);
+            
+            // Guardar los cambios
+            document.getElementById('btn-guardar-comparable').click();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Verificar que se guardó correctamente
+            const comparableModificado = window.tasacionApp.comparables.find(c => c.id === comparable.id);
+            testSuite.assertEqual(comparableModificado.supCubierta, nuevaSuperficie, 
+                `La superficie del Comparable ${comparable.id} no se actualizó correctamente`);
+        }
+
+        // 3. Navegar al paso 5 y calcular la nueva cotización
+        console.log("DIAGNOSTICO: Navegando al paso 5 para calcular la nueva cotización...");
+        window.tasacionApp.goToStep(5);
+        await waitForCondition(() => {
+            return document.getElementById('step-5').classList.contains('active');
+        }, 3000);
+        console.log("DIAGNOSTICO: Paso 5 está activo.");
+
+        // 4. Forzar el cálculo de la composición
+        console.log("DIAGNOSTICO: Forzando el cálculo de la composición con los comparables modificados...");
+        window.tasacionApp.calculateComposition();
+        await new Promise(resolve => setTimeout(resolve, 500));
+        console.log("DIAGNOSTICO: Cálculo forzado completado. Verificando nuevo valor...");
+
+        // 5. Verificar que la cotización ha cambiado
+        const valorFinalElement = document.getElementById('valor-total-tasacion');
+        testSuite.assert(valorFinalElement, 'El elemento valor-total-tasacion no existe en el DOM');
+
+        const valorFinalTexto = valorFinalElement.textContent;
+        console.log(`DIAGNOSTICO: Nuevo valor encontrado en UI: ${valorFinalTexto}`);
+
+        const valorFinalNumero = parseFloat(valorFinalElement.getAttribute('data-raw-value'));
+        console.log(`DIAGNOSTICO: Nuevo valor numérico extraído: ${valorFinalNumero}`);
+
+        // Verificar que el nuevo valor es diferente del inicial
+        testSuite.assertNotEqual(valorFinalNumero, valorCotizacionInicial, 
+            'El valor de la cotización no cambió después de modificar los comparables');
+
+        // Verificar que el cambio es en la dirección esperada (aumentar superficie debería aumentar el valor)
+        testSuite.assert(valorFinalNumero > valorCotizacionInicial, 
+            'El valor de la cotización no aumentó como se esperaba al aumentar las superficies');
+
+        console.log(`DIAGNOSTICO: Valor inicial: ${valorCotizacionInicial}, Nuevo valor: ${valorFinalNumero}`);
+        console.log(`DIAGNOSTICO: Diferencia: ${valorFinalNumero - valorCotizacionInicial}`);
     });
 }
 
@@ -462,6 +554,7 @@ async function runAllTests() {
         testFactoresManager(testSuite);
         testComposicionManager(testSuite);
         testFlujoCompleto(testSuite);
+        testModificacionComparables(testSuite); // Nuevo test
         const allPassed = await testSuite.run();
         console.log("runAllTests: Tests finalizados, resultado:", allPassed);
         return allPassed;
