@@ -53,6 +53,11 @@ class ComparablesManager {
                 document.getElementById('comp-sup-terreno').value = comparable.supTerreno;
                 document.getElementById('comp-cochera').value = comparable.cochera;
                 document.getElementById('comp-observaciones').value = comparable.observaciones || '';
+                
+                // CORRECCIÓN: Cargar los valores de los campos adicionales
+                if (comparable.supSemicubierta) document.getElementById('comp-sup-semicubierta').value = comparable.supSemicubierta;
+                if (comparable.supDescubierta) document.getElementById('comp-sup-descubierta').value = comparable.supDescubierta;
+                if (comparable.supBalcon) document.getElementById('comp-sup-balcon').value = comparable.supBalcon;
             }
         } else {
             // Modo agregación
@@ -76,10 +81,10 @@ class ComparablesManager {
         // CORRECCIÓN CLAVE: Buscar elementos DENTRO del modal
         const form = document.querySelector('#modal-comparable form');
         
+        // CORRECCIÓN: Solo validar campos obligatorios realmente necesarios
         const requiredFields = [
             'comp-tipo-propiedad', 'comp-precio', 'comp-direccion', 
-            'comp-localidad', 'comp-barrio', 'comp-antiguedad', 'comp-calidad', 'comp-sup-cubierta', // <-- CAMBIO CLAVE
-            'comp-sup-semicubierta', 'comp-sup-descubierta', 'comp-sup-balcon' // <-- CAMBIO CLAVE
+            'comp-localidad', 'comp-barrio', 'comp-antiguedad', 'comp-calidad', 'comp-sup-cubierta'
         ];
         
         for (const fieldId of requiredFields) {
