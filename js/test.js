@@ -4,6 +4,7 @@
 * Esto asegura que el cálculo final en el Paso 5 use los datos actualizados.
 * Corrige el problema del botón de tests duplicado.
 * Implementa un sistema robusto para asegurar que el botón siempre aparezca.
+* Expone la función runAllTests al objeto window para ejecución desde consola.
 */
 
 console.log("test.js: Script cargado");
@@ -721,5 +722,6 @@ function initializeTests() {
 // Iniciar la inicialización de los tests inmediatamente
 initializeTests();
 
-// Exponer la función para que pueda ser llamada manualmente si es necesario
+// Exponer las funciones para que puedan ser llamadas manualmente si es necesario
 window.addTestButton = addTestButton;
+window.runAllTests = runAllTests; // Línea clave para ejecutar tests desde consola
