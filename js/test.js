@@ -103,7 +103,7 @@ document.body.appendChild(resultsContainer);
 const allPassed = this.failed === 0;
 resultsContainer.innerHTML = `
 <h3 style="margin-top: 0; color: ${allPassed ? '#2ecc71' : '#e74c3c'};">
-${allPassed ? '✅ Todos los tests pasaron' : '❌ Algunos tests fallaron'}
+ ${allPassed ? '✅ Todos los tests pasaron' : '❌ Algunos tests fallaron'}
 </h3>
 <p><strong>Pasados:</strong> ${this.passed}</p>
 <p><strong>Fallidos:</strong> ${this.failed}</p>
@@ -232,6 +232,10 @@ document.getElementById('comp-barrio').value = 'Caballito';
 document.getElementById('comp-antiguedad').value = '5';
 document.getElementById('comp-calidad').value = 'muy-buena';
 document.getElementById('comp-sup-cubierta').value = '80';
+// CORRECCIÓN: Completar los campos adicionales
+document.getElementById('comp-sup-semicubierta').value = '0';
+document.getElementById('comp-sup-descubierta').value = '0';
+document.getElementById('comp-sup-balcon').value = '0';
 document.getElementById('btn-guardar-comparable').click();
 await new Promise(resolve => setTimeout(resolve, 200));
 
@@ -270,8 +274,15 @@ document.getElementById('comp-barrio').value = 'Belgrano';
 document.getElementById('comp-antiguedad').value = '5';
 document.getElementById('comp-calidad').value = 'muy-buena';
 document.getElementById('comp-sup-cubierta').value = '100';
+// CORRECCIÓN: Completar los campos adicionales
+document.getElementById('comp-sup-semicubierta').value = '0';
+document.getElementById('comp-sup-descubierta').value = '0';
+document.getElementById('comp-sup-balcon').value = '0';
 document.getElementById('btn-guardar-comparable').click();
 await new Promise(resolve => setTimeout(resolve, 200));
+
+// CORRECCIÓN: Verificar que el comparable se agregó correctamente
+testSuite.assertEqual(window.tasacionApp.comparables.length, 1, 'No se agregó el comparable');
 
 const comparable = window.tasacionApp.comparables[0];
 const valorM2Original = comparable.valorM2;
@@ -316,6 +327,10 @@ document.getElementById('comp-barrio').value = 'Caballito';
 document.getElementById('comp-antiguedad').value = '5';
 document.getElementById('comp-calidad').value = 'muy-buena';
 document.getElementById('comp-sup-cubierta').value = '100';
+// CORRECCIÓN: Completar los campos adicionales
+document.getElementById('comp-sup-semicubierta').value = '0';
+document.getElementById('comp-sup-descubierta').value = '0';
+document.getElementById('comp-sup-balcon').value = '0';
 document.getElementById('btn-guardar-comparable').click();
 await new Promise(resolve => setTimeout(resolve, 200));
 
@@ -384,6 +399,10 @@ barrio: data.barrio,
 antiguedad: data.ant,
 calidad: data.cal,
 supCubierta: data.sup,
+// CORRECCIÓN: Agregar los campos adicionales
+supSemicubierta: 0,
+supDescubierta: 0,
+supBalcon: 0,
 valorM2: precioAjustado / data.sup,
 valorM2Ajustado: precioAjustado / data.sup, // Inicialmente sin factores
 factores: {}
