@@ -3,6 +3,7 @@
 * El test 'testModificacionComparables' ahora fuerza el recálculo del valor de referencia (Paso 4) después de modificar los comparables.
 * Esto asegura que el cálculo final en el Paso 5 use los datos actualizados.
 * Corrige el problema del botón de tests duplicado.
+* Implementa un sistema robusto para asegurar que el botón siempre aparezca.
 */
 
 console.log("test.js: Script cargado");
@@ -597,35 +598,56 @@ async function runAllTests() {
 }
 
 // ========================================
-// INICIALIZACIÓN Y AGREGAR BOTÓN DE TESTS
+// INICIALIZACIÓN Y AGREGAR BOTÓN DE TESTS - VERSIÓN MEJORADA
 // ========================================
-function initializeTests() {
-    // --- SOLUCIÓN CLAVE: Evitar creación duplicada ---
-    if (window.testButtonAdded) {
-        console.log("El botón de tests ya fue agregado. Evitando creación duplicada.");
+function addTestButton() {
+    console.log("Intentando agregar botón de tests...");
+    
+    // Verificar si el botón ya existe
+    if (document.getElementById('btn-run-tests')) {
+        console.log("El botón de tests ya existe en el DOM.");
         return;
     }
     
-    // Esperar a que el DOM esté completamente cargado
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initializeTests);
-        return;
-    }
+    // Intentar encontrar el contenedor del botón
+    let step1Actions = document.querySelector('#step-1 .form-actions');
     
-    const step1Actions = document.querySelector('#step-1 .form-actions');
+    // Si no se encuentra, intentar con selectores alternativos
     if (!step1Actions) {
-        console.error("No se encontró el contenedor .form-actions en el paso 1 para agregar el botón de tests.");
-        return;
+        console.log("No se encontró #step-1 .form-actions, intentando alternativas...");
+        
+        // Intentar encontrar cualquier contenedor de botones en el paso 1
+        step1Actions = document.querySelector('#step-1 button').parentElement;
+        
+        // Si aún no se encuentra, crear un contenedor
+        if (!step1Actions) {
+            console.log("No se encontró ningún contenedor, creando uno nuevo...");
+            const step1 = document.getElementById('step-1');
+            if (step1) {
+                step1Actions = document.createElement('div');
+                step1Actions.className = 'form-actions';
+                step1.appendChild(step1Actions);
+            } else {
+                console.error("No se encontró el paso 1 en el DOM");
+                return;
+            }
+        }
     }
     
+    // Crear el botón
     const testButton = document.createElement('button');
     testButton.id = 'btn-run-tests';
     testButton.className = 'btn-secondary';
     testButton.innerHTML = '<i class="fas fa-flask"></i> Ejecutar Tests';
     testButton.style.marginLeft = '10px';
+    testButton.style.backgroundColor = '#6c757d';
+    testButton.style.color = 'white';
+    testButton.style.border = 'none';
+    testButton.style.padding = '8px 15px';
+    testButton.style.borderRadius = '4px';
+    testButton.style.cursor = 'pointer';
     
-    step1Actions.appendChild(testButton);
-    
+    // Agregar el evento click
     testButton.addEventListener('click', async () => {
         testButton.disabled = true;
         testButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ejecutando...';
@@ -639,10 +661,65 @@ function initializeTests() {
         }
     });
     
-    // Marcar que el botón ya fue agregado
-    window.testButtonAdded = true;
+    // Agregar el botón al contenedor
+    step1Actions.appendChild(testButton);
+    
     console.log("Botón de tests agregado correctamente.");
 }
 
-// Iniciar la inicialización de los tests.
+// Función mejorada para inicializar los tests
+function initializeTests() {
+    console.log("Inicializando sistema de tests...");
+    
+    // Marcar que se ha intentado inicializar
+    window.testButtonAdded = true;
+    
+    // Función para intentar agregar el botón
+    const tryAddButton = () => {
+        addTestButton();
+    };
+    
+    // Si el DOM ya está cargado, intentar agregar el botón inmediatamente
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        tryAddButton();
+    } else {
+        // Si no, esperar a que se cargue
+        document.addEventListener('DOMContentLoaded', tryAddButton);
+    }
+    
+    // También intentar después de un tiempo, por si otros scripts modifican el DOM
+    setTimeout(tryAddButton, 1000);
+    setTimeout(tryAddButton, 3000);
+    
+    // Observar cambios en el DOM para asegurar que el botón siempre esté presente
+    const observer = new MutationObserver((mutations) => {
+        let shouldAddButton = false;
+        
+        mutations.forEach((mutation) => {
+            // Si se modifica el paso 1, verificar si el botón aún existe
+            if (mutation.target.id === 'step-1' || 
+                (mutation.target.closest && mutation.target.closest('#step-1'))) {
+                if (!document.getElementById('btn-run-tests')) {
+                    shouldAddButton = true;
+                }
+            }
+        });
+        
+        if (shouldAddButton) {
+            console.log("Detectados cambios en el paso 1, agregando botón si es necesario...");
+            addTestButton();
+        }
+    });
+    
+    // Comenzar a observar el documento completo
+    observer.observe(document.body, { 
+        childList: true, 
+        subtree: true 
+    });
+}
+
+// Iniciar la inicialización de los tests inmediatamente
 initializeTests();
+
+// Exponer la función para que pueda ser llamada manualmente si es necesario
+window.addTestButton = addTestButton;
