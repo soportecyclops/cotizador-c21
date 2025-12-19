@@ -50,6 +50,7 @@ class ComparablesManager {
                 document.getElementById('comp-tipo-propiedad').value = comparable.tipoPropiedad || '';
                 document.getElementById('comp-precio').value = comparable.precio || '';
                 document.getElementById('comp-direccion').value = comparable.direccion || '';
+                document.getElementById('comp-numero').value = comparable.numero || '';
                 document.getElementById('comp-localidad').value = comparable.localidad || '';
                 document.getElementById('comp-barrio').value = comparable.barrio || '';
                 document.getElementById('comp-antiguedad').value = comparable.antiguedad || '';
@@ -59,7 +60,9 @@ class ComparablesManager {
                 document.getElementById('comp-cochera').value = comparable.cochera || 'no';
                 document.getElementById('comp-observaciones').value = comparable.observaciones || '';
                 
-                // Cargar los valores de los campos adicionales
+                // CORRECCIÓN: Cargar los valores de los campos adicionales que faltaban
+                document.getElementById('comp-piso').value = comparable.piso || '';
+                document.getElementById('comp-depto').value = comparable.depto || '';
                 document.getElementById('comp-sup-semicubierta').value = comparable.supSemicubierta || 0;
                 document.getElementById('comp-sup-descubierta').value = comparable.supDescubierta || 0;
                 document.getElementById('comp-sup-balcon').value = comparable.supBalcon || 0;
@@ -141,6 +144,7 @@ class ComparablesManager {
             tipoPropiedad: getValue('comp-tipo-propiedad', ''),
             precio: getValue('comp-precio'),
             direccion: getValue('comp-direccion', ''),
+            numero: getValue('comp-numero', ''),
             localidad: getValue('comp-localidad', ''),
             barrio: getValue('comp-barrio', ''),
             antiguedad: getValue('comp-antiguedad'),
@@ -149,6 +153,10 @@ class ComparablesManager {
             supTerreno: getValue('comp-sup-terreno'),
             cochera: getValue('comp-cochera', 'no'),
             observaciones: getValue('comp-observaciones', ''),
+            
+            // CORRECCIÓN: Agregar los campos que faltaban
+            piso: getValue('comp-piso', ''),
+            depto: getValue('comp-depto', ''),
             supSemicubierta: getValue('comp-sup-semicubierta'),
             supDescubierta: getValue('comp-sup-descubierta'),
             supBalcon: getValue('comp-sup-balcon')
