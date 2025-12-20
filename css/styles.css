@@ -1,6 +1,6 @@
 /*
  * STYLES.CSS PARA COTIZADOR INMOBILIARIO - CENTURY21
- * Versión con identidad de marca oficial.
+ * Versión optimizada con eliminación de estilos redundantes.
  * Diseño robusto, responsive y con modal funcional.
  */
 
@@ -20,7 +20,7 @@
     /* --- Tipografía --- */
     --c21-font: 'Montserrat', 'Helvetica Neue', Arial, sans-serif;
 
-    /* --- Variables de UI (re-escaladas) --- */
+    /* --- Variables de UI --- */
     --text-color: var(--c21-dark-gray);
     --background-color: var(--c21-light-gray);
     --container-bg: var(--c21-white);
@@ -37,7 +37,6 @@
    ESTILOS GENERALES Y DE LAYOUT
    ======================================== */
 body {
-    /* CAMBIO: Aplicar la tipografía de Century 21 */
     font-family: var(--c21-font);
     background-color: var(--background-color);
     color: var(--text-color);
@@ -56,16 +55,14 @@ body {
    CABECERA (HEADER)
    ======================================== */
 header {
-    /* CAMBIO: Fondo negro y texto blanco */
     background-color: var(--c21-black);
     color: var(--c21-white);
     padding: 2rem 0;
     text-align: center;
     box-shadow: var(--box-shadow);
-    border-bottom: 4px solid var(--c21-gold); /* Toque de marca */
+    border-bottom: 4px solid var(--c21-gold);
 }
 
-/* CAMBIO: Estilos para el logo de Century 21 */
 header .logo {
     max-height: 60px;
     width: auto;
@@ -76,7 +73,7 @@ header h1 {
     margin: 0;
     font-size: 2.5rem;
     font-weight: 700;
-    color: var(--c21-gold); /* Título en dorado */
+    color: var(--c21-gold);
 }
 
 header .tagline {
@@ -112,7 +109,6 @@ header .tagline {
 }
 
 .progress-step.active {
-    /* CAMBIO: Paso activo con fondo dorado */
     background-color: var(--c21-gold);
     color: var(--c21-black);
     font-weight: 600;
@@ -134,7 +130,7 @@ header .tagline {
 }
 
 /* ========================================
-   CONTENIDO DE PASOS (FORMULARIOS, TARJETAS, ETC.)
+   CONTENIDO DE PASOS
    ======================================== */
 .step-content {
     display: none;
@@ -143,7 +139,7 @@ header .tagline {
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
     margin-bottom: 2rem;
-    border-top: 3px solid var(--c21-gold); /* Toque de marca */
+    border-top: 3px solid var(--c21-gold);
 }
 
 .step-content.active {
@@ -157,7 +153,6 @@ header .tagline {
 }
 
 .step-header h2 {
-    /* CAMBIO: Títulos de sección en dorado */
     color: var(--c21-gold);
     margin-bottom: 0.5rem;
     font-weight: 600;
@@ -189,7 +184,7 @@ header .tagline {
 
 .form-group label {
     display: block;
-    font-weight: 600; /* Más negrita para mejor legibilidad */
+    font-weight: 600;
     margin-bottom: 0.5rem;
     color: var(--text-color);
 }
@@ -202,7 +197,7 @@ header .tagline {
     border: 1px solid var(--border-color);
     border-radius: 4px;
     font-size: 1rem;
-    font-family: var(--c21-font); /* Mantener la tipografía */
+    font-family: var(--c21-font);
     transition: var(--transition);
 }
 
@@ -210,7 +205,6 @@ header .tagline {
 .form-group select:focus,
 .form-group textarea:focus {
     outline: none;
-    /* CAMBIO: Borde de foco dorado */
     border-color: var(--c21-gold);
     box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.3);
 }
@@ -235,7 +229,7 @@ header .tagline {
     padding: 0.75rem 1.5rem;
     border-radius: 5px;
     font-size: 1rem;
-    font-weight: 600; /* Más negrita */
+    font-weight: 600;
     cursor: pointer;
     transition: var(--transition);
     border: none;
@@ -243,7 +237,6 @@ header .tagline {
 }
 
 .btn-primary {
-    /* CAMBIO: Botón primario dorado con texto negro */
     background-color: var(--c21-gold);
     color: var(--c21-black);
     box-shadow: 0 4px 8px rgba(255, 215, 0, 0.2);
@@ -257,7 +250,6 @@ header .tagline {
 
 .btn-secondary {
     background-color: transparent;
-    /* CAMBIO: Botón secundario con borde y texto dorados */
     color: var(--c21-gold);
     border: 2px solid var(--c21-gold);
 }
@@ -267,7 +259,6 @@ header .tagline {
     color: var(--c21-black);
 }
 
-/* ESTILO PARA EL BOTÓN DE TESTS */
 .btn-test {
     background-color: #6c757d;
     color: white;
@@ -323,7 +314,6 @@ button:disabled {
 }
 
 .comparable-id {
-    /* CAMBIO: ID del comparable con fondo dorado */
     background-color: var(--c21-gold);
     color: var(--c21-black);
     width: 30px;
@@ -355,7 +345,7 @@ button:disabled {
     color: var(--error-color);
 }
 
-.comparable-info p {
+.comparable-body p {
     margin: 0.25rem 0;
     font-size: 0.9rem;
 }
@@ -368,7 +358,6 @@ button:disabled {
 .comparable-price {
     font-size: 1.2rem;
     font-weight: 700;
-    /* CAMBIO: Precio en dorado */
     color: var(--c21-gold);
 }
 
@@ -417,7 +406,7 @@ button:disabled {
     animation: modalFadeIn 0.3s ease;
     display: flex;
     flex-direction: column;
-    border-top: 4px solid var(--c21-gold); /* Toque de marca */
+    border-top: 4px solid var(--c21-gold);
 }
 
 .modal-header {
@@ -431,7 +420,6 @@ button:disabled {
 
 .modal-header h3 {
     margin: 0;
-    /* CAMBIO: Título del modal en dorado */
     color: var(--c21-gold);
     font-weight: 600;
 }
@@ -491,7 +479,6 @@ button:disabled {
 }
 
 .factor-tab.active {
-    /* CAMBIO: Pestaña activa en dorado */
     color: var(--c21-gold);
     border-bottom-color: var(--c21-gold);
     font-weight: 600;
@@ -536,7 +523,6 @@ button:disabled {
     outline: none;
 }
 
-/* CAMBIO: Estilo personalizado para el thumb del slider */
 .factor-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
@@ -563,7 +549,6 @@ button:disabled {
     color: var(--c21-dark-gray);
 }
 
-/* CAMBIO: Estilo para los límites del factor */
 .factor-limits {
     font-size: 0.75rem;
     color: #888;
@@ -615,7 +600,6 @@ button:disabled {
 .total-amount {
     font-size: 2.5rem;
     font-weight: 700;
-    /* CAMBIO: Valor total en dorado */
     color: var(--c21-gold);
 }
 
@@ -637,7 +621,7 @@ button:disabled {
     margin-bottom: 10px;
     animation: slideInRight 0.3s ease-out;
     max-width: 300px;
-    border-left: 5px solid var(--c21-gold); /* Toque de marca */
+    border-left: 5px solid var(--c21-gold);
 }
 
 .notification.success {
@@ -651,6 +635,19 @@ button:disabled {
 @keyframes slideInRight {
     from { transform: translateX(100%); opacity: 0; }
     to { transform: translateX(0); opacity: 1; }
+}
+
+/* ========================================
+   CONTENEDOR DE TESTS
+   ======================================== */
+.test-container {
+    display: flex;
+    justify-content: center;
+    margin: 15px 0;
+    padding: 10px;
+    background-color: rgba(255, 215, 0, 0.1);
+    border-radius: 5px;
+    border: 1px dashed #FFD700;
 }
 
 /* ========================================
