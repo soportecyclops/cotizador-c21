@@ -14,125 +14,13 @@
     <meta property="og:description" content="Herramienta profesional de tasación inmobiliaria">
     <meta property="og:type" content="website">
     <meta property="og:image" content="https://example.com/century21-image.jpg">
-    
-    <!-- Estilos adicionales para el sistema de tests -->
-    <style>
-        .test-controls {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            z-index: 1000;
-        }
-        
-        .btn-test {
-            background-color: #6c757d;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 4px;
-            border: none;
-            cursor: pointer;
-            font-size: 14px;
-            transition: background-color 0.3s;
-        }
-        
-        .btn-test:hover {
-            background-color: #5a6268;
-        }
-        
-        .test-results {
-            position: absolute;
-            top: 40px;
-            right: 0;
-            width: 350px;
-            max-height: 500px;
-            overflow-y: auto;
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 15px;
-            display: none;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            font-family: monospace;
-            font-size: 12px;
-        }
-        
-        .test-results h4 {
-            margin-top: 0;
-            margin-bottom: 10px;
-            font-family: Montserrat, sans-serif;
-            color: #333;
-        }
-        
-        .log-entry {
-            margin-bottom: 5px;
-            padding: 3px 5px;
-            border-radius: 3px;
-        }
-        
-        .log-info {
-            background-color: #f8f9fa;
-        }
-        
-        .log-success {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        
-        .log-error {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-        
-        .log-warning {
-            background-color: #fff3cd;
-            color: #856404;
-        }
-        
-        .test-summary {
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid #ddd;
-            font-weight: bold;
-        }
-        
-        .test-progress {
-            margin-top: 10px;
-            margin-bottom: 10px;
-            background-color: #e9ecef;
-            border-radius: 4px;
-            height: 10px;
-        }
-        
-        .test-progress-bar {
-            height: 100%;
-            background-color: #28a745;
-            border-radius: 4px;
-            width: 0%;
-            transition: width 0.3s;
-        }
-    </style>
 </head>
 <body>
-    <!-- Controles del Sistema de Tests -->
-    <div class="test-controls">
-        <button id="btn-run-tests" class="btn-test">
-            <i class="fas fa-flask"></i> Ejecutar Tests
-        </button>
-        <div id="test-results" class="test-results">
-            <h4>Resultados de Tests</h4>
-            <div class="test-progress">
-                <div id="test-progress-bar" class="test-progress-bar"></div>
-            </div>
-            <div id="test-output"></div>
-            <div id="test-summary" class="test-summary"></div>
-        </div>
-    </div>
-
     <header>
         <div class="container">
             <img src="assets/images/c21.png" alt="Logo Century 21" class="logo">
             <h1>Cotizador Inmobiliario Century21 V2.0</h1>
-            <p>Herramienta profesional de tasación inmobiliaria</p>
+        <p>Herramienta profesional de tasación inmobiliaria</p>
         </div>
     </header>
 
@@ -574,12 +462,20 @@
         </div>
     </div>
 
-    <!-- Scripts -->
-    <script src="js/app.js"></script>
+    <!-- Contenedor para notificaciones -->
+    <div id="notification-container" aria-live="polite"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
     <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
     <script src="js/comparables.js"></script>
     <script src="js/factores.js"></script>
     <script src="js/composicion.js"></script>
     <script src="js/test.js"></script>
+
+    <!-- Contador de visitas -->
+    <div id="sfc21ef83zmf33dxcbu6mn2g69kpne5rbls"></div><script type="text/javascript" src="https://counter1.optistats.ovh/private/counter.js?c=21ef83zmf33dxcbu6mn2g69kpne5rbls&down=async" async></script><noscript><a href="https://www.contadorvisitasgratis.com" title="contador de visitas"><img src="https://counter1.optistats.ovh/private/contadorvisitasgratis.php?c=21ef83zmf33dxcbu6mn2g69kpne5rbls" border="0" title="contador de visitas" alt="contador de visitas"></a></noscript>
 </body>
 </html>
