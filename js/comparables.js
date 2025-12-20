@@ -221,11 +221,31 @@ class ComparablesManager {
     }
 
     deleteComparable(comparableId) {
-        if (confirm('¿Está seguro de que desea eliminar este comparable?')) {
-            window.tasacionApp.comparables = window.tasacionApp.comparables.filter(c => c.id !== comparableId);
-            this.updateComparablesUI();
-            window.tasacionApp.showNotification('Comparable eliminado correctamente', 'success');
+        // NUEVA REGLA: Permitir eliminar siempre, pero verificar si quedan menos de 4 después de eliminar
+        const remainingComparables = window.tasacionApp.comparables.filter(c => c.id !== comparableId);
+        
+        if (remainingComparables.length < 4) {
+            const confirmMessage = `¿Está seguro de que desea eliminar este comparable? Quedarán ${remainingComparables.length} comparables y deberá agregar más para continuar con la tasación.`;
+            if (!confirm(confirmMessage)) {
+                return; // El usuario canceló la eliminación
+            }
+        } else {
+            if (!confirm('¿Está seguro de que desea eliminar este comparable?')) {
+                return; // El usuario canceló la eliminación
+            }
         }
+        
+        // Eliminar el comparable
+        window.tasacionApp.comparables = window.tasacionApp.comparables.filter(c => c.id !== comparableId);
+        
+        // Actualizar UI
+        this.updateComparablesUI();
+        
+        // NUEVA REGLA: Si hay menos de 4 comparables, deshabilitar los pasos 3, 4 y 5
+        this.updateStepAvailability();
+        
+        // Mostrar notificación
+        window.tasacionApp.showNotification('Comparable eliminado correctamente', 'success');
     }
 
     updateComparablesUI() {
@@ -248,6 +268,12 @@ class ComparablesManager {
         window.tasacionApp.comparables.forEach(comparable => {
             const card = document.createElement('div');
             card.className = 'comparable-card';
+            
+            // NUEVA REGLA: Si hay menos de 4 comparables, mostrar un indicador visual
+            const warningBadge = window.tasacionApp.comparables.length < 4 
+                ? '<div class="comparable-warning"><i class="fas fa-exclamation-triangle"></i></div>' 
+                : '';
+            
             card.innerHTML = `
                 <div class="comparable-header">
                     <div class="comparable-id">${comparable.id}</div>
@@ -255,6 +281,7 @@ class ComparablesManager {
                         <button class="btn-edit" onclick="window.comparablesManager.openComparableModal(${comparable.id})"><i class="fas fa-edit"></i></button>
                         <button class="btn-delete" onclick="window.comparablesManager.deleteComparable(${comparable.id})"><i class="fas fa-trash"></i></button>
                     </div>
+                    ${warningBadge}
                 </div>
                 <div class="comparable-body">
                     <p><i class="fas fa-map-marker-alt"></i> ${comparable.direccion}, ${comparable.barrio}</p>
@@ -265,6 +292,68 @@ class ComparablesManager {
             `;
             container.appendChild(card);
         });
+        
+        // NUEVA REGLA: Actualizar la disponibilidad de los pasos
+        this.updateStepAvailability();
+    }
+
+    // NUEVO MÉTODO: Actualizar la disponibilidad de los pasos según la cantidad de comparables
+    updateStepAvailability() {
+        const hasEnoughComparables = window.tasacionApp.comparables.length >= 4;
+        
+        // Actualizar el botón de siguiente del paso 2
+        const siguienteBtn = document.getElementById('btn-siguiente-2');
+        if (siguienteBtn) {
+            siguienteBtn.disabled = !hasEnoughComparables;
+        }
+        
+        // Actualizar los indicadores de progreso para los pasos 3, 4 y 5
+        const step3Indicator = document.querySelector('.progress-step[data-step="3"]');
+        const step4Indicator = document.querySelector('.progress-step[data-step="4"]');
+        const step5Indicator = document.querySelector('.progress-step[data-step="5"]');
+        
+        if (step3Indicator) {
+            if (hasEnoughComparables) {
+                step3Indicator.classList.remove('disabled');
+                step3Indicator.style.opacity = '1';
+                step3Indicator.style.pointerEvents = 'auto';
+            } else {
+                step3Indicator.classList.add('disabled');
+                step3Indicator.style.opacity = '0.5';
+                step3Indicator.style.pointerEvents = 'none';
+            }
+        }
+        
+        if (step4Indicator) {
+            if (hasEnoughComparables) {
+                step4Indicator.classList.remove('disabled');
+                step4Indicator.style.opacity = '1';
+                step4Indicator.style.pointerEvents = 'auto';
+            } else {
+                step4Indicator.classList.add('disabled');
+                step4Indicator.style.opacity = '0.5';
+                step4Indicator.style.pointerEvents = 'none';
+            }
+        }
+        
+        if (step5Indicator) {
+            if (hasEnoughComparables) {
+                step5Indicator.classList.remove('disabled');
+                step5Indicator.style.opacity = '1';
+                step5Indicator.style.pointerEvents = 'auto';
+            } else {
+                step5Indicator.classList.add('disabled');
+                step5Indicator.style.opacity = '0.5';
+                step5Indicator.style.pointerEvents = 'none';
+            }
+        }
+        
+        // Si el usuario está actualmente en un paso que no debería estar disponible, 
+        // redirigirlo al paso 2
+        if (!hasEnoughComparables && window.tasacionApp.currentStep > 2) {
+            window.tasacionApp.goToStep(2);
+            window.tasacionApp.showNotification('Debe tener al menos 4 comparables para continuar', 'error');
+        }
     }
 
     reset() {
