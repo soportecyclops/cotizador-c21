@@ -1,0 +1,688 @@
+/*
+ * STYLES.CSS PARA COTIZADOR INMOBILIARIO - CENTURY21
+ * Versión con identidad de marca oficial.
+ * Diseño robusto, responsive y con modal funcional.
+ */
+
+/* ========================================
+   VARIABLES DE LA MARCA (IDENTIDAD CENTURY 21)
+   ======================================== */
+:root {
+    /* --- Paleta de Colores Century 21 --- */
+    --c21-gold: #FFD700; /* Dorado principal */
+    --c21-dark-gold: #E6C300; /* Dorado oscuro para hover */
+    --c21-black: #000000; /* Negro principal */
+    --c21-dark-gray: #222222; /* Gris muy oscuro para texto */
+    --c21-medium-gray: #555555; /* Gris medio */
+    --c21-light-gray: #F5F5F5; /* Fondo muy claro */
+    --c21-white: #FFFFFF; /* Blanco puro */
+
+    /* --- Tipografía --- */
+    --c21-font: 'Montserrat', 'Helvetica Neue', Arial, sans-serif;
+
+    /* --- Variables de UI (re-escaladas) --- */
+    --text-color: var(--c21-dark-gray);
+    --background-color: var(--c21-light-gray);
+    --container-bg: var(--c21-white);
+    --card-bg: var(--c21-white);
+    --border-color: #E0E0E0;
+    --success-color: #28a745;
+    --error-color: #dc3545;
+    --border-radius: 8px;
+    --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --transition: all 0.3s ease;
+}
+
+/* ========================================
+   ESTILOS GENERALES Y DE LAYOUT
+   ======================================== */
+body {
+    /* CAMBIO: Aplicar la tipografía de Century 21 */
+    font-family: var(--c21-font);
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* ========================================
+   CABECERA (HEADER)
+   ======================================== */
+header {
+    /* CAMBIO: Fondo negro y texto blanco */
+    background-color: var(--c21-black);
+    color: var(--c21-white);
+    padding: 2rem 0;
+    text-align: center;
+    box-shadow: var(--box-shadow);
+    border-bottom: 4px solid var(--c21-gold); /* Toque de marca */
+}
+
+/* CAMBIO: Estilos para el logo de Century 21 */
+header .logo {
+    max-height: 60px;
+    width: auto;
+    margin-bottom: 1rem;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--c21-gold); /* Título en dorado */
+}
+
+header .tagline {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 300;
+    color: var(--c21-white);
+    opacity: 0.9;
+}
+
+/* ========================================
+   INDICADOR DE PROGRESO
+   ======================================== */
+.progress-indicator {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem 2rem;
+    margin-bottom: 2rem;
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+.progress-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    transition: var(--transition);
+    text-align: center;
+    cursor: pointer;
+}
+
+.progress-step.active {
+    /* CAMBIO: Paso activo con fondo dorado */
+    background-color: var(--c21-gold);
+    color: var(--c21-black);
+    font-weight: 600;
+}
+
+.progress-step.completed {
+    background-color: var(--c21-medium-gray);
+    color: var(--c21-white);
+}
+
+.progress-step .step-number {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.progress-step .step-label {
+    font-size: 0.8rem;
+}
+
+/* ========================================
+   CONTENIDO DE PASOS (FORMULARIOS, TARJETAS, ETC.)
+   ======================================== */
+.step-content {
+    display: none;
+    background-color: var(--container-bg);
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    margin-bottom: 2rem;
+    border-top: 3px solid var(--c21-gold); /* Toque de marca */
+}
+
+.step-content.active {
+    display: block;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.step-header h2 {
+    /* CAMBIO: Títulos de sección en dorado */
+    color: var(--c21-gold);
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.step-header p {
+    color: var(--text-color);
+}
+
+/* ========================================
+   FORMULARIOS
+   ======================================== */
+.form-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600; /* Más negrita para mejor legibilidad */
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 1rem;
+    font-family: var(--c21-font); /* Mantener la tipografía */
+    transition: var(--transition);
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    /* CAMBIO: Borde de foco dorado */
+    border-color: var(--c21-gold);
+    box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.3);
+}
+
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2rem;
+    gap: 1rem;
+}
+
+/* ========================================
+   BOTONES
+   ======================================== */
+.btn-primary,
+.btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-weight: 600; /* Más negrita */
+    cursor: pointer;
+    transition: var(--transition);
+    border: none;
+    font-family: var(--c21-font);
+}
+
+.btn-primary {
+    /* CAMBIO: Botón primario dorado con texto negro */
+    background-color: var(--c21-gold);
+    color: var(--c21-black);
+    box-shadow: 0 4px 8px rgba(255, 215, 0, 0.2);
+}
+
+.btn-primary:hover {
+    background-color: var(--c21-dark-gold);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(255, 215, 0, 0.3);
+}
+
+.btn-secondary {
+    background-color: transparent;
+    /* CAMBIO: Botón secundario con borde y texto dorados */
+    color: var(--c21-gold);
+    border: 2px solid var(--c21-gold);
+}
+
+.btn-secondary:hover {
+    background-color: var(--c21-gold);
+    color: var(--c21-black);
+}
+
+button:disabled {
+    background-color: #ccc;
+    color: #666;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* ========================================
+   COMPARABLES
+   ======================================== */
+.comparables-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-top: 1.5rem;
+}
+
+.comparable-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    box-shadow: var(--box-shadow);
+    transition: var(--transition);
+    flex: 1 1 300px;
+    min-width: 300px;
+    box-sizing: border-box;
+}
+
+.comparable-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.comparable-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.comparable-id {
+    /* CAMBIO: ID del comparable con fondo dorado */
+    background-color: var(--c21-gold);
+    color: var(--c21-black);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.comparable-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.comparable-actions button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #888;
+    font-size: 1rem;
+    padding: 0.25rem;
+    transition: color 0.2s ease;
+}
+
+.comparable-actions button:hover {
+    color: var(--error-color);
+}
+
+.comparable-info p {
+    margin: 0.25rem 0;
+    font-size: 0.9rem;
+}
+
+.comparable-values {
+    text-align: right;
+    margin-top: 1rem;
+}
+
+.comparable-price {
+    font-size: 1.2rem;
+    font-weight: 700;
+    /* CAMBIO: Precio en dorado */
+    color: var(--c21-gold);
+}
+
+.comparable-price-m2 {
+    font-size: 1rem;
+    color: var(--c21-medium-gray);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #999;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: var(--c21-medium-gray);
+}
+
+/* ========================================
+   MODAL
+   ======================================== */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background-color: var(--container-bg);
+    padding: 2rem;
+    border-radius: 8px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    position: relative;
+    animation: modalFadeIn 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    border-top: 4px solid var(--c21-gold); /* Toque de marca */
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h3 {
+    margin: 0;
+    /* CAMBIO: Título del modal en dorado */
+    color: var(--c21-gold);
+    font-weight: 600;
+}
+
+.close-modal {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #aaa;
+    cursor: pointer;
+    background: none;
+    border: none;
+}
+
+.close-modal:hover {
+    color: var(--text-color);
+}
+
+.modal-body {
+    overflow-y: auto;
+    flex-grow: 1;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* ========================================
+   FACTORES DE AJUSTE
+   ======================================== */
+.factor-tabs {
+    display: flex;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.factor-tab {
+    background: none;
+    border: none;
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    font-size: 1rem;
+    color: var(--c21-medium-gray);
+    border-bottom: 2px solid transparent;
+    transition: var(--transition);
+}
+
+.factor-tab.active {
+    /* CAMBIO: Pestaña activa en dorado */
+    color: var(--c21-gold);
+    border-bottom-color: var(--c21-gold);
+    font-weight: 600;
+}
+
+.factors-content {
+    padding: 1.5rem 0;
+}
+
+.factor-item {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr auto;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.factor-label {
+    font-weight: 500;
+}
+
+.factor-weight {
+    width: 80px;
+    text-align: center;
+}
+
+.factor-control {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.factor-slider {
+    flex-grow: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 6px;
+    background: #ddd;
+    border-radius: 3px;
+    outline: none;
+}
+
+/* CAMBIO: Estilo personalizado para el thumb del slider */
+.factor-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    background: var(--c21-gold);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.factor-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    background: var(--c21-gold);
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+}
+
+.factor-value {
+    font-weight: 600;
+    min-width: 45px;
+    text-align: center;
+    color: var(--c21-dark-gray);
+}
+
+/* CAMBIO: Estilo para los límites del factor */
+.factor-limits {
+    font-size: 0.75rem;
+    color: #888;
+    font-style: italic;
+}
+
+/* ========================================
+   COMPOSICIÓN DEL VALOR
+   ======================================== */
+.composition-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1.5rem;
+    font-size: 0.9rem;
+}
+
+.composition-table th,
+.composition-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.composition-table th {
+    background-color: var(--c21-light-gray);
+    font-weight: 600;
+    color: var(--c21-dark-gray);
+}
+
+.composition-table td {
+    background-color: var(--card-bg);
+}
+
+.total-value {
+    text-align: center;
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background-color: var(--c21-black);
+    border-radius: var(--border-radius);
+    color: var(--c21-white);
+}
+
+.total-label {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--c21-white);
+}
+
+.total-amount {
+    font-size: 2.5rem;
+    font-weight: 700;
+    /* CAMBIO: Valor total en dorado */
+    color: var(--c21-gold);
+}
+
+/* ========================================
+   NOTIFICACIONES
+   ======================================== */
+#notification-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+}
+
+.notification {
+    background-color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 5px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    margin-bottom: 10px;
+    animation: slideInRight 0.3s ease-out;
+    max-width: 300px;
+    border-left: 5px solid var(--c21-gold); /* Toque de marca */
+}
+
+.notification.success {
+    border-left: 5px solid var(--success-color);
+}
+
+.notification.error {
+    border-left: 5px solid var(--error-color);
+}
+
+@keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+@media (max-width: 768px) {
+    .form-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .comparables-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .factor-tabs {
+        flex-wrap: wrap;
+    }
+    
+    .composition-table {
+        font-size: 0.8rem;
+    }
+    
+    .composition-table th,
+    .composition-table td {
+        padding: 0.5rem;
+    }
+    
+    .total-value {
+        text-align: center;
+    }
+    
+    .modal-content {
+        width: 95%;
+        max-height: 95vh;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .progress-indicator {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .progress-step {
+        margin-bottom: 0.5rem;
+    }
+}
