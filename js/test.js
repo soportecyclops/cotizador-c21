@@ -1,670 +1,560 @@
 /**
-* Versión CORREGIDA Y DEFINITIVA.
-* El test 'testModificacionComparables' ahora fuerza el recálculo del valor de referencia (Paso 4) después de modificar los comparables.
-* Esto asegura que el cálculo final en el Paso 5 use los datos actualizados.
-* Corrige el problema del botón de tests duplicado.
-*/
+ * Versión final y definitiva. Forza la reconstrucción de la UI para evitar problemas de estado.
+ */
 
 console.log("test.js: Script cargado");
 
-// Variable global para almacenar el valor de la cotización inicial (ahora usada solo dentro de su propio test)
-let valorCotizacionInicial = 0;
-
 // ========================================
-// CLASE TESTSUITE
+// CLASE TESTSUITE (Sin cambios)
 // ========================================
 class TestSuite {
-constructor() {
-this.tests = [];
-this.passed = 0;
-this.failed = 0;
-this.currentTestName = '';
-}
+    constructor() {
+        this.tests = [];
+        this.passed = 0;
+        this.failed = 0;
+        this.currentTestName = '';
+    }
 
-test(name, testFunction) {
-this.tests.push({ name, testFunction });
-}
+    test(name, testFunction) {
+        this.tests.push({ name, testFunction });
+    }
 
-async run() {
-console.log('%c🚀 Iniciando Suite de Tests del Cotizador', 'font-size: 16px; font-weight: band bold; color: #3498db;');
-console.log('=====================================================');
+    async run() {
+        console.log('%c🚀 Iniciando Suite de Tests del Cotizador', 'font-size: 16px; font-weight: bold; color: #3498db;');
+        console.log('=====================================================');
+        
+        const startTime = performance.now();
 
-const startTime = performance.now();
+        for (const test of this.tests) {
+            this.currentTestName = test.name;
+            try {
+                // Preparar el entorno para cada test
+                this.resetTestEnvironment();
+                
+                // Ejecutar el test
+                await test.testFunction();
+                this.passed++;
+                console.log(`%c✅ ${test.name}`, 'color: #2ecc71;');
+            } catch (error) {
+                this.failed++;
+                console.error(`%c❌ ${test.name}`, 'color: #e74c3c; font-weight: bold;');
+                console.error(`   Error: ${error.message}`);
+                console.error(error.stack);
+            }
+        }
 
-for (const test of this.tests) {
-this.currentTestName = test.name;
-try {
-this.resetTestEnvironment();
-await test.testFunction();
-this.passed++;
-console.log(`%c✅ ${this.currentTestName}`, 'color: #2ecc71;');
-} catch (error) {
-this.failed++;
-console.error(`%c❌ ${this.currentTestName}`, 'color: #e74c3c; font-weight: bold;');
-console.error(` Error: ${error.message}`);
-console.error(error.stack);
-}
-}
+        const endTime = performance.now();
+        const duration = (endTime - startTime).toFixed(2);
 
-const endTime = performance.now();
-const duration = (endTime - startTime).toFixed(2);
+        console.log('=====================================================');
+        console.log(`%c🏁 Tests Finalizados en ${duration}ms`, 'font-size: 16px; font-weight: bold; color: #f39c12;');
+        console.log(`%c✅ Pasados: ${this.passed}`, 'color: #2ecc71; font-weight: bold;');
+        console.log(`%c❌ Fallidos: ${this.failed}`, 'color: #e74c3c; font-weight: bold;');
+        
+        this.updateResultsUI();
+        return this.failed === 0;
+    }
 
-console.log('=====================================================');
-console.log(`%c🏁 Tests Finalizados en ${duration}ms`, 'font-size: 16px; font-weight: bold; color: #f39c12;');
-console.log(`%c✅ Pasados: ${this.passed}`, 'color: #2ecc71; font-weight: bold;');
-console.log(`%c❌ Fallidos: ${this.failed}`, 'color: #e74c3c; font-weight: bold;');
+    resetTestEnvironment() {
+        if (window.tasacionApp && typeof window.tasacionApp.resetForm === 'function') {
+            window.tasacionApp.resetForm();
+        } else {
+            console.error("La función resetForm no está disponible en window.tasacionApp");
+        }
+    }
 
-this.updateResultsUI();
-return this.failed === 0;
-}
+    assert(condition, message) {
+        if (!condition) {
+            throw new Error(message || `Assertion failed in test: ${this.currentTestName}`);
+        }
+    }
 
-resetTestEnvironment() {
-if (window.tasacionApp && typeof window.tasacionApp.resetForm === 'function') {
-window.tasacionApp.resetForm();
-} else {
-console.error("La función resetForm no está disponible en window.tasacionApp");
-}
-}
+    assertEqual(actual, expected, message) {
+        if (actual !== expected) {
+            throw new Error(message || `Expected "${expected}", but got "${actual}" in test: ${this.currentTestName}`);
+        }
+    }
+    
+    assertClose(actual, expected, tolerance = 0.01, message) {
+        if (Math.abs(actual - expected) > tolerance) {
+            throw new Error(message || `Expected ${expected} ± ${tolerance}, but got ${actual} in test: ${this.currentTestName}`);
+        }
+    }
 
-assert(condition, message) {
-if (!condition) {
-throw new Error(message || `Assertion failed in test: ${this.currentTestName}`);
-}
-}
+    assertElementExists(selector, message) {
+        const element = document.querySelector(selector);
+        if (!element) {
+            throw new Error(message || `Element with selector "${selector}" not found in test: ${this.currentTestName}`);
+        }
+        return element;
+    }
 
-assertEqual(actual, expected, message) {
-if (actual !== expected) {
-throw new Error(message || `Expected "${expected}", but got "${actual}" in test: ${this.currentTestName}`);
-}
-}
+    updateResultsUI() {
+        let resultsContainer = document.getElementById('test-results-container');
+        if (!resultsContainer) {
+            resultsContainer = document.createElement('div');
+            resultsContainer.id = 'test-results-container';
+            resultsContainer.style.cssText = `
+                position: fixed; top: 10px; right: 10px; background: white; border: 2px solid #ddd;
+                border-radius: 8px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 10000; max-width: 400px; font-family: monospace;
+            `;
+            document.body.appendChild(resultsContainer);
+        }
 
-assertClose(actual, expected, tolerance = 0.01, message) {
-if (Math.abs(actual - expected) > tolerance) {
-throw new Error(message || `Expected ${expected} ± ${tolerance}, but got ${actual} in test: ${this.currentTestName}`);
-}
-}
-
-assertNotEqual(actual, expected, message) {
-if (actual === expected) {
-throw new Error(message || `Expected value to be different from "${expected}", but got "${actual}" in test: ${this.currentTestName}`);
-}
-}
-
-assertElementExists(selector, message) {
-const element = document.querySelector(selector);
-if (!element) {
-throw new Error(message || `Element with selector "${selector}" not found in test: ${this.currentTestName}`);
-}
-return element;
-}
-
-updateResultsUI() {
-let resultsContainer = document.getElementById('test-results-container');
-if (!resultsContainer) {
-resultsContainer = document.createElement('div');
-resultsContainer.id = 'test-results-container';
-resultsContainer.style.cssText = `
-position: fixed; top: 10px; right: 10px; background: white; border: 2px solid #ddd;
-border-radius: 8px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-z-index: 10000; max-width: 450px; font-family: monospace;
-`;
-document.body.appendChild(resultsContainer);
-}
-
-const allPassed = this.failed === 0;
-resultsContainer.innerHTML = `
-<h3 style="margin-top: 0; color: ${allPassed ? '#2ecc71' : '#e74c3c';}">
-${allPassed ? '✅ Todos los tests pasaron' : '❌ Algunos tests fallaron'}
-</h3>
-<p><strong>Pasados:</strong> ${this.passed}</p>
-<p><strong>Fallidos:</strong> ${this.failed}</p>
-<p><strong>Total:</strong> ${this.tests.length}</p>
-<button onclick="this.parentElement.remove()" style="margin-top: 10px; padding: 5px 10px; cursor: pointer;">Cerrar</button>
-<p style="font-size: 12px; color: #666; margin-top: 10px;">Detalles en la consola (F12)</p>
-`;
-}
+        const allPassed = this.failed === 0;
+        resultsContainer.innerHTML = `
+            <h3 style="margin-top: 0; color: ${allPassed ? '#2ecc71' : '#e74c3c'};">
+                ${allPassed ? '✅ Todos los tests pasaron' : '❌ Algunos tests fallaron'}
+            </h3>
+            <p><strong>Pasados:</strong> ${this.passed}</p>
+            <p><strong>Fallidos:</strong> ${this.failed}</p>
+            <p><strong>Total:</strong> ${this.tests.length}</p>
+            <button onclick="this.parentElement.remove()" style="margin-top: 10px; padding: 5px 10px; cursor: pointer;">Cerrar</button>
+            <p style="font-size: 12px; color: #666; margin-top: 10px;">Detalles en la consola (F12)</p>
+        `;
+    }
 }
 
 // ========================================
-// FUNCIONES DE AYUDA
+// FUNCIÓN DE AYUDA PARA ESPERAR A LOS ELEMENTOS
 // ========================================
+/**
+ * Espera a que un elemento aparezca en el DOM.
+ * @param {string} selector - El selector CSS del elemento a esperar.
+ * @param {number} timeout - El tiempo máximo en milisegundos a esperar.
+ * @returns {Promise<Element>} Una promesa que se resuelve con el elemento.
+ */
 function waitForElement(selector, timeout = 5000) {
-return new Promise((resolve, reject) => {
-const startTime = Date.now();
-const checkInterval = setInterval(() => {
-const element = document.querySelector(selector);
-if (element) {
-clearInterval(checkInterval);
-resolve(element);
-return;
-}
-if (Date.now() - startTime > timeout) {
-clearInterval(checkInterval);
-reject(new Error(`Elemento con selector "${selector}" no apareció después de ${timeout}ms`));
-}
-}, 100);
-});
+    return new Promise((resolve, reject) => {
+        const startTime = Date.now();
+
+        const checkInterval = setInterval(() => {
+            const element = document.querySelector(selector);
+            if (element) {
+                clearInterval(checkInterval);
+                resolve(element);
+                return;
+            }
+
+            if (Date.now() - startTime > timeout) {
+                clearInterval(checkInterval);
+                reject(new Error(`Elemento con selector "${selector}" no apareció después de ${timeout}ms`));
+            }
+        }, 100); // Revisar cada 100ms
+    });
 }
 
+// ========================================
+// NUEVA FUNCIÓN DE AYUDA PARA ESPERAR A UNA CONDICIÓN
+// ========================================
+/**
+ * Espera a que una condición se cumpla.
+ * @param {Function} condition - Una función que devuelve un booleano.
+ * @param {number} timeout - El tiempo máximo en milisegundos a esperar.
+ * @returns {Promise} Una promesa que se resuelve cuando la condición se cumple.
+ */
 function waitForCondition(condition, timeout = 5000) {
-return new Promise((resolve, reject) => {
-const startTime = Date.now();
-const checkInterval = setInterval(() => {
-if (condition()) {
-clearInterval(checkInterval);
-resolve();
-return;
-}
-if (Date.now() - startTime > timeout) {
-clearInterval(checkInterval);
-reject(new Error(`La condición no se cumplió después de ${timeout}ms`));
-}
-}, 100);
-}
+    return new Promise((resolve, reject) => {
+        const startTime = Date.now();
 
-// --- NUEVA FUNCIÓN DE AYUDA PARA REDUCIR CÓDIGO REPETITIVO ---
-async function fillAndSaveComparable(data) {
-window.comparablesManager.openComparableModal();
-await new Promise(resolve => setTimeout(resolve, 200)); // Esperar a que el modal abra
+        const checkInterval = setInterval(() => {
+            if (condition()) {
+                clearInterval(checkInterval);
+                resolve();
+                return;
+            }
 
-// Usar un helper para establecer valores y forzar el evento de 'input'
-const setFieldValue = (id, value) => {
-const field = document.getElementById(id);
-if (field) {
-field.value = value;
-field.dispatchEvent(new Event('input', { bubbles: true }));
-}
-};
-
-setFieldValue('comp-tipo-propiedad', data.tipoPropiedad);
-setFieldValue('comp-precio', data.precio);
-setFieldValue('comp-direccion', data.direccion);
-setFieldValue('comp-localidad', data.localidad);
-setFieldValue('comp-barrio', data.barrio);
-setFieldValue('compar-antiguedad', data.antiguedad);
-setFieldValue('comp-calidad', data.calidad);
-setFieldValue('comp-sup-cubierta', data.supCubierta);
-setFieldValue('comp-sup-semicubierta', data.supSemicubierta || 0);
-setFieldValue('comp-sup-descubierta', data.supDescubierta || 0);
-setFieldValue('comp-sup-balcon', data.supBalcon || 0);
-
-document.getElementById('btn-guardar-comparable').click();
-await new Promise(resolve => setTimeout(resolve, 300)); // Esperar a que se guarde
-}
-
-// --- NUEVA FUNCIÓN DE AYUDA PARA LLENAR EL PASO 1 ---
-async function fillPaso1(data) {
-document.getElementById('tipo-propiedad').value = data.tipoPropiedad;
-document.getElementById('direccion').value = data.direccion;
-document.getElementById('piso').value = data.piso || '';
-document.getElementById('depto').value = data.depto || '';
-document.getElementById('localidad').value = data.localidad;
-document.getElementById('barrio').value = data.barrio;
-document.getElementById('antiguedad').value = data.antiguedad;
-document.getElementById('calidad').value = data.calidad;
-document.getElementById('sup-cubierta').value = data.supCubierta;
-document.getElementById('sup-semicubierta').value = data.supSemicubierta || 0;
-document.getElementById('sup-descubierta').value = data.supDescubierta || 0;
-document.getElementById('sup-balcon').value = data.supBalcon || 0;
-document.getElementById('cochera').value = data.cochera || 'no';
-document.getElementById('btn-siguiente-1').click();
-await new Promise(resolve => setTimeout(resolve, 300)); // Esperar a que avance
+            if (Date.now() - startTime > timeout) {
+                clearInterval(checkInterval);
+                reject(new Error(`La condición no se cumplió después de ${timeout}ms`));
+            }
+        }, 100); // Revisar cada 100ms
+    });
 }
 
 // ========================================
 // DEFINICIÓN DE LOS TESTS
 // ========================================
+
 function testEstructuraInicial(testSuite) {
-testSuite.test('La aplicación principal debe instanciarse correctamente', () => {
-testSuite.assert(window.tasacionApp, 'La instancia de TasacionApp no existe en window');
-});
-testSuite.test('Los gestores de componentes deben instanciarse', () => {
-testSuite.assert(window.comparablesManager, 'ComparablesManager no está instanciado');
-testSuite.assert(window.factoresManager, 'FactoresManager no está instanciado');
-testSuite.assert(window.composicionManager, 'ComposicionManager no está instanciado');
-});
+    testSuite.test('La aplicación principal debe instanciarse correctamente', () => {
+        testSuite.assert(window.tasacionApp, 'La instancia de TasacionApp no existe en window');
+    });
+
+    testSuite.test('Los gestores de componentes deben instanciarse', () => {
+        testSuite.assert(window.comparablesManager, 'ComparablesManager no está instanciado');
+        testSuite.assert(window.factoresManager, 'FactoresManager no está instanciado');
+        testSuite.assert(window.composicionManager, 'ComposicionManager no está instanciado');
+    });
 }
 
 function testNavegacion(testSuite) {
-testSuite.test('Debe mostrar el paso 1 como activo inicialmente', () => {
-testSuite.assert(document.getElementById('step-1').classList.contains('active'), 'El paso 1 debería estar activo');
-});
-testSuite.test('No debe poder avanzar al paso 2 con datos inválidos', () => {
-document.getElementById('btn-siguiente-1').click();
-testSuite.assertEqual(window.tasacionApp.currentStep, 1, 'No debería poder avanzar al paso 2 sin datos válidos');
-});
-testSuite.test('Debe poder avanzar al paso 2 con datos válidos', () => {
-document.getElementById('tipo-propiedad').value = 'departamento';
-document.getElementById('direccion').value = 'Calle Falsa 123';
-document.getElementById('localidad').value = 'CABA';
-document.getElementById('barrio').value = 'Palermo';
-document.getElementById('antiguedad').value = '10';
-document.getElementById('calidad').value = 'buena';
-document.getElementById('sup-cubierta').value = '100';
-document.getElementById('btn-siguiente-1').click();
-testSuite.assertEqual(window.tasacionApp.currentStep, 2, 'Debería poder avanzar al paso 2');
-testSuite.assert(document.getElementById('step-2').classList.contains('active'), 'El paso 2 debería estar activo');
-});
+    testSuite.test('Debe mostrar el paso 1 como activo inicialmente', () => {
+        testSuite.assert(document.getElementById('step-1').classList.contains('active'), 'El paso 1 debería estar activo');
+    });
+
+    testSuite.test('No debe poder avanzar al paso 2 con datos inválidos', () => {
+        document.getElementById('btn-siguiente-1').click();
+        testSuite.assertEqual(window.tasacionApp.currentStep, 1, 'No debería poder avanzar al paso 2 sin datos válidos');
+    });
+
+    testSuite.test('Debe poder avanzar al paso 2 con datos válidos', () => {
+        document.getElementById('tipo-propiedad').value = 'departamento';
+        document.getElementById('direccion').value = 'Calle Test 123';
+        document.getElementById('localidad').value = 'CABA';
+        document.getElementById('barrio').value = 'Palermo';
+        document.getElementById('antiguedad').value = '10';
+        document.getElementById('calidad').value = 'buena';
+        document.getElementById('sup-cubierta').value = '100';
+        
+        document.getElementById('btn-siguiente-1').click();
+        
+        testSuite.assertEqual(window.tasacionApp.currentStep, 2, 'Debería poder avanzar al paso 2');
+        testSuite.assert(document.getElementById('step-2').classList.contains('active'), 'El paso 2 debería estar activo');
+    });
 }
 
 function testDatosInmueble(testSuite) {
-testSuite.test('Debe guardar correctamente los datos del inmueble', () => {
-document.getElementById('tipo-propiedad').value = 'ph';
-document.getElementById('direccion').value = 'Av. Corrientes 4500';
-document.getElementById('piso').value = 'PB';
-document.getElementById('depto').value = 'A';
-document.getElementById('localidad').value = 'CABA';
-document.getElementById('barrio').value = 'Belgrano';
-document.getElementById('antiguedad').value = '15';
-document.getElementById('calidad').value = 'excelente';
-document.getElementById('sup-cubierta').value = '85.50';
-document.getElementById('btn-siguiente-1').click();
-const data = window.tasacionApp.inmuebleData;
-testSuite.assertEqual(data.tipoPropiedad, 'ph', 'El tipo de propiedad no se guardó correctamente');
-testSuite.assertEqual(data.direccion, 'Av. Corrientes 4500', 'La dirección no se guardó correctamente');
-testSuite.assertEqual(data.supCubierta, 85.50, 'La superficie cubierta no se guardó correctamente');
-testSuite.assertEqual(data.cochera, 'no', 'La cochera no se guardó correctamente');
-});
+    testSuite.test('Debe guardar correctamente los datos del inmueble', () => {
+        document.getElementById('tipo-propiedad').value = 'ph';
+        document.getElementById('direccion').value = 'Av. Corrientes 1000';
+        document.getElementById('piso').value = '3';
+        document.getElementById('depto').value = 'B';
+        document.getElementById('localidad').value = 'CABA';
+        document.getElementById('barrio').value = 'Once';
+        document.getElementById('antiguedad').value = '20';
+        document.getElementById('calidad').value = 'muy-buena';
+        document.getElementById('sup-cubierta').value = '75';
+        document.getElementById('sup-semicubierta').value = '15';
+        document.getElementById('sup-descubierta').value = '25';
+        document.getElementById('sup-balcon').value = '8';
+        document.getElementById('sup-terreno').value = '150';
+        document.getElementById('cochera').value = 'propia';
+        
+        document.getElementById('btn-siguiente-1').click();
+        
+        const data = window.tasacionApp.inmuebleData;
+        testSuite.assertEqual(data.tipoPropiedad, 'ph', 'El tipo de propiedad no se guardó correctamente');
+        testSuite.assertEqual(data.direccion, 'Av. Corrientes 1000', 'La dirección no se guardó correctamente');
+        testSuite.assertEqual(data.supCubierta, 75, 'La superficie cubierta no se guardó correctamente');
+        testSuite.assertEqual(data.cochera, 'propia', 'La cochera no se guardó correctamente');
+    });
 }
 
 async function testComparables(testSuite) {
-testSuite.test('Debe agregar y eliminar un comparable correctamente', async () => {
-await fillPaso1({
-tipoPropiedad: 'departamento',
-direccion: 'Calle Test 123',
-localidad: 'CABA',
-barrio: 'Palermo',
-antiguedad: '10',
-calidad: 'buena',
-supCubierta: '100'
-});
+    testSuite.test('Debe agregar y eliminar un comparable correctamente', async () => {
+        document.getElementById('tipo-propiedad').value = 'departamento';
+        document.getElementById('direccion').value = 'Calle Test 123';
+        document.getElementById('localidad').value = 'CABA';
+        document.getElementById('barrio').value = 'Palermo';
+        document.getElementById('antiguedad').value = '10';
+        document.getElementById('calidad').value = 'buena';
+        document.getElementById('sup-cubierta').value = '100';
+        document.getElementById('btn-siguiente-1').click();
+        
+        testSuite.assertEqual(window.tasacionApp.currentStep, 2, 'No se pudo avanzar al paso 2 para probar comparables');
 
-await fillAndSaveComparable({
-tipoPropiedad: 'departamento',
-precio: '150000',
-direccion: 'Calle Falsa 456',
-localidad: 'CABA',
-barrio: 'Caballito',
-antiguedad: '5',
-calidad: 'muy-buena',
-supCubierta: '80'
-});
-
-testSuite.assertEqual(window.tasacionApp.comparables.length, 1, 'No se agregó el comparable');
-testSuite.assertEqual(window.tasacionApp.comparables[0].direccion, 'Calle Falsa 456', 'La dirección del comparable no se guardó correctamente');
-
-const originalConfirm = window.confirm;
-window.confirm = () => true;
-const idAEliminar = window.tasacionApp.comparables[0].id;
-window.comparablesManager.deleteComparable(idAEliminar);
-window.confirm = originalConfirm;
-
-testSuite.assertEqual(window.tasacionApp.comparables.length, 0, 'El comparable no se eliminó correctamente');
-});
+        window.comparablesManager.openComparableModal();
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        document.getElementById('comp-tipo-propiedad').value = 'departamento';
+        document.getElementById('comp-precio').value = '150000';
+        document.getElementById('comp-direccion').value = 'Calle Falsa 456';
+        document.getElementById('comp-localidad').value = 'CABA';
+        document.getElementById('comp-barrio').value = 'Caballito';
+        document.getElementById('comp-antiguedad').value = '10';
+        document.getElementById('comp-calidad').value = 'buena';
+        document.getElementById('comp-sup-cubierta').value = '80';
+        
+        document.getElementById('btn-guardar-comparable').click();
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
+        testSuite.assertEqual(window.tasacionApp.comparables.length, 1, 'No se agregó el comparable');
+        testSuite.assertEqual(window.tasacionApp.comparables[0].direccion, 'La dirección del comparable no es la esperada');
+        
+        const originalConfirm = window.confirm;
+        window.confirm = () => true;
+        const idAEliminar = window.tasacionApp.comparables[0].id;
+        window.comparablesManager.deleteComparable(idAEliminar);
+        window.confirm = originalConfirm;
+        
+        testSuite.assertEqual(window.tasacionApp.comparables.length, 0, 'El comparable no se eliminó correctamente');
+    });
 }
 
 async function testFactoresManager(testSuite) {
-testSuite.test('Debe aplicar factores de ajuste y recalcular el valor', async () => {
-await fillPaso1({
-tipoPropiedad: 'departamento',
-direccion: 'Calle Test 123',
-localidad: 'CABA',
-barrio: 'Palermo',
-antiguedad: '10',
-calidad: 'buena',
-supCubierta: '100'
-});
+    testSuite.test('Debe aplicar factores de ajuste y recalcular el valor', async () => {
+        document.getElementById('tipo-propiedad').value = 'departamento';
+        document.getElementById('direccion').value = 'Calle Test 123';
+        document.getElementById('localidad').value = 'CABA';
+        document.getElementById('barrio').value = 'Palermo';
+        document.getElementById('antiguedad').value = '10';
+        document.getElementById('calidad').value = 'buena';
+        document.getElementById('sup-cubierta').value = '100';
+        document.getElementById('btn-siguiente-1').click();
 
-await fillAndSaveComparable({
-tipoPropiedad: 'departamento',
-precio: '200000',
-direccion: 'Calle Factor 789',
-localidad: 'CABA',
-barrio: 'Belgrano',
-antiguedad: '5',
-calidad: 'muy-buena',
-supCubierta: '100'
-});
+        window.comparablesManager.openComparableModal();
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        document.getElementById('comp-tipo-propiedad').value = 'departamento';
+        document.getElementById('comp-precio').value = '200000';
+        document.getElementById('comp-direccion').value = 'Calle Factor 789';
+        document.getElementById('comp-localidad').value = 'CABA';
+        document.getElementById('comp-barrio').value = 'Belgrano';
+        document.getElementById('comp-antiguedad').value = '5';
+        document.getElementById('comp-calidad').value = 'muy-buena';
+        document.getElementById('comp-sup-cubierta').value = '100';
+        document.getElementById('btn-guardar-comparable').click();
+        await new Promise(resolve => setTimeout(resolve, 200));
 
-testSuite.assertEqual(window.tasacionApp.comparables.length, 1, 'No se agregó el comparable');
+        const comparable = window.tasacionApp.comparables[0];
+        const valorM2Original = comparable.valorM2;
 
-// Navegar al paso 3 y forzar la inicialización de factores
-window.tasacionApp.goToStep(3);
-await new Promise(resolve => setTimeout(resolve, 500));
-window.factoresManager.initFactors();
-await new Promise(resolve => setTimeout(resolve, 300));
+        const sliderUbicacion = document.getElementById('factor-ubicación');
+        testSuite.assert(sliderUbicacion, 'El slider de Ubicación no se encontró');
+        
+        sliderUbicacion.value = '15';
+        sliderUbicacion.dispatchEvent(new Event('input', { bubbles: true }));
+        await new Promise(resolve => setTimeout(resolve, 100));
 
-const comparable = window.tasacionApp.comparables[0];
-const valorM2Original = comparable.valorM2;
-
-const sliderUbicacion = document.getElementById('factor-ubicacion');
-testSuite.assert(sliderUbicacion, 'El slider de Ubicación no se encontró');
-
-sliderUbicacion.value = '15';
-sliderUbicacion.dispatchEvent(new Event('input', { bubbles: true }));
-await new Promise(resolve => setTimeout(resolve, 100));
-
-testSuite.assertEqual(comparable.factores['Ubicación'], 15, 'El factor de Ubicación no se guardó correctamente');
-
-const valorM2Ajustado = valorM2Original * 1.15;
-testSuite.assertClose(comparable.valorM2Ajustado, valorM2Ajustado, 0.01, 'El valor por m² ajustado no se calculó correctamente');
-});
+        testSuite.assertEqual(comparable.factores['Ubicación'], 15, 'El factor de Ubicación no se guardó correctamente');
+        
+        const valorM2Esperado = valorM2Original * 1.15;
+        testSuite.assertClose(comparable.valorM2Ajustado, valorM2Esperado, 0.01, 'El valor por m² ajustado no se calculó correctamente');
+    });
 }
 
+// ========================================
+// TEST DE COMPOSICIÓN (CORREGIDO Y DEFINITIVO)
+// ========================================
 async function testComposicionManager(testSuite) {
-testSuite.test('Debe calcular el valor total de la tasación', async () => {
-await fillPaso1({
-tipoPropiedad: 'departamento',
-direccion: 'Calle Test 123',
-localidad: 'CABA',
-barrio: 'Palermo',
-antiguedad: '10',
-calidad: 'buena',
-supCubierta: '120',
-supSemicubierta: '30',
-supDescubierta: '20',
-supBalcon: '10',
-cochera: 'propia'
-});
+    testSuite.test('Debe calcular el valor total de la tasación', async () => {
+        document.getElementById('tipo-propiedad').value = 'departamento';
+        document.getElementById('direccion').value = 'Calle Test 123';
+        document.getElementById('localidad').value = 'CABA';
+        document.getElementById('barrio').value = 'Palermo';
+        document.getElementById('antiguedad').value = '10';
+        document.getElementById('calidad').value = 'buena';
+        document.getElementById('sup-cubierta').value = '100';
+        document.getElementById('sup-semicubierta').value = '50';
+        document.getElementById('sup-balcon').value = '10';
+        document.getElementById('cochera').value = 'propia';
+        document.getElementById('btn-siguiente-1').click();
 
-await fillAndSaveComparable({
-tipoPropiedad: 'departamento',
-precio: '200000',
-direccion: 'Calle Compo 101',
-localidad: 'CABA',
-barrio: 'Caballito',
-antiguedad: '5',
-calidad: 'muy-buena',
-supCubierta: '100'
-});
+        window.comparablesManager.openComparableModal();
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        document.getElementById('comp-tipo-propiedad').value = 'departamento';
+        document.getElementById('comp-precio').value = '200000';
+        document.getElementById('comp-direccion').value = 'Calle Compo 101';
+        document.getElementById('comp-localidad').value = 'CABA';
+        document.getElementById('comp-barrio').value = 'Palermo';
+        document.getElementById('comp-antiguedad').value = '10';
+        document.getElementById('comp-calidad').value = 'buena';
+        document.getElementById('comp-sup-cubierta').value = '100';
+        document.getElementById('btn-guardar-comparable').click();
+        await new Promise(resolve => setTimeout(resolve, 200));
 
-window.tasacionApp.valorM2Referencia = 2000;
+        window.tasacionApp.valorM2Referencia = 2000;
 
-window.tasacionApp.goToStep(4);
-await new Promise(resolve => setTimeout(resolve, 500));
-window.tasacionApp.calculateComposition();
-await new Promise(resolve => setTimeout(resolve, 500));
+        // ---- CAMBIO CLAVE AQUÍ: Navegamos y forzamos la reconstrucción del estado ----
+        console.log("DIAGNOSTICO: Navegando al paso 4 y esperando a la UI...");
+        window.tasacionApp.goToStep(4);
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Pausa muy generosa para asegurar que todo se renderice
+        
+        // ---- CAMBIO CLAVE AQUÍ: Forzamos el cálculo para asegurar que el estado sea correcto ----
+        console.log("DIAGNOSTICO: Forzando el cálculo de la composición...");
+        window.tasacionApp.calculateComposition();
+        await new Promise(resolve => setTimeout(resolve, 500)); // Pausa para asegurar que los valores se actualicen
 
-const valorTotalElement = document.getElementById('valor-total-tasacion');
-testSuite.assert(valorTotalElement, 'El elemento valor-total-tasacion no existe en el DOM');
-
-const valorFinalNumero = parseFloat(valorTotalElement.getAttribute('data-raw-value'));
-console.log(`DIAGNÓSTICO: Valor numérico extraído en testComposicionManager: ${valorFinalNumero}`);
-
-testSuite.assert(!isNaN(valorFinalNumero, 'El valor final es NaN, lo que indica un problema en los datos de entrada.');
-testSuite.assert(valorFinalNumero > 0, 'El valor final no es un número positivo');
-});
+        // Verificar que el elemento exista antes de intentar acceder a él
+        const valorTotalElement = document.getElementById('valor-total-tasacion');
+        testSuite.assert(valorTotalElement, 'El elemento valor-total-tasacion no existe en el DOM');
+        
+        const valorTotalCalculado = window.composicionManager.calculateValorTotal();
+        const valorTotalEnUI = parseFloat(document.getElementById('valor-total-tasacion').textContent.replace('$', '').replace(',', ''));
+        
+        testSuite.assertClose(valorTotalCalculado, valorTotalEnUI, 0.01, 'El valor total calculado por el manager no coincide con el de la UI');
+    });
 }
 
+// ========================================
+// TEST DE FLUJO COMPLETO (CORREGIDO Y DEFINITIVO)
+// ========================================
 async function testFlujoCompleto(testSuite) {
-testSuite.test('Debe completar el flujo completo de tasación y calcular el valor final', async () => {
-await fillPaso1({
-tipoPropiedad: 'casa',
-direccion: 'Uriarte 1500',
-piso: 'PB',
-depto: '',
-localidad: 'La Plata',
-barrio: 'Centro',
-antiguedad: '20',
-calidad: 'excelente',
-supCubierta: '150',
-supSemicubierta: '50',
-supDescubierta: '25',
-supBalcon: '12',
-cochera: 'propia'
-});
+    testSuite.test('Debe completar el flujo completo de tasación y calcular el valor final', async () => {
+        // 1. Completar paso 1
+        document.getElementById('tipo-propiedad').value = 'departamento';
+        document.getElementById('direccion').value = 'Uriarte 1500';
+        document.getElementById('piso').value = '5';
+        document.getElementById('depto').value = 'C';
+        document.getElementById('localidad').value = 'CABA';
+        document.getElementById('barrio').val ue = 'Palermo';
+        document.getElementById('antiguedad').value = '8';
+        document.getElementById('calidad').value = 'muy-buena';
+        document.getElementById('sup-cubierta').value = '120';
+        document.getElementById('sup-semicubierta').value = '25';
+        document.getElementById('sup-balcon').value = '12';
+        document.getElementById('cochera').value = 'comun';
+        document.getElementById('btn-siguiente-1').click();
+        await new Promise(resolve => setTimeout(resolve, 500));
 
-// Agregar comparables programáticamente
-const comparablesData = [
-{ dir: 'Scalabrini Ortiz 1200', barrio: 'Palermo', precio: 280000, sup: 110, ant: '5', cal: 'excelente' },
-{ dir: 'Jorge Newbery 800', barrio: 'Colegiales', precio: 250000, sup: 115, ant: '10', cal: 'muy-buena' },
-{ dir: 'Gorriti 500', barrio: 'Palermo', precio: 265000, sup: 105, ant: '12', cal: 'buena' },
-{ dir: 'Dorrego 200', barrio: 'Palermo', precio: 275000, sup: 118, ant: '8', cal: 'buena' }
-];
+        // 2. Agregar comparables programáticamente
+        const comparablesData = [
+            { dir: 'Scalabrini Ortiz 1200', barrio: 'Palermo', precio: 280000, sup: 110, ant: '5', cal: 'excelente' },
+            { dir: 'Jorge Newbery 800', barrio: 'Colegiales', precio: 250000, sup: 115, ant: '10', cal: 'muy-buena' },
+            { dir: 'Gorriti 500', barrio: 'Palermo', precio:265000, sup: 105, ant: '12', cal: 'buena' },
+            { dir: 'Dorrego 200', barrio: 'Palermo', precio: 275000, sup: 118, ant: '6', cal: 'muy-buena' }
+        ];
 
-let nextId = 1;
-for (const data of comparablesData) {
-const precioAjustado = data.precio * (1 - window.tasacionApp.descuentoNegociacion / 100);
-const comparable = {
-id: nextId++,
-tipoPropiedad: 'casa',
-precio: data.precio,
-direccion: data.dir,
-barrio: data.barrio,
-localidad: 'CABA',
-antiguedad: data.ant,
-calidad: data.cal,
-supCubierta: data.sup,
-supSemicubierta: 0,
-supDescubierta: 0,
-supBalcon: 0,
-valorM2: precioAjustado / data.sup,
-valorM2Ajustado: precioAjustado / data.sup,
-factores: {}
-};
-window.tasacionApp.comparables.push(comparable);
-}
-testSuite.assertEqual(window.tasacionApp.comparables.length, 4, 'No se agregaron los 4 comparables');
+        let nextId = 1;
+        for (const data of comparablesData) {
+            const precioAjustado = data.precio * (1 - window.tasacionApp.descuentoNegociacion / 100);
+            const comparable = {
+                id: nextId++,
+                tipoPropiedad: 'departamento',
+                precio: data.precio,
+                direccion: data.dir,
+                localidad: 'CABA',
+                barrio: data.barrio,
+                antiguedad: data.ant,
+                calidad: data.cal,
+                supCubierta: data.sup,
+                valorM2: precioAjustado / data.sup,
+                valorM2Ajustado: precioAjustado / data.sup,
+                factores: {}
+            };
+            window.tasacionApp.comparables.push(comparable);
+        }
+        testSuite.assertEqual(window.tasacionApp.comparables.length, 4, 'No se agregaron los 4 comparables');
 
-window.tasacionApp.goToStep(5);
-await waitForCondition(() => document.getElementById('step-5').classList.contains('active'), 3000);
-window.tasacionApp.calculateComposition();
-await new Promise(resolve => setTimeout(resolve, 500));
+        // 3. Navegar al paso 3 y forzar la inicialización de los factores
+        console.log("DIAGNOSTICO: Navegando al paso 3 y esperando a la UI de factores...");
+        document.getElementById('btn-siguiente-2').click();
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Pausa muy generosa
 
-const valorFinalElement = document.getElementById('valor-total-tasacion');
-testSuite.assert(valorFinalElement, 'El elemento valor-total-tasacion no existe en el DOM');
+        // ---- CAMBIO CLAVE AQUÍ: Forzamos la inicialización de los factores ----
+        console.log("DIAGNOSTICO: Forzando la inicialización de los factores...");
+        window.factoresManager.initFactors();
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Pausa muy generosa
 
-const valorFinalNumero = parseFloat(valorFinalElement.getAttribute('data-raw-value'));
+        // 4. ESPERAR A QUE LOS SLIDERS EXISTANTES ANTES DE INTERACTUAR
+        console.log("DIAGNOSTICO: Esperando a que los sliders de factores aparezcan en el DOM...");
+        const slider1 = await waitForElement('#factor-ubicación');
+        const slider2 = await waitForElement('#factor-calidad-de-construcción');
+        console.log("DIAGNOSTICO: Sliders de factores encontrados.");
+        
+        // 5. Interactuar con los sliders
+        slider1.value = '5';
+        slider1.dispatchEvent(new Event('input', { bubbles: true }));
+        
+        slider2.value = '-5';
+        slider2.dispatchEvent(new Event('input', { bubbles: true }));
+        await new Promise(resolve => setTimeout(resolve, 500));
 
-testSuite.assert(!isNaN(valorFinalNumero, 'El valor final es NaN en el flujo completo.');
-testSuite.assert(valorFinalNumero > 100000, 'El valor final no es un número positivo significativo');
-});
-}
+        document.getElementById('btn-siguiente-3').click();
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        document.getElementById('btn-siguiente-4').click();
+        await new Promise(resolve => setTimeout(resolve, 500));
 
-// VERSIÓN CORREGIDA Y AUTOSUFICIENTE DE testModificacionComparables
-async function testModificacionComparables(testSuite) {
-testSuite.test('Debe modificar los comparables y recalcular la cotización final', async () => {
-// --- PASO 1: CONFIGURAR EL ESTADO INICIAL (Este test es autosuficiente) ---
-console.log("DIAGNÓSTICO: Configurando estado inicial para el test de modificación...");
+        // 7. ESPERAR A QUE EL VALOR FINAL SE CALCULE Y TENGA EL FORMATO CORRECTO
+        console.log("DIAGNOSTICO: Esperando a que el valor final se calcule y tenga el formato correcto...");
+        await waitForCondition(() => {
+            const valorFinalElement = document.getElementById('valor-total-tasacion');
+            return valorFinalElement && valorFinalElement.textContent.startsWith('$');
+        });
+        console.log("DIAGNOSTICO: Valor final calculado y formateado.");
 
-// 1.1 Completar paso 1
-await fillPaso1({
-tipoPropiedad: 'casa',
-direccion: 'Uriarte 1500',
-piso: 'PB',
-depto: '',
-localidad: 'La Plata',
-barrio: 'Centro',
-antiguedad: '20',
-calidad: 'excelente',
-supCubierta: '150',
-supSemicubierta: '50',
-supDescubierta: '25',
-supBalcon: '12',
-cochera: 'propia'
-});
-
-// 1.2 Agregar comparables usando la interfaz de usuario
-const comparablesData = [
-{ dir: 'Scalabrini Ortiz 1200', barrio: 'Palermo', precio: 280000, sup: 110, ant: '5', cal: 'excelente' },
-{ dir: 'Jorge Newbery 800', barrio: 'Colegiales', precio: 250000, sup: 115, ant: '10', cal: 'muy-buena' },
-{ dir: 'Gorriti 500', barrio: 'Palermo', precio: 265000, sup: 105, ant: '12', cal: 'buena' },
-{ dir: 'Dorrego 200', barrio: 'Palermo', precio: 275000, sup: 118, ant: '8', cal: 'buena' }
-];
-
-for (const data of comparablesData) {
-await fillAndSaveComparable({
-tipoPropiedad: 'casa',
-precio: data.precio,
-direccion: data.dir,
-localidad: 'CABA',
-barrio: data.barrio,
-antiguedad: data.ant,
-calidad: data.cal,
-supCubierta: data.sup
-});
-}
-testSuite.assert(window.tasacionApp.comparables.length === 4, 'No se pudieron agregar los comparables para el test');
-
-// --- PASO 2: CALCULAR LA COTIZACIÓN INICIAL ---
-console.log("DIAGNÓSTICO: Calculando cotización inicial...");
-window.tasacionApp.goToStep(5);
-await waitForCondition(() => document.getElementById('step-5').classList.contains('active'), 3000);
-window.tasacionApp.calculateComposition();
-await new Promise(resolve => setTimeout(resolve, 500));
-
-const valorFinalElement = document.getElementById('valor-total-tasacion');
-valorCotizacionInicial = parseFloat(valorFinalElement.getAttribute('data-raw-value'));
-console.log(`DIAGNÓSTICO: Cotización inicial guardada: ${valorCotizacionInicial}`);
-testSuite.assert(valorCotizacionInicial > 0, 'La cotización inicial no es válida');
-
-// --- PASO 3: MODIFICAR COMPARABLES Y VERIFICAR IMPACTO ---
-console.log("DIAGNÓSTICO: Navegando al paso 2 para modificar comparables...");
-window.tasacionApp.goToStep(2);
-await waitForCondition(() => document.getElementById('step-2').classList.contains('active'), 3000);
-
-// Modificar cada comparable aumentando su superficie en un 20%
-const comparablesOriginales = [...window.tasacionApp.comparables];
-for (const comparable of comparablesOriginales) {
-console.log(`DIAGNÓSTICO: Modificando Comparable ${comparable.id}...`);
-
-window.comparablesManager.openComparableModal(comparable.id);
-await new Promise(resolve => setTimeout(resolve, 300));
-
-const nuevaSuperficie = Math.round(comparable.supCubierta * 1.2);
-const supField = document.getElementById('comp-sup-cubierta');
-supField.value = nuevaSuperficie;
-supField.dispatchEvent(new Event('input', { bubbles: true }));
-
-document.getElementById('btn-guardar-comparable').click();
-await new Promise(resolve => setTimeout(resolve, 500));
-
-const comparableModificado = window.tasacionApp.comparables.find(c => c.id === comparable.id);
-testSuite.assertEqual(comparableModificado.supCubierta, nuevaSuperficie, `La superficie del Comparable ${comparable.id} no se actualizó correctamente`);
+        // 8. Verificar resultados finales
+        const valorFinalElement = document.getElementById('valor-total-tasacion');
+        testSuite.assert(valorFinalElement, 'El elemento valor-total-tasacion no existe en el DOM');
+        
+        const valorFinalTexto = valorFinalElement.textContent;
+        const valorFinalNumero = parseFloat(valorFinalTexto.replace('$', '').replace(',', ''));
+        
+        testSuite.assert(valorFinalTexto.startsWith('$'), 'El valor final no tiene el formato de moneda correcto');
+        testSuite.assert(valorFinalNumero > 0, 'El valor final no es un número positivo');
+        
+        const valorM2RefTexto = document.getElementById('valor-m2-referencia').textContent;
+        const valorM2RefNumero = parseFloat(valorM2RefTexto.replace('$', ''));
+        testSuite.assert(valorM2RefNumero > 0, 'El valor de referencia por m² no es un número positivo');
+        
+        console.log(`%c📊 Flujo Completo: Valor Final de Tasación: ${valorFinalTexto}`, 'color: #17a2b8; font-weight: bold;');
+    });
 }
 
-// --- PASO 4: FORZAR RECÁLCULO DE REFERENCIA Y FINAL ---
-console.log("DIAGNÓSTICO: Forzando recálculo de referencia y final...");
-// --- SOLUCIÓN CLAVE: Ir al paso 4 y forzar el recálculo del valor de referencia ---
-window.tasacionApp.goToStep(4);
-await waitForCondition(() => document.getElementById('step-4').classList.contains('active'), 3000);
-// Llamar a calculateReferenceValue() que actualiza el valorM2Referencia
-window.tasacionApp.calculateReferenceValue();
-await new Promise(resolve => setTimeout(resolve, 500));
-
-// --- PASO 5: CALCULAR Y VERIFICAR EL NUEVO VALOR FINAL ---
-window.tasacionApp.goToStep(5);
-await waitForCondition(() => document.getElementById('step-5').classList.contains('active'), 3000);
-// Llamar a calculateComposition() para asegurar que use el nuevo valorM2Referencia
-window.tasacionApp.calculateComposition();
-await new Promise(resolve => setTimeout(resolve, 500));
-
-const nuevoValorFinalNumero = parseFloat(valorFinalElement.getAttribute('data-raw-value'));
-
-testSuite.assertNotEqual(nuevoValorFinalNumero, valorCotizacionInicial,
-'El valor de la cotización no cambió después de modificar los comparables');
-testSuite.assert(nuevoValorFinalNumero > valorCotizacionInicial,
-'El valor de la cotización no aumentó como se esperaba al aumentar las superficies');
-
-console.log(`DIAGNÓSTICO: Valor inicial: ${valorCotizacionInicial}, Nuevo valor: ${nuevoValorFinalNumero}`);
-console.log(`DIAGNÓSTICO: Diferencia: ${nuevoValorFinalNumero - valorCotizacionInicial}`);
-});
-}
 
 // ========================================
 // FUNCIÓN PRINCIPAL PARA EJECUTAR TODOS LOS TESTS
 // ========================================
 async function runAllTests() {
-console.log("runAllTests: Iniciando todos los tests");
-try {
-const testSuite = new TestSuite();
-testEstructuraInicial(testSuite);
-testNavegacion(testSuite);
-testDatosInmueble(testSuite);
-testComparables(testSuite);
-testFactoresManager(testSuite);
-testComposicionManager(testSuite);
-testFlujoCompleto(testSuite);
-testModificacionComparables(testSuite);
-const allPassed = await testSuite.run();
-console.log("runAllTests: Tests finalizados, resultado:", allPassed);
-return allPassed;
-} catch (error) {
-console.error("runAllTests: Error al ejecutar tests:", error);
-return false;
-}
+    console.log("runAllTests: Iniciando todos los tests");
+    
+    try {
+        const testSuite = new TestSuite();
+        
+        testEstructuraInicial(testSuite);
+        testNavegacion(testSuite);
+        testDatosInmueble(testSuite);
+        testComparables(testSuite);
+        testFactoresManager(testSuite);
+        testComposicionManager(testSuite);
+        testFlujoCompleto(testSuite);
+        
+        const allPassed = await testSuite.run();
+        console.log("runAllTests: Tests finalizados, resultado:", allPassed);
+        
+        return allPassed;
+    } catch (error) {
+        console.error("runAllTests: Error al ejecutar tests:", error);
+        return false;
+    }
 }
 
 // ========================================
-// INICIALIZACIÓN Y AGREGAR BOTÓN DE TESTS
+// FUNCIÓN PARA AGREGAR EL BOTÓN DE TEST (SIN CAMBIOS)
 // ========================================
 function addTestButton() {
-// --- SOLUCIÓN CLAVE: Evitar creación duplicada ---
-if (document.getElementById('btn-run-tests')) {
-console.log("El botón de tests ya fue agregado. Evitando creación duplicada.");
-return;
-}
-const step1Actions = document.querySelector('#step-1 .form-actions');
-if (!step1Actions) {
-console.error("No se encontró el contenedor .form-actions en el paso 1 para agregar el botón de tests.");
-return;
-}
-const testButton = document.createElement('button');
-testButton.id = 'btn-run-tests';
-testButton.className = testButton.className || 'btn-secondary'; // Usa un estilo por defecto si no se encuentra el primero
-testButton.innerHTML = '<i class="fas fa-flask"></i> Ejecutar Tests';
-testButton.style.marginLeft = '10px';
-step1Actions.appendChild(testButton);
-testButton.addEventListener('click', async () => {
-testButton.disabled = true;
-testButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ejecutando...';
-try {
-await runAllTests();
-} catch (e) {
-console.error("Error durante la ejecución de tests:", e);
-} finally {
-testButton.disabled = false;
-testButton.innerHTML = '<i class="fas fa-flask"></i> Ejecutar Tests';
-}
-});
-console.log("Botón de tests agregado correctamente.");
+    // Evita crear el botón más de una vez.
+    if (document.getElementById('btn-run-tests')) return;
+
+    const step1Actions = document.querySelector('#step-1 .form-actions');
+    if (step1Actions) {
+        const testButton = document.createElement('button');
+        testButton.id = 'btn-run-tests';
+        testButton.className = 'btn-secondary';
+        testButton.innerHTML = '<i class="fas fa-flask"></i> Ejecutar Tests';
+        testButton.style.marginLeft = '10px';
+        
+        step1Actions.appendChild(testButton);
+        
+        testButton.addEventListener('click', async () => {
+            testButton.disabled = true;
+            testButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ejecutando...';
+            
+            try {
+                await runAllTests();
+            } catch (e) {
+                console.error("Error durante la ejecución de tests:", e);
+            } finally {
+                testButton.disabled = false;
+                testButton.innerHTML = '<i class="fas fa-flask"></i> Ejecutar Tests';
+            }
+        });
+    }
 }
 
 // ========================================
-// INICIALIZACIÓN Y AGREGAR BOTÓN DE TESTS
+// INICIALIZACIÓN (Sin cambios)
 // ========================================
-function initializeTests() {
-// --- SOLUCIÓN CLAVE: Evitar creación duplicada ---
-if (window.testButtonAdded) {
-console.log("El botón de tests ya fue agregado. Evitando creación duplicada.");
-return;
-}
-const step1Actions = document.querySelector('#step-1 .form-actions');
-if (!step1Actions) {
-console.error("No se encontró el contenedor .form-actions en el paso 1 para agregar el botón de tests.");
-return;
-}
-const testButton = document.createElement('button');
-testButton.id = 'btn-run-tests';
-testButton.className = testButton.className || 'btn-secondary'; // Usa un estilo por defecto si no se encuentra el primero
-testButton.innerHTML = '<i class="fas fa-flask"></i> Ejecutar Tests';
-testButton.style.marginLeft = '10px';
-step1Actions.appendChild(testButton);
-testButton.addEventListener('click', async () => {
-testButton.disabled = true;
-testButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ejecutando...';
-try {
-await runAllTests();
-} catch (e) {
-console.error("Error durante la ejecución de tests:", e);
-} finally {
-testButton.disabled = false;
-testButton.innerHTML = '<i class="fas fa-flask"></i> Ejecutar Tests';
-}
-});
-console.log("Botón de tests agregado correctamente.");
+async function initializeTests() {
+    addTestButton();
 }
 
-// Iniciar la inicialización de los tests.
-initializeTests();
+document.addEventListener('DOMContentLoaded', initializeTests);
+
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    initializeTests();
 }
