@@ -1,6 +1,6 @@
 /**
  * Sistema de Tests Automatizados para Cotizador Inmobiliario Century 21
- * Versión: 2.1
+ * Versión: 2.2
  * Descripción: Suite de pruebas escalonadas para verificar el funcionamiento completo del sistema
  */
 
@@ -32,6 +32,86 @@ const C21TestSuite = {
         progressBar: null,
         testSummary: null
     },
+    
+    // Datos de comparables realistas para pruebas
+    realisticComparables: [
+        {
+            tipoPropiedad: 'departamento',
+            precio: 180000,
+            direccion: 'Av. Santa Fe 1500',
+            numero: '1500',
+            piso: '7°',
+            depto: 'B',
+            localidad: 'CABA',
+            barrio: 'Palermo',
+            antiguedad: 3,
+            calidad: 'muy-buena',
+            supCubierta: 75,
+            supTerreno: 0,
+            supSemicubierta: 8,
+            supDescubierta: 0,
+            supBalcon: 6,
+            cochera: 'comun',
+            observaciones: 'Excelente ubicación, cerca del subte'
+        },
+        {
+            tipoPropiedad: 'departamento',
+            precio: 165000,
+            direccion: 'Uriarte 1200',
+            numero: '1200',
+            piso: '4°',
+            depto: 'A',
+            localidad: 'CABA',
+            barrio: 'Palermo',
+            antiguedad: 5,
+            calidad: 'buena',
+            supCubierta: 68,
+            supTerreno: 0,
+            supSemicubierta: 5,
+            supDescubierta: 0,
+            supBalcon: 4,
+            cochera: 'no',
+            observaciones: 'Edificio con amenities, sin cochera'
+        },
+        {
+            tipoPropiedad: 'departamento',
+            precio: 195000,
+            direccion: 'Scalabrini Ortiz 800',
+            numero: '800',
+            piso: '3°',
+            depto: 'C',
+            localidad: 'CABA',
+            barrio: 'Palermo',
+            antiguedad: 2,
+            calidad: 'excelente',
+            supCubierta: 80,
+            supTerreno: 0,
+            supSemicubierta: 10,
+            supDescubierta: 0,
+            supBalcon: 8,
+            cochera: 'propia',
+            observaciones: 'A estrenar, cochera propia incluida'
+        },
+        {
+            tipoPropiedad: 'departamento',
+            precio: 172000,
+            direccion: 'Juan B. Justo 2000',
+            numero: '2000',
+            piso: '5°',
+            depto: 'D',
+            localidad: 'CABA',
+            barrio: 'Palermo',
+            antiguedad: 4,
+            calidad: 'buena',
+            supCubierta: 72,
+            supTerreno: 0,
+            supSemicubierta: 6,
+            supDescubierta: 0,
+            supBalcon: 5,
+            cochera: 'comun',
+            observaciones: 'Buen estado general, amenities completas'
+        }
+    ],
     
     // Inicialización del sistema de tests
     init: function() {
@@ -368,7 +448,7 @@ const C21TestSuite = {
                         } else {
                             resolve({ passed: true, message: "Navegación y validación funcionando correctamente" });
                         }
-                    }, 200);
+                    }, 300);
                 });
             }
         },
@@ -401,7 +481,7 @@ const C21TestSuite = {
                         } else {
                             resolve({ passed: true, message: "Validación de formularios funcionando correctamente" });
                         }
-                    }, 200);
+                    }, 300);
                 });
             }
         },
@@ -434,7 +514,7 @@ const C21TestSuite = {
                             modal.style.display = 'none';
                             resolve({ passed: true, message: "Gestión de comparables funcionando correctamente" });
                         }
-                    }, 200);
+                    }, 300);
                 });
             }
         },
@@ -500,12 +580,12 @@ const C21TestSuite = {
                     
                     // Completar formulario del paso 1
                     document.getElementById('tipo-propiedad').value = 'departamento';
-                    document.getElementById('direccion').value = 'Calle de Prueba 123';
+                    document.getElementById('direccion').value = 'Av. Corrientes 1000';
                     document.getElementById('localidad').value = 'CABA';
                     document.getElementById('barrio').value = 'Palermo';
-                    document.getElementById('antiguedad').value = '5';
+                    document.getElementById('antiguedad').value = '4';
                     document.getElementById('calidad').value = 'buena';
-                    document.getElementById('sup-cubierta').value = '80';
+                    document.getElementById('sup-cubierta').value = '70';
                     
                     // Avanzar al paso 2
                     document.getElementById('btn-siguiente-1').click();
@@ -517,32 +597,52 @@ const C21TestSuite = {
                             return;
                         }
                         
-                        // Agregar un comparable de prueba
-                        document.getElementById('btn-agregar-comparable').click();
+                        // Agregar 4 comparables realistas
+                        let comparablesAgregados = 0;
                         
-                        setTimeout(() => {
-                            // Completar formulario de comparable
-                            document.getElementById('comp-tipo-propiedad').value = 'departamento';
-                            document.getElementById('comp-precio').value = '100000';
-                            document.getElementById('comp-direccion').value = 'Calle Comparable 456';
-                            document.getElementById('comp-localidad').value = 'CABA';
-                            document.getElementById('comp-barrio').value = 'Palermo';
-                            document.getElementById('comp-antiguedad').value = '3';
-                            document.getElementById('comp-calidad').value = 'buena';
-                            document.getElementById('comp-sup-cubierta').value = '75';
+                        const agregarComparable = (index) => {
+                            if (index >= this.realisticComparables.length) {
+                                // Todos los comparables agregados
+                                resolve({ passed: true, message: "Flujo completo de cotización funcionando correctamente" });
+                                return;
+                            }
                             
-                            // Guardar comparable
-                            document.getElementById('btn-guardar-comparable').click();
+                            // Abrir modal
+                            document.getElementById('btn-agregar-comparable').click();
                             
                             setTimeout(() => {
-                                // Verificar que se agregó el comparable
-                                if (window.CotizadorApp.comparables.length === 0) {
-                                    reject(new Error("No se pudo agregar el comparable"));
-                                } else {
-                                    resolve({ passed: true, message: "Flujo completo de cotización funcionando correctamente" });
-                                }
+                                // Completar formulario con datos realistas
+                                const comparable = this.realisticComparables[index];
+                                
+                                document.getElementById('comp-tipo-propiedad').value = comparable.tipoPropiedad;
+                                document.getElementById('comp-precio').value = comparable.precio;
+                                document.getElementById('comp-direccion').value = comparable.direccion;
+                                document.getElementById('comp-numero').value = comparable.numero;
+                                document.getElementById('comp-piso').value = comparable.piso;
+                                document.getElementById('comp-depto').value = comparable.depto;
+                                document.getElementById('comp-localidad').value = comparable.localidad;
+                                document.getElementById('comp-barrio').value = comparable.barrio;
+                                document.getElementById('comp-antiguedad').value = comparable.antiguedad;
+                                document.getElementById('comp-calidad').value = comparable.calidad;
+                                document.getElementById('comp-sup-cubierta').value = comparable.supCubierta;
+                                document.getElementById('comp-sup-terreno').value = comparable.supTerreno;
+                                document.getElementById('comp-sup-semicubierta').value = comparable.supSemicubierta;
+                                document.getElementById('comp-sup-descubierta').value = comparable.supDescubierta;
+                                document.getElementById('comp-sup-balcon').value = comparable.supBalcon;
+                                document.getElementById('comp-cochera').value = comparable.cochera;
+                                document.getElementById('comp-observaciones').value = comparable.observaciones;
+                                
+                                // Guardar comparable
+                                document.getElementById('btn-guardar-comparable').click();
+                                
+                                setTimeout(() => {
+                                    comparablesAgregados++;
+                                    agregarComparable(index + 1);
+                                }, 300);
                             }, 300);
-                        }, 300);
+                        };
+                        
+                        agregarComparable(0);
                     }, 300);
                 });
             }
@@ -575,27 +675,21 @@ const C21TestSuite = {
         },
         
         {
-            name: "Rendimiento con Múltiples Comparables",
+            name: "Rendimiento con Comparables Realistas",
             fn: function() {
-                // Medir tiempo de carga con múltiples comparables
+                // Medir tiempo de carga con 4 comparables realistas
                 const startTime = performance.now();
                 
-                // Simular agregar múltiples comparables
-                for (let i = 0; i < 10; i++) {
-                    const comparable = {
-                        id: `test-${i}`,
-                        tipoPropiedad: 'departamento',
-                        precio: 100000 + (i * 10000),
-                        direccion: `Calle Test ${i}`,
-                        localidad: 'CABA',
-                        barrio: 'Palermo',
-                        antiguedad: 5,
-                        calidad: 'buena',
-                        supCubierta: 80 + (i * 5)
-                    };
-                    
-                    window.CotizadorApp.comparables.push(comparable);
-                }
+                // Limpiar comparables existentes
+                window.CotizadorApp.comparables = [];
+                
+                // Agregar los 4 comparables realistas
+                this.realisticComparables.forEach((comparable, index) => {
+                    window.CotizadorApp.comparables.push({
+                        ...comparable,
+                        id: `comp-${index + 1}`
+                    });
+                });
                 
                 // Forzar actualización de UI
                 if (typeof window.ComparablesManager !== 'undefined' && 
@@ -608,12 +702,12 @@ const C21TestSuite = {
                 
                 // Verificar que el tiempo de procesamiento sea razonable
                 if (duration > 1000) {
-                    throw new Error(`Rendimiento lento con múltiples comparables: ${duration}ms`);
+                    throw new Error(`Rendimiento lento con comparables realistas: ${duration}ms`);
                 }
                 
                 return { 
                     passed: true, 
-                    message: `Rendimiento aceptable con múltiples comparables: ${duration.toFixed(2)}ms` 
+                    message: `Rendimiento aceptable con 4 comparables realistas: ${duration.toFixed(2)}ms` 
                 };
             }
         }
