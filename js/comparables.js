@@ -221,12 +221,15 @@ class ComparablesManager {
     }
 
     deleteComparable(comparableId) {
-        // NUEVA REGLA: Permitir eliminar siempre, pero verificar si quedan menos de 4 después de eliminar
+        // REGLA ESTRICTA: Siempre mostrar advertencia y bloquear si quedan menos de 4
         const remainingComparables = window.tasacionApp.comparables.filter(c => c.id !== comparableId);
         
         if (remainingComparables.length < 4) {
-            const confirmMessage = `¿Está seguro de que desea eliminar este comparable? Quedarán ${remainingComparables.length} comparables y deberá agregar más para continuar con la tasación.`;
-            if (!confirm(confirmMessage)) {
+            // Mostrar alerta más fuerte
+            alert(`¡ADVERTENCIA! Si elimina este comparable quedarán solo ${remainingComparables.length} comparables. Los pasos 3, 4 y 5 se bloquearán hasta que agregue otro comparable. ¿Desea continuar?`);
+            
+            // Preguntar nuevamente para confirmar
+            if (!confirm(`¿Está ABSOLUTAMENTE seguro de eliminar este comparable? Quedarán ${remainingComparables.length} comparables y deberá agregar más para continuar.`)) {
                 return; // El usuario canceló la eliminación
             }
         } else {
@@ -241,11 +244,15 @@ class ComparablesManager {
         // Actualizar UI
         this.updateComparablesUI();
         
-        // NUEVA REGLA: Si hay menos de 4 comparables, deshabilitar los pasos 3, 4 y 5
+        // REGLA ESTRICTA: Si hay menos de 4 comparables, deshabilitar los pasos 3, 4 y 5
         this.updateStepAvailability();
         
-        // Mostrar notificación
-        window.tasacionApp.showNotification('Comparable eliminado correctamente', 'success');
+        // Mostrar notificación de advertencia
+        if (remainingComparables.length < 4) {
+            window.tasacionApp.showNotification(`Comparable eliminado. Quedan ${remainingComparables.length} comparables. Los pasos siguientes están bloqueados hasta tener 4 comparables.`, 'error');
+        } else {
+            window.tasacionApp.showNotification('Comparable eliminado correctamente', 'success');
+        }
     }
 
     updateComparablesUI() {
