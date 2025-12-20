@@ -1,6 +1,6 @@
 /**
  * Gestor de Comparables para Cotizador Inmobiliario Century 21
- * Versión: 2.0
+ * Versión: 2.1
  * Descripción: Módulo para gestionar los comparables de mercado
  */
 
@@ -190,12 +190,22 @@ window.ComparablesManager = {
         
         for (const fieldId of requiredFields) {
             const field = document.getElementById(fieldId);
-            if (!field || !field.value.trim()) {
+            if (!field) {
+                console.error(`Campo requerido no encontrado: #${fieldId}`);
                 isValid = false;
-                if (field) {
-                    field.classList.add('error');
-                }
-            } else if (field) {
+                continue;
+            }
+            
+            // Verificar si el campo tiene valor y si es un string, hacer trim
+            let fieldValue = field.value;
+            if (typeof fieldValue === 'string') {
+                fieldValue = fieldValue.trim();
+            }
+            
+            if (!fieldValue) {
+                isValid = false;
+                field.classList.add('error');
+            } else {
                 field.classList.remove('error');
             }
         }
@@ -210,26 +220,28 @@ window.ComparablesManager = {
         }
         
         // Validar que el precio sea mayor a cero
-        const precio = parseFloat(document.getElementById('comp-precio').value);
+        const precioField = document.getElementById('comp-precio');
+        const precio = parseFloat(precioField.value);
         if (isNaN(precio) || precio <= 0) {
             if (window.CotizadorApp && window.CotizadorApp.showNotification) {
                 window.CotizadorApp.showNotification('El precio debe ser mayor a cero', 'error');
             } else {
                 alert('El precio debe ser mayor a cero');
             }
-            document.getElementById('comp-precio').classList.add('error');
+            precioField.classList.add('error');
             return false;
         }
         
         // Validar que la superficie cubierta sea mayor a cero
-        const supCubierta = parseFloat(document.getElementById('comp-sup-cubierta').value);
+        const supCubiertaField = document.getElementById('comp-sup-cubierta');
+        const supCubierta = parseFloat(supCubiertaField.value);
         if (isNaN(supCubierta) || supCubierta <= 0) {
             if (window.CotizadorApp && window.CotizadorApp.showNotification) {
                 window.CotizadorApp.showNotification('La superficie cubierta debe ser mayor a cero', 'error');
             } else {
                 alert('La superficie cubierta debe ser mayor a cero');
             }
-            document.getElementById('comp-sup-cubierta').classList.add('error');
+            supCubiertaField.classList.add('error');
             return false;
         }
         
