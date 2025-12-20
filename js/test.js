@@ -1,6 +1,6 @@
 /**
  * Sistema de Tests Automatizados para Cotizador Inmobiliario Century 21
- * Versión: 2.2
+ * Versión: 2.3
  * Descripción: Suite de pruebas escalonadas para verificar el funcionamiento completo del sistema
  */
 
@@ -343,6 +343,19 @@ const C21TestSuite = {
         }
     },
     
+    // Función auxiliar para establecer valor de campo de forma segura
+    setFieldValue: function(fieldId, value) {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.value = value;
+            // Disparar evento change para notificar al sistema
+            const event = new Event('change', { bubbles: true });
+            field.dispatchEvent(event);
+        } else {
+            console.warn(`Campo no encontrado: #${fieldId}`);
+        }
+    },
+    
     // Suite de tests organizados por importancia
     tests: [
         // === NIVEL 1: Tests Críticos (Funcionalidad Básica) ===
@@ -578,14 +591,14 @@ const C21TestSuite = {
                     // Reiniciar al paso 1
                     window.CotizadorApp.goToStep(1);
                     
-                    // Completar formulario del paso 1
-                    document.getElementById('tipo-propiedad').value = 'departamento';
-                    document.getElementById('direccion').value = 'Av. Corrientes 1000';
-                    document.getElementById('localidad').value = 'CABA';
-                    document.getElementById('barrio').value = 'Palermo';
-                    document.getElementById('antiguedad').value = '4';
-                    document.getElementById('calidad').value = 'buena';
-                    document.getElementById('sup-cubierta').value = '70';
+                    // Completar formulario del paso 1 usando la función auxiliar
+                    this.setFieldValue('tipo-propiedad', 'departamento');
+                    this.setFieldValue('direccion', 'Av. Corrientes 1000');
+                    this.setFieldValue('localidad', 'CABA');
+                    this.setFieldValue('barrio', 'Palermo');
+                    this.setFieldValue('antiguedad', '4');
+                    this.setFieldValue('calidad', 'buena');
+                    this.setFieldValue('sup-cubierta', '70');
                     
                     // Avanzar al paso 2
                     document.getElementById('btn-siguiente-1').click();
@@ -611,26 +624,26 @@ const C21TestSuite = {
                             document.getElementById('btn-agregar-comparable').click();
                             
                             setTimeout(() => {
-                                // Completar formulario con datos realistas
+                                // Completar formulario con datos realistas usando la función auxiliar
                                 const comparable = this.realisticComparables[index];
                                 
-                                document.getElementById('comp-tipo-propiedad').value = comparable.tipoPropiedad;
-                                document.getElementById('comp-precio').value = comparable.precio;
-                                document.getElementById('comp-direccion').value = comparable.direccion;
-                                document.getElementById('comp-numero').value = comparable.numero;
-                                document.getElementById('comp-piso').value = comparable.piso;
-                                document.getElementById('comp-depto').value = comparable.depto;
-                                document.getElementById('comp-localidad').value = comparable.localidad;
-                                document.getElementById('comp-barrio').value = comparable.barrio;
-                                document.getElementById('comp-antiguedad').value = comparable.antiguedad;
-                                document.getElementById('comp-calidad').value = comparable.calidad;
-                                document.getElementById('comp-sup-cubierta').value = comparable.supCubierta;
-                                document.getElementById('comp-sup-terreno').value = comparable.supTerreno;
-                                document.getElementById('comp-sup-semicubierta').value = comparable.supSemicubierta;
-                                document.getElementById('comp-sup-descubierta').value = comparable.supDescubierta;
-                                document.getElementById('comp-sup-balcon').value = comparable.supBalcon;
-                                document.getElementById('comp-cochera').value = comparable.cochera;
-                                document.getElementById('comp-observaciones').value = comparable.observaciones;
+                                this.setFieldValue('comp-tipo-propiedad', comparable.tipoPropiedad);
+                                this.setFieldValue('comp-precio', comparable.precio.toString());
+                                this.setFieldValue('comp-direccion', comparable.direccion);
+                                this.setFieldValue('comp-numero', comparable.numero);
+                                this.setFieldValue('comp-piso', comparable.piso);
+                                this.setFieldValue('comp-depto', comparable.depto);
+                                this.setFieldValue('comp-localidad', comparable.localidad);
+                                this.setFieldValue('comp-barrio', comparable.barrio);
+                                this.setFieldValue('comp-antiguedad', comparable.antiguedad.toString());
+                                this.setFieldValue('comp-calidad', comparable.calidad);
+                                this.setFieldValue('comp-sup-cubierta', comparable.supCubierta.toString());
+                                this.setFieldValue('comp-sup-terreno', comparable.supTerreno.toString());
+                                this.setFieldValue('comp-sup-semicubierta', comparable.supSemicubierta.toString());
+                                this.setFieldValue('comp-sup-descubierta', comparable.supDescubierta.toString());
+                                this.setFieldValue('comp-sup-balcon', comparable.supBalcon.toString());
+                                this.setFieldValue('comp-cochera', comparable.cochera);
+                                this.setFieldValue('comp-observaciones', comparable.observaciones);
                                 
                                 // Guardar comparable
                                 document.getElementById('btn-guardar-comparable').click();
@@ -638,12 +651,12 @@ const C21TestSuite = {
                                 setTimeout(() => {
                                     comparablesAgregados++;
                                     agregarComparable(index + 1);
-                                }, 300);
-                            }, 300);
+                                }, 400);
+                            }, 400);
                         };
                         
                         agregarComparable(0);
-                    }, 300);
+                    }, 400);
                 });
             }
         },
