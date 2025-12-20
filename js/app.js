@@ -1,6 +1,6 @@
 /**
  * Aplicación Principal del Cotizador Inmobiliario Century 21
- * Versión: 2.0
+ * Versión: 2.1
  * Descripción: Controlador principal de la aplicación
  */
 
@@ -134,6 +134,7 @@ window.CotizadorApp = {
                 break;
         }
         
+        // Solo avanzar si la validación es exitosa
         if (isValid) {
             this.goToStep(step + 1);
         }
@@ -474,7 +475,10 @@ window.CotizadorApp = {
             };
             
             // Resetear formulario
-            document.getElementById('form-inmueble').reset();
+            const form = document.getElementById('form-inmueble');
+            if (form) {
+                form.reset();
+            }
             
             // Volver al primer paso
             this.goToStep(1);
