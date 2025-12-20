@@ -119,6 +119,12 @@ header .tagline {
     color: var(--c21-white);
 }
 
+.progress-step.disabled {
+    opacity: 0.5 !important;
+    pointer-events: none !important;
+    cursor: not-allowed !important;
+}
+
 .progress-step .step-number {
     font-size: 1.2rem;
     font-weight: 700;
@@ -299,6 +305,7 @@ button:disabled {
     flex: 1 1 300px;
     min-width: 300px;
     box-sizing: border-box;
+    position: relative;
 }
 
 .comparable-card:hover {
@@ -376,6 +383,73 @@ button:disabled {
     font-size: 3rem;
     margin-bottom: 1rem;
     color: var(--c21-medium-gray);
+}
+
+/* ========================================
+   ESTILOS ADICIONALES PARA COMPARABLES
+   ======================================== */
+
+/* Indicador de advertencia para comparables insuficientes */
+.comparable-warning {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: var(--error-color);
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.7rem;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* Mensaje de advertencia en el paso 2 */
+.comparables-warning-message {
+    background-color: rgba(220, 53, 69, 0.1);
+    border: 1px solid var(--error-color);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    color: var(--error-color);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.comparables-warning-message i {
+    font-size: 1.2rem;
+}
+
+/* Contador de comparables */
+.comparables-counter {
+    background-color: var(--c21-light-gray);
+    border-radius: var(--border-radius);
+    padding: 0.5rem 1rem;
+    margin-bottom: 1rem;
+    text-align: center;
+    font-weight: 600;
+}
+
+.comparables-counter.enough {
+    background-color: rgba(40, 167, 69, 0.1);
+    color: var(--success-color);
+    border: 1px solid var(--success-color);
+}
+
+.comparables-counter.not-enough {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: var(--error-color);
+    border: 1px solid var(--error-color);
 }
 
 /* ========================================
