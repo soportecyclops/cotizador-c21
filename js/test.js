@@ -28,7 +28,9 @@ const C21TestSuite = {
     elements: {
         testButton: null,
         testResults: null,
-        testOutput: null
+        testOutput: null,
+        progressBar: null,
+        testSummary: null
     },
     
     // Inicialización del sistema de tests
@@ -37,6 +39,8 @@ const C21TestSuite = {
         this.elements.testButton = document.getElementById('btn-run-tests');
         this.elements.testResults = document.getElementById('test-results');
         this.elements.testOutput = document.getElementById('test-output');
+        this.elements.progressBar = document.getElementById('test-progress-bar');
+        this.elements.testSummary = document.getElementById('test-summary');
         
         // Configurar evento click para el botón de tests
         if (this.elements.testButton) {
@@ -69,6 +73,7 @@ const C21TestSuite = {
         // Ejecutar primer test
         this.log('Iniciando suite de tests automatizados para C21 Cotizador');
         this.log(`Total de tests: ${this.state.totalTests}`);
+        this.updateProgress();
         this.runNextTest();
     },
     
@@ -91,10 +96,14 @@ const C21TestSuite = {
                 }, this.config.testTimeout);
                 
                 // Ejecutar test
-                const result = test.fn.call(this);
-                
-                clearTimeout(timeoutId);
-                resolve(result);
+                try {
+                    const result = test.fn.call(this);
+                    clearTimeout(timeoutId);
+                    resolve(result);
+                } catch (error) {
+                    clearTimeout(timeoutId);
+                    reject(error);
+                }
             });
             
             // Procesar resultado
@@ -106,6 +115,9 @@ const C21TestSuite = {
                         this.failTest(test, result);
                     }
                     
+                    // Actualizar progreso
+                    this.updateProgress();
+                    
                     // Avanzar al siguiente test
                     setTimeout(() => {
                         this.state.currentTest++;
@@ -115,6 +127,9 @@ const C21TestSuite = {
                 .catch(error => {
                     this.failTest(test, error);
                     
+                    // Actualizar progreso
+                    this.updateProgress();
+                    
                     // Avanzar al siguiente test
                     setTimeout(() => {
                         this.state.currentTest++;
@@ -123,6 +138,9 @@ const C21TestSuite = {
                 });
         } catch (error) {
             this.failTest(test, error);
+            
+            // Actualizar progreso
+            this.updateProgress();
             
             // Avanzar al siguiente test
             setTimeout(() => {
@@ -174,9 +192,27 @@ const C21TestSuite = {
         this.log(`Tests fallidos: ${this.state.failed}`);
         this.log(`Tasa de éxito: ${((this.state.passed / this.state.totalTests) * 100).toFixed(2)}%`);
         
+        // Actualizar resumen
+        if (this.elements.testSummary) {
+            this.elements.testSummary.innerHTML = `
+                <div>Tests ejecutados: ${this.state.totalTests}</div>
+                <div>Tests pasados: <span style="color: green;">${this.state.passed}</span></div>
+                <div>Tests fallidos: <span style="color: red;">${this.state.failed}</span></div>
+                <div>Tasa de éxito: <span style="color: ${this.state.failed === 0 ? 'green' : 'orange'};">${((this.state.passed / this.state.totalTests) * 100).toFixed(2)}%</span></div>
+            `;
+        }
+        
         // Actualizar botón
         if (this.elements.testButton) {
             this.elements.testButton.innerHTML = '<i class="fas fa-redo"></i> Reejecutar Tests';
+        }
+    },
+    
+    // Actualizar barra de progreso
+    updateProgress: function() {
+        if (this.elements.progressBar) {
+            const progress = ((this.state.currentTest + 1) / this.state.totalTests) * 100;
+            this.elements.progressBar.style.width = `${progress}%`;
         }
     },
     
@@ -185,6 +221,11 @@ const C21TestSuite = {
         if (this.elements.testResults) {
             this.elements.testResults.style.display = 'block';
             this.elements.testOutput.innerHTML = '';
+            this.elements.testSummary.innerHTML = '';
+            
+            if (this.elements.progressBar) {
+                this.elements.progressBar.style.width = '0%';
+            }
         }
     },
     
@@ -303,16 +344,17 @@ const C21TestSuite = {
                     throw new Error(`Botón siguiente no encontrado para el paso ${initialStep}`);
                 }
                 
+                // Intentar avanzar sin completar campos requeridos (debería fallar)
                 nextButton.click();
                 
-                // Verificar que el paso cambió
+                // Verificar que el paso no cambió (por validación)
                 setTimeout(() => {
-                    if (window.CotizadorApp.currentStep === initialStep) {
-                        throw new Error("La navegación hacia adelante no funcionó correctamente");
+                    if (window.CotizadorApp.currentStep !== initialStep) {
+                        throw new Error("La validación no impidió el avance con campos vacíos");
                     }
                 }, 100);
                 
-                return { passed: true, message: "Navegación hacia adelante funcionando correctamente" };
+                return { passed: true, message: "Navegación y validación funcionando correctamente" };
             }
         },
         
