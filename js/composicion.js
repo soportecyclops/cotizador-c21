@@ -1,88 +1,150 @@
-// Gestión de composición del valor
-class ComposicionManager {
-    constructor() {
-        // Los coeficientes son constantes y representan el peso de cada tipo de superficie
-        // en el valor final de la tasación.
-        this.coeficientes = {
-            cubierta: 1.0,      // 100% del valor por m²
-            semicubierta: 0.5,  // 50% del valor por m²
-            descubierta: 0.2,  // 20% del valor por m²
-            balcon: 0.33        // 33% del valor por m²
-        };
-        this.init();
-    }
+/**
+ * Gestor de Composición del Valor para Cotizador Inmobiliario Century 21
+ * Versión: 2.0
+ * Descripción: Módulo para gestionar la composición del valor de la tasación
+ */
 
-    init() {
-        // Este componente se inicializa principalmente desde la aplicación principal
-        // cuando se calcula la composición del valor en el paso 5.
-        // No requiere una inicialización compleja por sí mismo.
-    }
-
-    /**
-     * Calcula el valor total de la tasación basándose en los datos del inmueble
-     * y el valor de referencia por m².
-     * @returns {number} El valor total calculado.
-     */
-    calculateValorTotal() {
-        const inmuebleData = window.tasacionApp.inmuebleData;
-        const valorM2Referencia = window.tasacionApp.valorM2Referencia;
-
-        // Validar que los datos necesarios existan antes de calcular
-        if (!inmuebleData || !valorM2Referencia) {
-            console.error("Datos del inmueble o valor de referencia no disponibles para el cálculo.");
-            return 0;
+// Objeto global para el gestor de composición
+window.CompositionManager = {
+    // Coeficientes de superficie
+    surfaceCoefficients: {
+        cubierta: 1.0,
+        semicubierta: 0.5,
+        descubierta: 0.2,
+        balcon: 0.33
+    },
+    
+    // Inicialización del gestor
+    init: function() {
+        console.log('Inicializando CompositionManager...');
+        this.setupEventListeners();
+        console.log('CompositionManager inicializado correctamente');
+    },
+    
+    // Configurar event listeners
+    setupEventListeners: function() {
+        // No se necesitan listeners específicos para este módulo
+        // Los cálculos se realizan cuando se navega al paso 5
+    },
+    
+    // Calcular composición del valor
+    calculateComposition: function() {
+        if (!window.CotizadorApp) {
+            console.error('CotizadorApp no disponible');
+            return;
         }
-
-        let valorTotal = 0;
-
-        // Calcular el valor para cada tipo de superficie y sumarlo
-        if (inmuebleData.supCubierta) {
-            valorTotal += inmuebleData.supCubierta * this.coeficientes.cubierta * valorM2Referencia;
-        }
-        if (inmuebleData.supSemicubierta) {
-            valorTotal += inmuebleData.supSemicubierta * this.coeficientes.semicubierta * valorM2Referencia;
-        }
-        if (inmuebleData.supDescubierta) {
-            valorTotal += inmuebleData.supDescubierta * this.coeficientes.descubierta * valorM2Referencia;
-        }
-        if (inmuebleData.supBalcon) {
-            valorTotal += inmuebleData.supBalcon * this.coeficientes.balcon * valorM2Referencia;
-        }
-
-        // Valor estimado para cochera (puede ser un valor fijo o un porcentaje del total)
-        let valorCochera = 0;
-        if (inmuebleData.cochera === 'propia') {
-            valorCochera = 5000; // Valor fijo para cochera propia
-        } else if (inmuebleData.cochera === 'comun') {
-            valorCochera = 2000; // Valor fijo para cochera común
-        }
-        valorTotal += valorCochera;
-
+        
+        const propertyData = window.CotizadorApp.propertyData;
+        const valorM2 = window.CotizadorApp.compositionData.valorM2;
+        
+        // Calcular valores parciales
+        const valorCubierta = propertyData.supCubierta * valorM2;
+        const valorSemicubierta = propertyData.supSemicubierta * valorM2 * this.surfaceCoefficients.semicubierta;
+        const valorDescubierta = propertyData.supDescubierta * valorM2 * this.surfaceCoefficients.descubierta;
+        const valorBalcon = propertyData.supBalcon * valorM2 * this.surfaceCoefficients.balcon;
+        
+        // Valor de cochera (valor fijo)
+        const valorCochera = propertyData.cochera !== 'no' ? 15000 : 0;
+        
+        // Calcular total
+        const valorTotal = valorCubierta + valorSemicubierta + valorDescubierta + valorBalcon + valorCochera;
+        
+        // Actualizar UI
+        this.updateCompositionUI({
+            valorCubierta,
+            valorSemicubierta,
+            valorDescubierta,
+            valorBalcon,
+            valorCochera,
+            valorTotal,
+            valorM2
+        });
+        
+        // Guardar en datos de composición
+        window.CotizadorApp.compositionData.valorTotal = valorTotal;
+        
         return valorTotal;
+    },
+    
+    // Actualizar UI de composición
+    updateCompositionUI: function(data) {
+        if (!window.CotizadorApp) {
+            console.error('CotizadorApp no disponible');
+            return;
+        }
+        
+        const propertyData = window.CotizadorApp.propertyData;
+        
+        // Actualizar superficies
+        document.getElementById('comp-sup-cubierta').textContent = propertyData.supCubierta.toFixed(2);
+        document.getElementById('comp-sup-semicubierta').textContent = propertyData.supSemicubierta.toFixed(2);
+        document.getElementById('comp-sup-descubierta').textContent = propertyData.supDescubierta.toFixed(2);
+        document.getElementById('comp-sup-balcon').textContent = propertyData.supBalcon.toFixed(2);
+        document.getElementById('comp-sup-cochera').textContent = propertyData.cochera !== 'no' ? 'Sí' : 'No';
+        
+        // Actualizar valores por m2
+        document.getElementById('comp-valor-m2').textContent = `USD ${data.valorM2.toFixed(2).replace('.', ',')}`;
+        document.getElementById('comp-valor-m2-semi').textContent = `USD ${(data.valorM2 * this.surfaceCoefficients.semicubierta).toFixed(2).replace('.', ',')}`;
+        document.getElementById('comp-valor-m2-desc').textContent = `USD ${(data.valorM2 * this.surfaceCoefficients.descubierta).toFixed(2).replace('.', ',')}`;
+        document.getElementById('comp-valor-m2-balc').textContent = `USD ${(data.valorM2 * this.surfaceCoefficients.balcon).toFixed(2).replace('.', ',')}`;
+        document.getElementById('comp-valor-m2-cochera').textContent = `USD ${data.valorCochera.toFixed(2).replace('.', ',')}`;
+        
+        // Actualizar valores parciales
+        document.getElementById('comp-valor-cubierta').textContent = `USD ${data.valorCubierta.toFixed(2).replace('.', ',')}`;
+        document.getElementById('comp-valor-semicubierta').textContent = `USD ${data.valorSemicubierta.toFixed(2).replace('.', ',')}`;
+        document.getElementById('comp-valor-descubierta').textContent = `USD ${data.valorDescubierta.toFixed(2).replace('.', ',')}`;
+        document.getElementById('comp-valor-balcon').textContent = `USD ${data.valorBalcon.toFixed(2).replace('.', ',')}`;
+        document.getElementById('comp-valor-cochera').textContent = `USD ${data.valorCochera.toFixed(2).replace('.', ',')}`;
+        
+        // Actualizar valor total
+        const totalElement = document.getElementById('valor-total-tasacion');
+        totalElement.textContent = `USD ${data.valorTotal.toFixed(2).replace('.', ',')}`;
+        totalElement.setAttribute('data-raw-value', data.valorTotal.toString());
+    },
+    
+    // Generar informe de composición
+    generateCompositionReport: function() {
+        if (!window.CotizadorApp) {
+            console.error('CotizadorApp no disponible');
+            return null;
+        }
+        
+        const propertyData = window.CotizadorApp.propertyData;
+        const compositionData = window.CotizadorApp.compositionData;
+        
+        return {
+            propiedad: {
+                tipo: propertyData.tipoPropiedad,
+                direccion: propertyData.direccion,
+                localidad: propertyData.localidad,
+                barrio: propertyData.barrio
+            },
+            superficies: {
+                cubierta: propertyData.supCubierta,
+                semicubierta: propertyData.supSemicubierta,
+                descubierta: propertyData.supDescubierta,
+                balcon: propertyData.supBalcon
+            },
+            coeficientes: this.surfaceCoefficients,
+            valorM2: compositionData.valorM2,
+            valorTotal: compositionData.valorTotal,
+            desglose: {
+                valorCubierta: propertyData.supCubierta * compositionData.valorM2,
+                valorSemicubierta: propertyData.supSemicubierta * compositionData.valorM2 * this.surfaceCoefficients.semicubierta,
+                valorDescubierta: propertyData.supDescubierta * compositionData.valorM2 * this.surfaceCoefficients.descubierta,
+                valorBalcon: propertyData.supBalcon * compositionData.valorM2 * this.surfaceCoefficients.balcon,
+                valorCochera: propertyData.cochera !== 'no' ? 15000 : 0
+            }
+        };
     }
+};
 
-    /**
-     * Genera un gráfico de composición del valor (placeholder).
-     * En una versión futura, se podría usar una librería como Chart.js
-     * para visualizar los datos de forma más atractiva.
-     */
-    generateCompositionChart() {
-        // Placeholder para una futura implementación de gráficos.
-        console.log("Generando gráfico de composición del valor...");
-    }
-
-    /**
-     * Resetea el estado del gestor de composición.
-     * Actualmente no mantiene estado interno, pero el método se añade
-     * por consistencia con el patrón de otros managers.
-     */
-    reset() {
-        // No hay estado interno que limpiar, pero el método es necesario para el flujo de reset general.
-        console.log("ComposicionManager reseteado.");
-    }
-}
-
-// Inicializar el gestor de composición
-document.addEventListener('DOMContentLoaded', () => {
-    window.composicionManager = new ComposicionManager();
+// Inicializar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    // Esperar a que se inicialice CotizadorApp
+    setTimeout(() => {
+        if (window.CompositionManager) {
+            window.CompositionManager.init();
+        }
+    }, 500);
 });
