@@ -226,7 +226,8 @@ header .tagline {
    BOTONES
    ======================================== */
 .btn-primary,
-.btn-secondary {
+.btn-secondary,
+.btn-test {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -264,6 +265,19 @@ header .tagline {
 .btn-secondary:hover {
     background-color: var(--c21-gold);
     color: var(--c21-black);
+}
+
+/* ESTILO PARA EL BOTÓN DE TESTS */
+.btn-test {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+}
+
+.btn-test:hover {
+    background-color: #5a6268;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(108, 117, 125, 0.3);
 }
 
 button:disabled {
