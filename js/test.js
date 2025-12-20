@@ -1,6 +1,6 @@
 /**
  * Sistema de Tests Automatizados para Cotizador Inmobiliario Century 21
- * Versión: 2.0
+ * Versión: 2.1
  * Descripción: Suite de pruebas escalonadas para verificar el funcionamiento completo del sistema
  */
 
@@ -335,56 +335,74 @@ const C21TestSuite = {
         {
             name: "Navegación entre Pasos",
             fn: function() {
-                // Verificar navegación hacia adelante
-                const initialStep = window.CotizadorApp.currentStep;
-                
-                // Simular clic en botón siguiente
-                const nextButton = document.getElementById(`btn-siguiente-${initialStep}`);
-                if (!nextButton) {
-                    throw new Error(`Botón siguiente no encontrado para el paso ${initialStep}`);
-                }
-                
-                // Intentar avanzar sin completar campos requeridos (debería fallar)
-                nextButton.click();
-                
-                // Verificar que el paso no cambió (por validación)
-                setTimeout(() => {
-                    if (window.CotizadorApp.currentStep !== initialStep) {
-                        throw new Error("La validación no impidió el avance con campos vacíos");
+                return new Promise((resolve, reject) => {
+                    // Asegurarnos de estar en el paso 1
+                    window.CotizadorApp.goToStep(1);
+                    
+                    // Limpiar campos requeridos para forzar validación
+                    const requiredFields = document.querySelectorAll('#step-1 [required]');
+                    for (const field of requiredFields) {
+                        if (field.type === 'text' || field.type === 'number') {
+                            field.value = '';
+                        } else if (field.tagName === 'SELECT') {
+                            field.selectedIndex = 0;
+                        }
                     }
-                }, 100);
-                
-                return { passed: true, message: "Navegación y validación funcionando correctamente" };
+                    
+                    const initialStep = window.CotizadorApp.currentStep;
+                    
+                    // Simular clic en botón siguiente
+                    const nextButton = document.getElementById(`btn-siguiente-${initialStep}`);
+                    if (!nextButton) {
+                        reject(new Error(`Botón siguiente no encontrado para el paso ${initialStep}`));
+                        return;
+                    }
+                    
+                    // Intentar avanzar sin completar campos requeridos
+                    nextButton.click();
+                    
+                    // Verificar que el paso no cambió (por validación)
+                    setTimeout(() => {
+                        if (window.CotizadorApp.currentStep !== initialStep) {
+                            reject(new Error("La validación no impidió el avance con campos vacíos"));
+                        } else {
+                            resolve({ passed: true, message: "Navegación y validación funcionando correctamente" });
+                        }
+                    }, 200);
+                });
             }
         },
         
         {
             name: "Validación de Formularios",
             fn: function() {
-                // Intentar avanzar sin completar campos requeridos
-                const requiredFields = document.querySelectorAll('#step-1 [required]');
-                
-                // Limpiar campos requeridos
-                for (const field of requiredFields) {
-                    if (field.type === 'text' || field.type === 'number') {
-                        field.value = '';
-                    } else if (field.tagName === 'SELECT') {
-                        field.selectedIndex = 0;
+                return new Promise((resolve, reject) => {
+                    // Asegurarnos de estar en el paso 1
+                    window.CotizadorApp.goToStep(1);
+                    
+                    // Limpiar campos requeridos
+                    const requiredFields = document.querySelectorAll('#step-1 [required]');
+                    for (const field of requiredFields) {
+                        if (field.type === 'text' || field.type === 'number') {
+                            field.value = '';
+                        } else if (field.tagName === 'SELECT') {
+                            field.selectedIndex = 0;
+                        }
                     }
-                }
-                
-                // Intentar avanzar
-                const nextButton = document.getElementById('btn-siguiente-1');
-                nextButton.click();
-                
-                // Verificar que no avanzó
-                setTimeout(() => {
-                    if (window.CotizadorApp.currentStep !== 1) {
-                        throw new Error("La validación de formulario no impidió el avance con campos vacíos");
-                    }
-                }, 100);
-                
-                return { passed: true, message: "Validación de formularios funcionando correctamente" };
+                    
+                    // Intentar avanzar
+                    const nextButton = document.getElementById('btn-siguiente-1');
+                    nextButton.click();
+                    
+                    // Verificar que no avanzó
+                    setTimeout(() => {
+                        if (window.CotizadorApp.currentStep !== 1) {
+                            reject(new Error("La validación de formulario no impidió el avance con campos vacíos"));
+                        } else {
+                            resolve({ passed: true, message: "Validación de formularios funcionando correctamente" });
+                        }
+                    }, 200);
+                });
             }
         },
         
@@ -392,27 +410,32 @@ const C21TestSuite = {
         {
             name: "Gestión de Comparables",
             fn: function() {
-                // Navegar al paso de comparables
-                window.CotizadorApp.goToStep(2);
-                
-                // Verificar botón de agregar comparable
-                const addBtn = document.getElementById('btn-agregar-comparable');
-                if (!addBtn) {
-                    throw new Error("Botón de agregar comparable no encontrado");
-                }
-                
-                // Simular clic para abrir modal
-                addBtn.click();
-                
-                // Verificar que el modal se abrió
-                setTimeout(() => {
-                    const modal = document.getElementById('modal-comparable');
-                    if (!modal || modal.style.display === 'none') {
-                        throw new Error("Modal de comparable no se abrió correctamente");
+                return new Promise((resolve, reject) => {
+                    // Navegar al paso de comparables
+                    window.CotizadorApp.goToStep(2);
+                    
+                    // Verificar botón de agregar comparable
+                    const addBtn = document.getElementById('btn-agregar-comparable');
+                    if (!addBtn) {
+                        reject(new Error("Botón de agregar comparable no encontrado"));
+                        return;
                     }
-                }, 100);
-                
-                return { passed: true, message: "Gestión de comparables funcionando correctamente" };
+                    
+                    // Simular clic para abrir modal
+                    addBtn.click();
+                    
+                    // Verificar que el modal se abrió
+                    setTimeout(() => {
+                        const modal = document.getElementById('modal-comparable');
+                        if (!modal || modal.style.display === 'none') {
+                            reject(new Error("Modal de comparable no se abrió correctamente"));
+                        } else {
+                            // Cerrar modal
+                            modal.style.display = 'none';
+                            resolve({ passed: true, message: "Gestión de comparables funcionando correctamente" });
+                        }
+                    }, 200);
+                });
             }
         },
         
@@ -471,59 +494,57 @@ const C21TestSuite = {
         {
             name: "Flujo Completo de Cotización",
             fn: function() {
-                // Reiniciar al paso 1
-                window.CotizadorApp.goToStep(1);
-                
-                // Completar formulario del paso 1
-                document.getElementById('tipo-propiedad').value = 'departamento';
-                document.getElementById('direccion').value = 'Calle de Prueba 123';
-                document.getElementById('localidad').value = 'CABA';
-                document.getElementById('barrio').value = 'Palermo';
-                document.getElementById('antiguedad').value = '5';
-                document.getElementById('calidad').value = 'buena';
-                document.getElementById('sup-cubierta').value = '80';
-                
-                // Avanzar al paso 2
-                document.getElementById('btn-siguiente-1').click();
-                
-                // Esperar a que cargue el paso 2
-                setTimeout(() => {
-                    if (window.CotizadorApp.currentStep !== 2) {
-                        throw new Error("No se pudo avanzar al paso 2 después de completar el formulario");
-                    }
+                return new Promise((resolve, reject) => {
+                    // Reiniciar al paso 1
+                    window.CotizadorApp.goToStep(1);
                     
-                    // Agregar un comparable de prueba
-                    document.getElementById('btn-agregar-comparable').click();
+                    // Completar formulario del paso 1
+                    document.getElementById('tipo-propiedad').value = 'departamento';
+                    document.getElementById('direccion').value = 'Calle de Prueba 123';
+                    document.getElementById('localidad').value = 'CABA';
+                    document.getElementById('barrio').value = 'Palermo';
+                    document.getElementById('antiguedad').value = '5';
+                    document.getElementById('calidad').value = 'buena';
+                    document.getElementById('sup-cubierta').value = '80';
                     
+                    // Avanzar al paso 2
+                    document.getElementById('btn-siguiente-1').click();
+                    
+                    // Esperar a que cargue el paso 2
                     setTimeout(() => {
-                        // Completar formulario de comparable
-                        document.getElementById('comp-tipo-propiedad').value = 'departamento';
-                        document.getElementById('comp-precio').value = '100000';
-                        document.getElementById('comp-direccion').value = 'Calle Comparable 456';
-                        document.getElementById('comp-localidad').value = 'CABA';
-                        document.getElementById('comp-barrio').value = 'Palermo';
-                        document.getElementById('comp-antiguedad').value = '3';
-                        document.getElementById('comp-calidad').value = 'buena';
-                        document.getElementById('comp-sup-cubierta').value = '75';
+                        if (window.CotizadorApp.currentStep !== 2) {
+                            reject(new Error("No se pudo avanzar al paso 2 después de completar el formulario"));
+                            return;
+                        }
                         
-                        // Guardar comparable
-                        document.getElementById('btn-guardar-comparable').click();
+                        // Agregar un comparable de prueba
+                        document.getElementById('btn-agregar-comparable').click();
                         
                         setTimeout(() => {
-                            // Verificar que se agregó el comparable
-                            if (window.CotizadorApp.comparables.length === 0) {
-                                throw new Error("No se pudo agregar el comparable");
-                            }
+                            // Completar formulario de comparable
+                            document.getElementById('comp-tipo-propiedad').value = 'departamento';
+                            document.getElementById('comp-precio').value = '100000';
+                            document.getElementById('comp-direccion').value = 'Calle Comparable 456';
+                            document.getElementById('comp-localidad').value = 'CABA';
+                            document.getElementById('comp-barrio').value = 'Palermo';
+                            document.getElementById('comp-antiguedad').value = '3';
+                            document.getElementById('comp-calidad').value = 'buena';
+                            document.getElementById('comp-sup-cubierta').value = '75';
                             
-                            // Continuar con el flujo...
-                            // (Para fines del test, verificamos hasta aquí)
+                            // Guardar comparable
+                            document.getElementById('btn-guardar-comparable').click();
                             
-                            return { passed: true, message: "Flujo completo de cotización funcionando correctamente" };
-                        }, 500);
-                    }, 500);
-                }, 500);
-                
-                return true; // Devolvemos true ya que las verificaciones asíncronas se harán en los callbacks
+                            setTimeout(() => {
+                                // Verificar que se agregó el comparable
+                                if (window.CotizadorApp.comparables.length === 0) {
+                                    reject(new Error("No se pudo agregar el comparable"));
+                                } else {
+                                    resolve({ passed: true, message: "Flujo completo de cotización funcionando correctamente" });
+                                }
+                            }, 300);
+                        }, 300);
+                    }, 300);
+                });
             }
         },
         
@@ -546,9 +567,6 @@ const C21TestSuite = {
                         // Disparar evento change para verificar manejo
                         const event = new Event('change', { bubbles: true });
                         element.dispatchEvent(event);
-                        
-                        // Verificar que no hay errores en consola
-                        // (Esta verificación es limitada en un entorno real)
                     }
                 }
                 
