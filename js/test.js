@@ -115,7 +115,7 @@ class TestSuite {
 
         const allPassed = this.failed === 0;
         resultsContainer.innerHTML = `
-            <h3 style="margin-top: 0; color: ${allPassed ? '#2ecc71' : '#e74c3c';}">
+            <h3 style="margin-top: 0; color: ${allPassed ? '#2ecc71' : '#e74c3c'};">
                 ${allPassed ? '✅ Todos los tests pasaron' : '❌ Algunos tests fallaron'}
             </h3>
             <p><strong>Pasados:</strong> ${this.passed}</p>
@@ -610,43 +610,36 @@ function addTestButton() {
         return;
     }
     
-    // Intentar encontrar el contenedor del botón
+    // Intentar encontrar el contenedor del botón en el paso 1
     let step1Actions = document.querySelector('#step-1 .form-actions');
     
-    // Si no se encuentra, intentar con selectores alternativos
+    // Si no se encuentra, crear un contenedor específico para el botón de tests
     if (!step1Actions) {
-        console.log("No se encontró #step-1 .form-actions, intentando alternativas...");
-        
-        // Intentar encontrar cualquier contenedor de botones en el paso 1
-        step1Actions = document.querySelector('#step-1 button').parentElement;
-        
-        // Si aún no se encuentra, crear un contenedor
-        if (!step1Actions) {
-            console.log("No se encontró ningún contenedor, creando uno nuevo...");
-            const step1 = document.getElementById('step-1');
-            if (step1) {
+        console.log("No se encontró .form-actions en el paso 1, creando contenedor específico...");
+        const step1 = document.getElementById('step-1');
+        if (step1) {
+            // Buscar el último elemento form-container en el paso 1
+            const formContainer = step1.querySelector('.form-container');
+            if (formContainer) {
                 step1Actions = document.createElement('div');
-                step1Actions.className = 'form-actions';
-                step1.appendChild(step1Actions);
+                step1Actions.className = 'form-actions test-actions';
+                step1Actions.style.marginTop = '20px';
+                formContainer.appendChild(step1Actions);
             } else {
-                console.error("No se encontró el paso 1 en el DOM");
+                console.error("No se encontró el form-container en el paso 1");
                 return;
             }
+        } else {
+            console.error("No se encontró el paso 1 en el DOM");
+            return;
         }
     }
     
     // Crear el botón
     const testButton = document.createElement('button');
     testButton.id = 'btn-run-tests';
-    testButton.className = 'btn-secondary';
+    testButton.className = 'btn-test';
     testButton.innerHTML = '<i class="fas fa-flask"></i> Ejecutar Tests';
-    testButton.style.marginLeft = '10px';
-    testButton.style.backgroundColor = '#6c757d';
-    testButton.style.color = 'white';
-    testButton.style.border = 'none';
-    testButton.style.padding = '8px 15px';
-    testButton.style.borderRadius = '4px';
-    testButton.style.cursor = 'pointer';
     
     // Agregar el evento click
     testButton.addEventListener('click', async () => {
