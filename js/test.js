@@ -610,36 +610,29 @@ function addTestButton() {
         return;
     }
     
-    // Intentar encontrar el contenedor del botón en el paso 1
-    let step1Actions = document.querySelector('#step-1 .form-actions');
-    
-    // Si no se encuentra, crear un contenedor específico para el botón de tests
-    if (!step1Actions) {
-        console.log("No se encontró .form-actions en el paso 1, creando contenedor específico...");
-        const step1 = document.getElementById('step-1');
-        if (step1) {
-            // Buscar el último elemento form-container en el paso 1
-            const formContainer = step1.querySelector('.form-container');
-            if (formContainer) {
-                step1Actions = document.createElement('div');
-                step1Actions.className = 'form-actions test-actions';
-                step1Actions.style.marginTop = '20px';
-                formContainer.appendChild(step1Actions);
-            } else {
-                console.error("No se encontró el form-container en el paso 1");
-                return;
-            }
-        } else {
-            console.error("No se encontró el paso 1 en el DOM");
-            return;
-        }
+    // Crear un contenedor específico para el botón de tests en el paso 1
+    const step1 = document.getElementById('step-1');
+    if (!step1) {
+        console.error("No se encontró el paso 1 en el DOM");
+        return;
     }
+    
+    // Buscar el step-header en el paso 1
+    const stepHeader = step1.querySelector('.step-header');
+    if (!stepHeader) {
+        console.error("No se encontró el step-header en el paso 1");
+        return;
+    }
+    
+    // Crear un contenedor para el botón de tests
+    const testContainer = document.createElement('div');
+    testContainer.className = 'test-container';
     
     // Crear el botón
     const testButton = document.createElement('button');
     testButton.id = 'btn-run-tests';
     testButton.className = 'btn-test';
-    testButton.innerHTML = '<i class="fas fa-flask"></i> Ejecutar Tests';
+    testButton.innerHTML = '<i class="fas fa-flask"></i> Ejecutar Tests Automatizados';
     
     // Agregar el evento click
     testButton.addEventListener('click', async () => {
@@ -651,12 +644,15 @@ function addTestButton() {
             console.error("Error durante la ejecución de tests:", e);
         } finally {
             testButton.disabled = false;
-            testButton.innerHTML = '<i class="fas fa-flask"></i> Ejecutar Tests';
+            testButton.innerHTML = '<i class="fas fa-flask"></i> Ejecutar Tests Automatizados';
         }
     });
     
     // Agregar el botón al contenedor
-    step1Actions.appendChild(testButton);
+    testContainer.appendChild(testButton);
+    
+    // Insertar el contenedor después del step-header
+    stepHeader.parentNode.insertBefore(testContainer, stepHeader.nextSibling);
     
     console.log("Botón de tests agregado correctamente.");
 }
