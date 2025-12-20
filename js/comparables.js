@@ -161,9 +161,15 @@ class ComparablesManager {
                 const factoresExistentes = window.tasacionApp.comparables[index].factores || {};
                 formData.factores = factoresExistentes;
                 
+                // Calcular superficie total para el valor por m²
+                const supTotal = formData.supCubierta + 
+                                (formData.supSemicubierta * 0.5) + 
+                                (formData.supDescubierta * 0.2) + 
+                                (formData.supBalcon * 0.33);
+                
                 // Calcular valores
                 const precioAjustado = formData.precio * (1 - window.tasacionApp.descuentoNegociacion / 100);
-                formData.valorM2 = precioAjustado / formData.supCubierta;
+                formData.valorM2 = precioAjustado / supTotal;
                 
                 const correccionTotal = Object.values(factoresExistentes).reduce((sum, val) => sum + val, 0);
                 formData.valorM2Ajustado = formData.valorM2 * (1 + correccionTotal / 100);
@@ -177,9 +183,15 @@ class ComparablesManager {
             // MODO AGREGACIÓN
             formData.factores = {}; // Inicialmente sin factores de ajuste
             
+            // Calcular superficie total para el valor por m²
+            const supTotal = formData.supCubierta + 
+                            (formData.supSemicubierta * 0.5) + 
+                            (formData.supDescubierta * 0.2) + 
+                            (formData.supBalcon * 0.33);
+            
             // Calcular valores
             const precioAjustado = formData.precio * (1 - window.tasacionApp.descuentoNegociacion / 100);
-            formData.valorM2 = precioAjustado / formData.supCubierta;
+            formData.valorM2 = precioAjustado / supTotal;
             formData.valorM2Ajustado = formData.valorM2;
 
             window.tasacionApp.comparables.push(formData);
@@ -238,7 +250,7 @@ class ComparablesManager {
             card.className = 'comparable-card';
             card.innerHTML = `
                 <div class="comparable-header">
-                    <h4>Comparable ${comparable.id}</h4>
+                    <div class="comparable-id">${comparable.id}</div>
                     <div class="comparable-actions">
                         <button class="btn-edit" onclick="window.comparablesManager.openComparableModal(${comparable.id})"><i class="fas fa-edit"></i></button>
                         <button class="btn-delete" onclick="window.comparablesManager.deleteComparable(${comparable.id})"><i class="fas fa-trash"></i></button>
