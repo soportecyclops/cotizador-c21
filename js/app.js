@@ -1,38 +1,64 @@
-// Aplicación principal
-class TasacionApp {
-    constructor() {
-        this.currentStep = 1;
-        this.totalSteps = 5;
-        this.inmuebleData = {};
-        this.comparables = [];
-        this.descuentoNegociacion = 10; // Valor por defecto
-        this.valorM2Referencia = 0;
-        this.init();
-    }
+/**
+ * Aplicación Principal del Cotizador Inmobiliario Century 21
+ * Versión: 2.0
+ * Descripción: Controlador principal de la aplicación
+ */
 
-    init() {
+// Objeto global para la aplicación
+window.CotizadorApp = {
+    // Estado actual de la aplicación
+    currentStep: 1,
+    totalSteps: 5,
+    
+    // Datos del inmueble
+    propertyData: {
+        tipoPropiedad: '',
+        direccion: '',
+        piso: '',
+        depto: '',
+        localidad: '',
+        barrio: '',
+        antiguedad: '',
+        calidad: '',
+        supCubierta: 0,
+        supSemicubierta: 0,
+        supDescubierta: 0,
+        supBalcon: 0,
+        supTerreno: 0,
+        cochera: 'no'
+    },
+    
+    // Lista de comparables
+    comparables: [],
+    
+    // Datos de factores de ajuste
+    adjustmentFactors: {},
+    
+    // Datos de composición del valor
+    compositionData: {
+        valorM2: 0,
+        valorTotal: 0
+    },
+    
+    // Inicialización de la aplicación
+    init: function() {
+        console.log('Inicializando CotizadorApp...');
+        
+        // Configurar event listeners
         this.setupEventListeners();
-        this.updateProgressIndicator();
-        this.trackPageView();
-    }
-
-    // CORRECCIÓN 1: Nueva función para formatear moneda
-    formatCurrency(value) {
-        if (isNaN(value) || value === null) return 'USD 0,00';
-        const number = parseFloat(value);
-        // Usamos 'es-AR' que usa punto como separador de miles y coma para decimales
-        const formattedNumber = new Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(number);
-        return `USD ${formattedNumber}`;
-    }
-
-    trackPageView() {
-        console.log(`Página vista: Paso ${this.currentStep}`);
-        let stepViews = JSON.parse(localStorage.getItem('stepViews') || '{}');
-        stepViews[`step-${this.currentStep}`] = (stepViews[`step-${this.currentStep}`] || 0) + 1;
-        localStorage.setItem('stepViews', JSON.stringify(stepViews));
-    }
-
-    setupEventListeners() {
+        
+        // Inicializar componentes
+        this.initializeComponents();
+        
+        // Cargar datos guardados si existen
+        this.loadSavedData();
+        
+        console.log('CotizadorApp inicializado correctamente');
+    },
+    
+    // Configurar event listeners
+    setupEventListeners: function() {
+        // Botones de navegación
         document.getElementById('btn-siguiente-1').addEventListener('click', () => this.validateAndNext(1));
         document.getElementById('btn-siguiente-2').addEventListener('click', () => this.validateAndNext(2));
         document.getElementById('btn-siguiente-3').addEventListener('click', () => this.validateAndNext(3));
@@ -43,84 +69,214 @@ class TasacionApp {
         document.getElementById('btn-anterior-4').addEventListener('click', () => this.goToStep(3));
         document.getElementById('btn-anterior-5').addEventListener('click', () => this.goToStep(4));
         
-        document.getElementById('descuento-negociacion').addEventListener('change', (e) => {
-            this.descuentoNegociacion = parseFloat(e.target.value);
-            this.updateComparableValues();
-        });
-        
-        document.getElementById('metodo-calculo').addEventListener('change', () => {
-            this.calculateReferenceValue();
-        });
-        
+        // Botones de acciones finales
+        document.getElementById('btn-reiniciar').addEventListener('click', () => this.restart());
         document.getElementById('btn-exportar').addEventListener('click', () => this.exportReport());
-        document.getElementById('btn-reiniciar').addEventListener('click', () => this.resetApp());
+        document.getElementById('btn-guardar-backend').addEventListener('click', () => this.saveToBackend());
         
-        const saveButton = document.getElementById('btn-guardar-backend');
-        if (saveButton) {
-            saveButton.addEventListener('click', () => this.saveQuotationLocally());
+        // Event listeners para cambios en formularios
+        this.setupFormListeners();
+    },
+    
+    // Configurar listeners para formularios
+    setupFormListeners: function() {
+        // Listener para cambios en el formulario del paso 1
+        const step1Inputs = document.querySelectorAll('#step-1 input, #step-1 select');
+        step1Inputs.forEach(input => {
+            input.addEventListener('change', () => {
+                this.updatePropertyData();
+            });
+        });
+        
+        // Listener para cambios en el método de cálculo
+        const metodoCalculo = document.getElementById('metodo-calculo');
+        if (metodoCalculo) {
+            metodoCalculo.addEventListener('change', () => {
+                this.calculateReferenceValue();
+            });
         }
-    }
-
-    validateAndNext(step) {
+    },
+    
+    // Inicializar componentes específicos
+    initializeComponents: function() {
+        // Inicializar componente de comparables si existe
+        if (typeof window.ComparablesManager !== 'undefined') {
+            window.ComparablesManager.init();
+        }
+        
+        // Inicializar componente de factores si existe
+        if (typeof window.FactorsManager !== 'undefined') {
+            window.FactorsManager.init();
+        }
+        
+        // Inicializar componente de composición si existe
+        if (typeof window.CompositionManager !== 'undefined') {
+            window.CompositionManager.init();
+        }
+    },
+    
+    // Validar y avanzar al siguiente paso
+    validateAndNext: function(step) {
         let isValid = false;
         
         switch (step) {
             case 1:
                 isValid = this.validateInmuebleData();
-                if (isValid) {
-                    this.saveInmuebleData();
-                    this.goToStep(2);
-                }
                 break;
             case 2:
                 isValid = this.validateComparables();
-                if (isValid) {
-                    this.goToStep(3);
-                }
                 break;
             case 3:
                 isValid = this.validateFactors();
-                if (isValid) {
-                    this.calculateReferenceValue();
-                    this.goToStep(4);
+                break;
+            case 4:
+                isValid = this.validateReferenceValue();
+                break;
+        }
+        
+        if (isValid) {
+            this.goToStep(step + 1);
+        }
+    },
+    
+    // Navegar a un paso específico
+    goToStep: function(step) {
+        if (step < 1 || step > this.totalSteps) {
+            console.error(`Paso inválido: ${step}`);
+            return;
+        }
+        
+        // Ocultar todos los pasos
+        document.querySelectorAll('.step-content').forEach(el => {
+            el.classList.remove('active');
+        });
+        
+        // Mostrar el paso actual
+        document.getElementById(`step-${step}`).classList.add('active');
+        
+        // Actualizar indicadores de progreso
+        document.querySelectorAll('.progress-step').forEach(el => {
+            el.classList.remove('active');
+            el.setAttribute('aria-selected', 'false');
+        });
+        
+        document.querySelector(`.progress-step[data-step="${step}"]`).classList.add('active');
+        document.querySelector(`.progress-step[data-step="${step}"]`).setAttribute('aria-selected', 'true');
+        
+        // Actualizar estado
+        this.currentStep = step;
+        
+        // Ejecutar acciones específicas del paso
+        this.executeStepActions(step);
+    },
+    
+    // Ejecutar acciones específicas según el paso
+    executeStepActions: function(step) {
+        switch (step) {
+            case 2:
+                // Actualizar lista de comparables
+                if (typeof window.ComparablesManager !== 'undefined') {
+                    window.ComparablesManager.renderComparables();
+                }
+                break;
+            case 3:
+                // Cargar factores de ajuste
+                if (typeof window.FactorsManager !== 'undefined') {
+                    window.FactorsManager.loadFactors();
                 }
                 break;
             case 4:
-                isValid = true; // Siempre válido para pasar al paso 5
-                if (isValid) {
-                    this.goToStep(5);
-                }
+                // Calcular valor de referencia
+                this.calculateReferenceValue();
+                break;
+            case 5:
+                // Calcular composición del valor
+                this.calculateComposition();
                 break;
         }
-    }
-
-    validateInmuebleData() {
+    },
+    
+    // Validar datos del inmueble
+    validateInmuebleData: function() {
+        // Actualizar datos del inmueble
+        this.updatePropertyData();
+        
+        // Validar campos requeridos
         const requiredFields = [
             'tipo-propiedad', 'direccion', 'localidad', 'barrio', 
             'antiguedad', 'calidad', 'sup-cubierta'
         ];
         
+        let isValid = true;
+        let firstInvalidField = null;
+        
         for (const fieldId of requiredFields) {
             const field = document.getElementById(fieldId);
-            if (!field.value.trim()) {
-                this.showNotification('Por favor, complete todos los campos obligatorios', 'error');
-                field.focus();
-                return false;
+            if (!field || !field.value.trim()) {
+                isValid = false;
+                if (!firstInvalidField) firstInvalidField = field;
+                
+                if (field) {
+                    field.classList.add('error');
+                }
+            } else if (field) {
+                field.classList.remove('error');
             }
         }
         
-        const superficie = parseFloat(document.getElementById('sup-cubierta').value);
-        if (isNaN(superficie) || superficie <= 0) {
-            this.showNotification('La superficie cubierta debe ser un número mayor a cero', 'error');
+        if (!isValid) {
+            this.showNotification('Por favor, complete todos los campos requeridos', 'error');
+            if (firstInvalidField) {
+                firstInvalidField.focus();
+            }
+            return false;
+        }
+        
+        // Validar que la superficie cubierta sea mayor a cero
+        const supCubierta = parseFloat(document.getElementById('sup-cubierta').value);
+        if (isNaN(supCubierta) || supCubierta <= 0) {
+            this.showNotification('La superficie cubierta debe ser mayor a cero', 'error');
+            document.getElementById('sup-cubierta').classList.add('error');
             document.getElementById('sup-cubierta').focus();
             return false;
         }
         
         return true;
-    }
-
-    saveInmuebleData() {
-        this.inmuebleData = {
+    },
+    
+    // Validar comparables
+    validateComparables: function() {
+        if (this.comparables.length < 4) {
+            this.showNotification('Debe agregar al menos 4 comparables para continuar', 'error');
+            return false;
+        }
+        
+        return true;
+    },
+    
+    // Validar factores de ajuste
+    validateFactors: function() {
+        // Aquí iría la validación específica de factores
+        // Por ahora, siempre retornamos true
+        return true;
+    },
+    
+    // Validar valor de referencia
+    validateReferenceValue: function() {
+        const valorM2Element = document.getElementById('valor-m2-referencia');
+        const valorM2 = parseFloat(valorM2Element.getAttribute('data-raw-value') || '0');
+        
+        if (isNaN(valorM2) || valorM2 <= 0) {
+            this.showNotification('El valor de referencia debe ser mayor a cero', 'error');
+            return false;
+        }
+        
+        return true;
+    },
+    
+    // Actualizar datos del inmueble desde el formulario
+    updatePropertyData: function() {
+        this.propertyData = {
             tipoPropiedad: document.getElementById('tipo-propiedad').value,
             direccion: document.getElementById('direccion').value,
             piso: document.getElementById('piso').value,
@@ -129,444 +285,313 @@ class TasacionApp {
             barrio: document.getElementById('barrio').value,
             antiguedad: document.getElementById('antiguedad').value,
             calidad: document.getElementById('calidad').value,
-            supCubierta: parseFloat(document.getElementById('sup-cubierta').value),
+            supCubierta: parseFloat(document.getElementById('sup-cubierta').value) || 0,
             supSemicubierta: parseFloat(document.getElementById('sup-semicubierta').value) || 0,
             supDescubierta: parseFloat(document.getElementById('sup-descubierta').value) || 0,
             supBalcon: parseFloat(document.getElementById('sup-balcon').value) || 0,
             supTerreno: parseFloat(document.getElementById('sup-terreno').value) || 0,
             cochera: document.getElementById('cochera').value
         };
-    }
-
-    validateComparables() {
-        if (this.comparables.length < 4) {
-            this.showNotification('Debe agregar al menos 4 comparables para continuar', 'error');
-            return false;
-        }
-        return true;
-    }
-
-    // CORRECCIÓN 4: La validación de factores ahora siempre es true
-    validateFactors() {
-        // Los factores por defecto son 0, así que siempre es válido.
-        // Se permite al usuario avanzar sin tener que ajustarlos.
-        return true;
-    }
-
-    calculateReferenceValue() {
-        if (!this.comparables || this.comparables.length === 0) {
-            const m2RefElement = document.getElementById('valor-m2-referencia');
-            m2RefElement.textContent = this.formatCurrency(0);
-            m2RefElement.setAttribute('data-raw-value', 0); // <-- CAMBIO CLAVE
-            this.valorM2Referencia = 0;
-            this.displayAdjustedValues();
-            return;
-        }
-
+    },
+    
+    // Calcular valor de referencia
+    calculateReferenceValue: function() {
+        if (this.comparables.length === 0) return;
+        
         const metodo = document.getElementById('metodo-calculo').value;
-        const valoresAjustados = this.comparables.map(c => c.valorM2Ajustado);
+        let valorM2 = 0;
         
-        let valorReferencia;
+        // Obtener valores ajustados de los comparables
+        const valoresAjustados = this.comparables.map(comp => {
+            // Aplicar descuento de negociación
+            const descuento = parseFloat(document.getElementById('descuento-negociacion').value) || 10;
+            const precioConDescuento = comp.precio * (1 - descuento / 100);
+            
+            // Calcular valor por m2 ajustado
+            const supTotal = comp.supCubierta + 
+                           (comp.supSemicubierta || 0) * 0.5 + 
+                           (comp.supDescubierta || 0) * 0.2 + 
+                           (comp.supBalcon || 0) * 0.33;
+            
+            return precioConDescuento / supTotal;
+        });
         
+        // Calcular según método seleccionado
         switch (metodo) {
             case 'promedio':
-                valorReferencia = valoresAjustados.reduce((sum, val) => sum + val, 0) / valoresAjustados.length;
+                valorM2 = valoresAjustados.reduce((sum, val) => sum + val, 0) / valoresAjustados.length;
                 break;
             case 'promedio-ponderado':
-                valorReferencia = valoresAjustados.reduce((sum, val) => sum + val, 0) / valoresAjustados.length;
+                // Implementar lógica de promedio ponderado
+                valorM2 = valoresAjustados.reduce((sum, val) => sum + val, 0) / valoresAjustados.length;
                 break;
             case 'mediana':
+                // Implementar lógica de mediana
                 const sorted = [...valoresAjustados].sort((a, b) => a - b);
-                const middle = Math.floor(sorted.length / 2);
-                valorReferencia = sorted.length % 2 === 0 
-                    ? (sorted[middle - 1] + sorted[middle]) / 2 
-                    : sorted[middle];
+                const mid = Math.floor(sorted.length / 2);
+                valorM2 = sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
                 break;
         }
         
-        this.valorM2Referencia = valorReferencia;
+        // Actualizar UI
+        const valorM2Element = document.getElementById('valor-m2-referencia');
+        valorM2Element.textContent = `USD ${valorM2.toFixed(2).replace('.', ',')}`;
+        valorM2Element.setAttribute('data-raw-value', valorM2.toString());
         
-        // CORRECCIÓN 1: Usar la nueva función de formato y guardar el valor bruto
-        const m2RefElement = document.getElementById('valor-m2-referencia');
-        m2RefElement.textContent = this.formatCurrency(valorReferencia);
-        m2RefElement.setAttribute('data-raw-value', valorReferencia); // <-- CAMBIO CLAVE
+        // Guardar en datos de composición
+        this.compositionData.valorM2 = valorM2;
         
-        this.displayAdjustedValues();
-    }
-
-    displayAdjustedValues() {
+        // Mostrar valores ajustados
+        this.mostrarValoresAjustados();
+    },
+    
+    // Mostrar valores ajustados de comparables
+    mostrarValoresAjustados: function() {
         const container = document.getElementById('valores-ajustados-container');
+        if (!container) return;
+        
         container.innerHTML = '';
         
-        if (!this.comparables || this.comparables.length === 0) return;
-
-        const adjustedValues = document.createElement('div');
-        adjustedValues.className = 'adjusted-values';
-        
-        this.comparables.forEach(comparable => {
-            const valueItem = document.createElement('div');
-            valueItem.className = 'adjusted-value-item';
-            // CORRECCIÓN 1: Usar la nueva función de formato
-            valueItem.innerHTML = `
-                <div class="adjusted-value-label">Comparable ${comparable.id}</div>
-                <div class="adjusted-value-amount">${this.formatCurrency(comparable.valorM2Ajustado)}/m²</div>
+        this.comparables.forEach((comp, index) => {
+            // Calcular valor ajustado
+            const descuento = parseFloat(document.getElementById('descuento-negociacion').value) || 10;
+            const precioConDescuento = comp.precio * (1 - descuento / 100);
+            
+            const supTotal = comp.supCubierta + 
+                           (comp.supSemicubierta || 0) * 0.5 + 
+                           (comp.supDescubierta || 0) * 0.2 + 
+                           (comp.supBalcon || 0) * 0.33;
+            
+            const valorM2Ajustado = precioConDescuento / supTotal;
+            
+            // Crear elemento
+            const item = document.createElement('div');
+            item.className = 'valor-ajustado-item';
+            item.innerHTML = `
+                <span>Comparable ${index + 1}: ${comp.direccion}</span>
+                <span>USD ${valorM2Ajustado.toFixed(2).replace('.', ',')}</span>
             `;
-            adjustedValues.appendChild(valueItem);
+            
+            container.appendChild(item);
         });
+    },
+    
+    // Calcular composición del valor
+    calculateComposition: function() {
+        const valorM2 = this.compositionData.valorM2;
         
-        container.appendChild(adjustedValues);
-    }
-
-    calculateComposition() {
-        const coeficientes = {
-            cubierta: 1.0,
-            semicubierta: 0.5,
-            descubierta: 0.2,
-            balcon: 0.33
-        };
+        // Calcular valores parciales
+        const valorCubierta = this.propertyData.supCubierta * valorM2;
+        const valorSemicubierta = this.propertyData.supSemicubierta * valorM2 * 0.5;
+        const valorDescubierta = this.propertyData.supDescubierta * valorM2 * 0.2;
+        const valorBalcon = this.propertyData.supBalcon * valorM2 * 0.33;
         
-        document.getElementById('comp-sup-cubierta').textContent = this.inmuebleData.supCubierta.toFixed(2);
-        document.getElementById('comp-sup-semicubierta').textContent = this.inmuebleData.supSemicubierta.toFixed(2);
-        document.getElementById('comp-sup-descubierta').textContent = this.inmuebleData.supDescubierta.toFixed(2);
-        document.getElementById('comp-sup-balcon').textContent = this.inmuebleData.supBalcon.toFixed(2);
+        // Valor de cochera (valor fijo)
+        const valorCochera = this.propertyData.cochera !== 'no' ? 15000 : 0;
         
-        const valorCubierta = this.inmuebleData.supCubierta * coeficientes.cubierta * this.valorM2Referencia;
-        const valorSemicubierta = this.inmuebleData.supSemicubierta * coeficientes.semicubierta * this.valorM2Referencia;
-        const valorDescubierta = this.inmuebleData.supDescubierta * coeficientes.descubierta * this.valorM2Referencia;
-        const valorBalcon = this.inmuebleData.supBalcon * coeficientes.balcon * this.valorM2Referencia;
-        
-        const valorCochera = this.inmuebleData.cochera === 'propia' ? 5000 : 
-                             this.inmuebleData.cochera === 'comun' ? 2000 : 0;
-        
-        // CORRECCIÓN 1: Usar la nueva función de formato en todos los valores
-        document.getElementById('comp-valor-m2').textContent = this.formatCurrency(this.valorM2Referencia);
-        document.getElementById('comp-valor-cubierta').textContent = this.formatCurrency(valorCubierta);
-        
-        document.getElementById('comp-valor-m2-semi').textContent = this.formatCurrency(this.valorM2Referencia * coeficientes.semicubierta);
-        document.getElementById('comp-valor-semicubierta').textContent = this.formatCurrency(valorSemicubierta);
-        
-        document.getElementById('comp-valor-m2-desc').textContent = this.formatCurrency(this.valorM2Referencia * coeficientes.descubierta);
-        document.getElementById('comp-valor-descubierta').textContent = this.formatCurrency(valorDescubierta);
-        
-        document.getElementById('comp-valor-m2-balc').textContent = this.formatCurrency(this.valorM2Referencia * coeficientes.balcon);
-        document.getElementById('comp-valor-balcon').textContent = this.formatCurrency(valorBalcon);
-        
-        document.getElementById('comp-valor-m2-cochera').textContent = 'Global';
-        document.getElementById('comp-valor-cochera').textContent = this.formatCurrency(valorCochera);
-        
+        // Calcular total
         const valorTotal = valorCubierta + valorSemicubierta + valorDescubierta + valorBalcon + valorCochera;
         
-        // CORRECCIÓN 1: Formato final correcto y guardar valor bruto
+        // Actualizar UI
+        document.getElementById('comp-sup-cubierta').textContent = this.propertyData.supCubierta.toFixed(2);
+        document.getElementById('comp-sup-semicubierta').textContent = this.propertyData.supSemicubierta.toFixed(2);
+        document.getElementById('comp-sup-descubierta').textContent = this.propertyData.supDescubierta.toFixed(2);
+        document.getElementById('comp-sup-balcon').textContent = this.propertyData.supBalcon.toFixed(2);
+        document.getElementById('comp-sup-cochera').textContent = this.propertyData.cochera !== 'no' ? 'Sí' : 'No';
+        
+        document.getElementById('comp-valor-m2').textContent = `USD ${valorM2.toFixed(2).replace('.', ',')}`;
+        document.getElementById('comp-valor-m2-semi').textContent = `USD ${(valorM2 * 0.5).toFixed(2).replace('.', ',')}`;
+        document.getElementById('comp-valor-m2-desc').textContent = `USD ${(valorM2 * 0.2).toFixed(2).replace('.', ',')}`;
+        document.getElementById('comp-valor-m2-balc').textContent = `USD ${(valorM2 * 0.33).toFixed(2).replace('.', ',')}`;
+        document.getElementById('comp-valor-m2-cochera').textContent = `USD ${valorCochera.toFixed(2).replace('.', ',')}`;
+        
+        document.getElementById('comp-valor-cubierta').textContent = `USD ${valorCubierta.toFixed(2).replace('.', ',')}`;
+        document.getElementById('comp-valor-semicubierta').textContent = `USD ${valorSemicubierta.toFixed(2).replace('.', ',')}`;
+        document.getElementById('comp-valor-descubierta').textContent = `USD ${valorDescubierta.toFixed(2).replace('.', ',')}`;
+        document.getElementById('comp-valor-balcon').textContent = `USD ${valorBalcon.toFixed(2).replace('.', ',')}`;
+        document.getElementById('comp-valor-cochera').textContent = `USD ${valorCochera.toFixed(2).replace('.', ',')}`;
+        
         const totalElement = document.getElementById('valor-total-tasacion');
-        totalElement.textContent = this.formatCurrency(valorTotal);
-        totalElement.setAttribute('data-raw-value', valorTotal); // <-- CAMBIO CLAVE
-    }
-
-    goToStep(step) {
-        document.getElementById(`step-${this.currentStep}`).classList.remove('active');
-        document.getElementById(`step-${step}`).classList.add('active');
-        this.currentStep = step;
-        this.updateProgressIndicator();
-        this.trackPageView();
+        totalElement.textContent = `USD ${valorTotal.toFixed(2).replace('.', ',')}`;
+        totalElement.setAttribute('data-raw-value', valorTotal.toString());
         
-        if (step === 3) {
-            setTimeout(() => {
-                if (window.factoresManager) {
-                    window.factoresManager.initFactors();
-                }
-            }, 300);
+        // Guardar en datos de composición
+        this.compositionData.valorTotal = valorTotal;
+    },
+    
+    // Mostrar notificación
+    showNotification: function(message, type = 'info') {
+        // Crear elemento de notificación si no existe
+        let notificationContainer = document.getElementById('notification-container');
+        
+        if (!notificationContainer) {
+            notificationContainer = document.createElement('div');
+            notificationContainer.id = 'notification-container';
+            notificationContainer.className = 'notification-container';
+            document.body.appendChild(notificationContainer);
         }
         
-        if (step === 4) {
-            setTimeout(() => {
-                this.calculateReferenceValue();
-            }, 300);
-        }
-        
-        // CORRECCIÓN 3 y 5: Lógica actualizada para los pasos 2 y 5
-        if (step === 2) {
-            // CORRECCIÓN 5: Forzar actualización de la UI de comparables al volver
-            setTimeout(() => {
-                this.updateComparableValues();
-            }, 300);
-        }
-
-        if (step === 5) {
-            setTimeout(() => {
-                // CORRECCIÓN 3: Asegurarse que el valor de referencia esté actualizado
-                this.calculateReferenceValue();
-                // Luego calcular la composición con el valor correcto
-                this.calculateComposition();
-            }, 300);
-        }
-    }
-
-    updateProgressIndicator() {
-        for (let i = 1; i < this.currentStep; i++) {
-            const stepEl = document.querySelector(`.progress-step[data-step="${i}"]`);
-            stepEl.classList.add('completed');
-            stepEl.setAttribute('aria-selected', 'false');
-        }
-        
-        const currentStepEl = document.querySelector(`.progress-step[data-step="${this.currentStep}"]`);
-        currentStepEl.classList.add('active');
-        currentStepEl.setAttribute('aria-selected', 'true');
-        
-        for (let i = this.currentStep + 1; i <= this.totalSteps; i++) {
-            const step = document.querySelector(`.progress-step[data-step="${i}"]`);
-            step.classList.remove('completed', 'active');
-            step.setAttribute('aria-selected', 'false');
-        }
-    }
-
-    updateComparableValues() {
-        this.comparables.forEach(comparable => {
-            const precioAjustado = comparable.precio * (1 - this.descuentoNegociacion / 100);
-            comparable.valorM2 = precioAjustado / comparable.supCubierta;
-            
-            if (comparable.factores && Object.keys(comparable.factores).length > 0) {
-                const correccionTotal = Object.values(comparable.factores).reduce((sum, val) => sum + val, 0);
-                comparable.valorM2Ajustado = comparable.valorM2 * (1 + correccionTotal / 100);
-            } else {
-                comparable.valorM2Ajustado = comparable.valorM2;
-            }
-        });
-        
-        if (window.comparablesManager) {
-            window.comparablesManager.updateComparablesUI();
-        }
-    }
-
-    showNotification(message, type = 'info') {
-        const container = document.getElementById('notification-container');
-        
+        // Crear notificación
         const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
+        notification.className = `notification notification-${type}`;
         notification.textContent = message;
         
-        container.appendChild(notification);
+        // Añadir a contenedor
+        notificationContainer.appendChild(notification);
         
+        // Auto-eliminar después de 5 segundos
         setTimeout(() => {
             notification.remove();
         }, 5000);
-    }
-
-    async saveQuotationLocally() {
-        const quotationData = {
-            id: new Date().getTime(),
-            inmuebleData: this.inmuebleData,
-            comparables: this.comparables,
-            valorM2Referencia: this.valorM2Referencia,
-            valorFinal: document.getElementById('valor-total-tasacion').textContent,
-            fecha: new Date().toISOString()
-        };
-
-        try {
-            let savedQuotations = JSON.parse(localStorage.getItem('savedQuotations') || '[]');
-            savedQuotations.push(quotationData);
-            localStorage.setItem('savedQuotations', JSON.stringify(savedQuotations));
-
-            this.showNotification(`Cotización guardada localmente con ID: ${quotationData.id}`, 'success');
-
-        } catch (error) {
-            this.showNotification('No se pudo guardar la cotización localmente.', 'error');
-        }
-    }
-
-    async loadQuotationLocally(quotationId) {
-        try {
-            const savedQuotations = JSON.parse(localStorage.getItem('savedQuotations') || '[]');
-            const data = savedQuotations.find(q => q.id == quotationId);
-
-            if (!data) {
-                throw new Error('No se encontró la cotización.');
-            }
-            
-            this.inmuebleData = data.inmuebleData;
-            this.comparables = data.comparables;
-            this.valorM2Referencia = data.valorM2Referencia;
-            
-            this.updateUIWithLoadedData();
-            this.goToStep(5);
-
-            this.showNotification('Cotización cargada correctamente.', 'success');
-
-        } catch (error) {
-            this.showNotification(error.message, 'error');
-        }
-    }
-
-    updateUIWithLoadedData() {
-        document.getElementById('tipo-propiedad').value = this.inmuebleData.tipoPropiedad || '';
-        document.getElementById('direccion').value = this.inmuebleData.direccion || '';
-        document.getElementById('piso').value = this.inmuebleData.piso || '';
-        document.getElementById('depto').value = this.inmuebleData.depto || '';
-        document.getElementById('localidad').value = this.inmuebleData.localidad || '';
-        document.getElementById('barrio').value = this.inmuebleData.barrio || '';
-        document.getElementById('antiguedad').value = this.inmuebleData.antiguedad || '';
-        document.getElementById('calidad').value = this.inmuebleData.calidad || '';
-        document.getElementById('sup-cubierta').value = this.inmuebleData.supCubierta || '';
-        document.getElementById('sup-semicubierta').value = this.inmuebleData.supSemicubierta || '';
-        document.getElementById('sup-descubierta').value = this.inmuebleData.supDescubierta || '';
-        document.getElementById('sup-balcon').value = this.inmuebleData.supBalcon || '';
-        document.getElementById('sup-terreno').value = this.inmuebleData.supTerreno || '';
-        document.getElementById('cochera').value = this.inmuebleData.cochera || 'no';
-        
-        if (window.comparablesManager) {
-            window.comparablesManager.loadComparables(this.comparables);
-        }
-    }
-
-    exportReport() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-
-        doc.setFont("helvetica");
-        const primaryColor = [0, 51, 102];
-        const secondaryColor = [100, 100, 100];
-
-        doc.setFillColor(...primaryColor);
-        doc.rect(0, 0, 210, 40, 'F');
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(22);
-        doc.text("INFORME DE TASACIÓN", 105, 20, { align: 'center' });
-        doc.setFontSize(12);
-        doc.text("Century21 Inmobiliaria", 105, 28, { align: 'center' });
-        doc.text(`Fecha: ${new Date().toLocaleDateString('es-AR')}`, 105, 35, { align: 'center' });
-
-        doc.setTextColor(0, 0, 0);
-        doc.setFontSize(16);
-        doc.text("1. Datos del Inmueble", 20, 55);
-        doc.setDrawColor(...secondaryColor);
-        doc.line(20, 57, 190, 57);
-
-        doc.setFontSize(11);
-        let yPos = 65;
-        const lineHeight = 7;
-
-        const datosInmueble = [
-            `Dirección: ${this.inmuebleData.direccion}`,
-            `Tipo: ${this.inmuebleData.tipoPropiedad}`,
-            `Ubicación: ${this.inmuebleData.localidad}, ${this.inmuebleData.barrio}`,
-            `Antigüedad: ${this.inmuebleData.antiguedad} años`,
-            `Calidad: ${this.inmuebleData.calidad}`,
-            `Sup. Cubierta: ${this.inmuebleData.supCubierta} m²`,
-            `Sup. Semicubierta: ${this.inmuebleData.supSemicubierta} m²`,
-            `Sup. Descubierta: ${this.inmuebleData.supDescubierta} m²`,
-        ];
-
-        datosInmueble.forEach(line => {
-            doc.text(line, 20, yPos);
-            yPos += lineHeight;
-        });
-
-        yPos += 10;
-        doc.setFontSize(16);
-        doc.text("2. Análisis de Comparables", 20, yPos);
-        doc.line(20, yPos + 2, 190, yPos + 2);
-        yPos += 10;
-
-        doc.setFontSize(10);
-        doc.text("Se analizaron las siguientes propiedades similares para determinar el valor de referencia:", 20, yPos);
-        yPos += lineHeight;
-
-        const headers = ["Dirección", "Precio Venta", "Valor m² Ajustado"];
-        // CORRECCIÓN 1: Formatear valores para el PDF
-        const data = this.comparables.map(c => [
-            c.direccion,
-            this.formatCurrency(c.precio),
-            `${this.formatCurrency(c.valorM2Ajustado)}/m²`
-        ]);
-        
-        let xPos = 20;
-        headers.forEach(header => {
-            doc.text(header, xPos, yPos);
-            xPos += 60;
-        });
-        yPos += lineHeight;
-        doc.line(20, yPos-1, 190, yPos-1);
-
-        data.forEach(row => {
-            xPos = 20;
-            row.forEach(cell => {
-                doc.text(cell, xPos, yPos);
-                xPos += 60;
-            });
-            yPos += lineHeight;
-        });
-
-        yPos += 10;
-        doc.setFontSize(16);
-        doc.text("3. Valor de Tasación", 20, yPos);
-        doc.line(20, yPos + 2, 190, yPos + 2);
-        yPos += 15;
-
-        doc.setFontSize(12);
-        doc.text(`Valor de Referencia por m²: ${this.formatCurrency(this.valorM2Referencia)}`, 20, yPos);
-        yPos += lineHeight * 2;
-        
-        doc.setFontSize(18);
-        doc.setTextColor(...primaryColor);
-        const valorFinalTexto = document.getElementById('valor-total-tasacion').textContent;
-        doc.text(`Valor Final de Tasación: ${valorFinalTexto}`, 20, yPos);
-        
-        doc.setFontSize(10);
-        doc.setTextColor(...secondaryColor);
-        doc.text("Este informe es una estimación y puede variar según las condiciones del mercado.", 105, 280, { align: 'center' });
-        doc.text("Generado por Cotizador Inmobiliario Century21 V2.0", 105, 285, { align: 'center' });
-
-        doc.save(`informe_tasacion_${this.inmuebleData.direccion.replace(/ /g, '_')}.pdf`);
-        this.showNotification('Informe exportado correctamente', 'success');
-    }
+    },
     
-    resetForm() {
-        this.inmuebleData = {};
-        this.comparables = [];
-        this.valorM2Referencia = 0;
-        this.descuentoNegociacion = 10;
-
-        document.getElementById('tipo-propiedad').value = '';
-        document.getElementById('direccion').value = '';
-        document.getElementById('piso').value = '';
-        document.getElementById('depto').value = '';
-        document.getElementById('localidad').value = '';
-        document.getElementById('barrio').value = '';
-        document.getElementById('antiguedad').value = '';
-        document.getElementById('calidad').value = '';
-        document.getElementById('sup-cubierta').value = '';
-        document.getElementById('sup-semicubierta').value = '';
-        document.getElementById('sup-descubierta').value = '';
-        document.getElementById('sup-balcon').value = '';
-        document.getElementById('sup-terreno').value = '';
-        document.getElementById('cochera').value = 'no';
-        document.getElementById('descuento-negociacion').value = 10;
-
-        this.goToStep(1);
-
-        if (window.comparablesManager) {
-            window.comparablesManager.reset();
+    // Reiniciar aplicación
+    restart: function() {
+        if (confirm('¿Está seguro de que desea reiniciar la cotización? Se perderán todos los datos ingresados.')) {
+            // Resetear estado
+            this.currentStep = 1;
+            this.propertyData = {
+                tipoPropiedad: '',
+                direccion: '',
+                piso: '',
+                depto: '',
+                localidad: '',
+                barrio: '',
+                antiguedad: '',
+                calidad: '',
+                supCubierta: 0,
+                supSemicubierta: 0,
+                supDescubierta: 0,
+                supBalcon: 0,
+                supTerreno: 0,
+                cochera: 'no'
+            };
+            this.comparables = [];
+            this.adjustmentFactors = {};
+            this.compositionData = {
+                valorM2: 0,
+                valorTotal: 0
+            };
+            
+            // Resetear formulario
+            document.getElementById('form-inmueble').reset();
+            
+            // Volver al primer paso
+            this.goToStep(1);
+            
+            // Limpiar localStorage
+            localStorage.removeItem('cotizador-data');
+            
+            this.showNotification('Cotización reiniciada', 'success');
         }
-        if (window.factoresManager) {
-            window.factoresManager.reset();
+    },
+    
+    // Exportar informe
+    exportReport: function() {
+        this.showNotification('Función de exportación en desarrollo', 'info');
+    },
+    
+    // Guardar en backend
+    saveToBackend: function() {
+        // Preparar datos para enviar
+        const data = {
+            propertyData: this.propertyData,
+            comparables: this.comparables,
+            adjustmentFactors: this.adjustmentFactors,
+            compositionData: this.compositionData,
+            timestamp: new Date().toISOString()
+        };
+        
+        // Enviar al backend
+        fetch('/api/save-valuation', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error al guardar en el servidor');
+            }
+            return response.json();
+        })
+        .then(result => {
+            this.showNotification('Tasación guardada correctamente', 'success');
+        })
+        .catch(error => {
+            console.error('Error al guardar:', error);
+            this.showNotification('Error al guardar la tasación', 'error');
+        });
+    },
+    
+    // Guardar datos localmente
+    saveDataLocally: function() {
+        const data = {
+            propertyData: this.propertyData,
+            comparables: this.comparables,
+            adjustmentFactors: this.adjustmentFactors,
+            compositionData: this.compositionData,
+            currentStep: this.currentStep
+        };
+        
+        localStorage.setItem('cotizador-data', JSON.stringify(data));
+    },
+    
+    // Cargar datos guardados
+    loadSavedData: function() {
+        const savedData = localStorage.getItem('cotizador-data');
+        
+        if (savedData) {
+            try {
+                const data = JSON.parse(savedData);
+                
+                // Restaurar datos
+                this.propertyData = data.propertyData || this.propertyData;
+                this.comparables = data.comparables || [];
+                this.adjustmentFactors = data.adjustmentFactors || {};
+                this.compositionData = data.compositionData || this.compositionData;
+                
+                // Restaurar formulario
+                this.restoreForm();
+                
+                // Ir al paso guardado
+                const step = data.currentStep || 1;
+                this.goToStep(step);
+                
+                this.showNotification('Datos recuperados correctamente', 'success');
+            } catch (error) {
+                console.error('Error al cargar datos guardados:', error);
+            }
         }
-        if (window.composicionManager) {
-            window.composicionManager.reset();
-        }
-
-        const modal = document.getElementById('modal-comparable');
-        if (modal) {
-            modal.style.display = 'none';
-        }
+    },
+    
+    // Restaurar formulario con datos guardados
+    restoreForm: function() {
+        // Restaurar datos del inmueble
+        document.getElementById('tipo-propiedad').value = this.propertyData.tipoPropiedad;
+        document.getElementById('direccion').value = this.propertyData.direccion;
+        document.getElementById('piso').value = this.propertyData.piso;
+        document.getElementById('depto').value = this.propertyData.depto;
+        document.getElementById('localidad').value = this.propertyData.localidad;
+        document.getElementById('barrio').value = this.propertyData.barrio;
+        document.getElementById('antiguedad').value = this.propertyData.antiguedad;
+        document.getElementById('calidad').value = this.propertyData.calidad;
+        document.getElementById('sup-cubierta').value = this.propertyData.supCubierta;
+        document.getElementById('sup-semicubierta').value = this.propertyData.supSemicubierta;
+        document.getElementById('sup-descubierta').value = this.propertyData.supDescubierta;
+        document.getElementById('sup-balcon').value = this.propertyData.supBalcon;
+        document.getElementById('sup-terreno').value = this.propertyData.supTerreno;
+        document.getElementById('cochera').value = this.propertyData.cochera;
     }
+};
 
-    resetApp() {
-        if (confirm('¿Está seguro de que desea reiniciar la aplicación? Se perderán todos los datos ingresados.')) {
-            this.resetForm();
-            this.showNotification('Aplicación reiniciada correctamente', 'success');
-        }
-    }
-}
+// Inicializar aplicación cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    window.CotizadorApp.init();
+});
 
-document.addEventListener('DOMContentLoaded', () => {
-    window.tasacionApp = new TasacionApp();
+// Guardar datos automáticamente antes de salir de la página
+window.addEventListener('beforeunload', function() {
+    window.CotizadorApp.saveDataLocally();
 });
