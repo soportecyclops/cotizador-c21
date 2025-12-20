@@ -542,8 +542,18 @@ async function testModificacionComparables(testSuite) {
             document.getElementById('btn-guardar-comparable').click();
             await new Promise(resolve => setTimeout(resolve, 500));
             
+            // Verificar que el cambio se guardó
             const comparableModificado = window.tasacionApp.comparables.find(c => c.id === comparable.id);
             testSuite.assertEqual(comparableModificado.supCubierta, nuevaSuperficie, `La superficie del Comparable ${comparable.id} no se actualizó correctamente`);
+            
+            // Verificar que el valor por m² se recalculó
+            const supTotal = nuevaSuperficie + 
+                            (comparableModificado.supSemicubierta * 0.5) + 
+                            (comparableModificado.supDescubierta * 0.2) + 
+                            (comparableModificado.supBalcon * 0.33);
+            const precioAjustado = comparableModificado.precio * (1 - window.tasacionApp.descuentoNegociacion / 100);
+            const valorM2Esperado = precioAjustado / supTotal;
+            testSuite.assertClose(comparableModificado.valorM2, valorM2Esperado, 0.01, `El valor por m² del Comparable ${comparable.id} no se recalculó correctamente`);
         }
 
         // --- PASO 4: FORZAR RECÁLCULO DE REFERENCIA Y FINAL ---
