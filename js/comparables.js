@@ -252,16 +252,33 @@ class ComparablesManager {
         const container = document.getElementById('comparables-container');
         const noComparables = document.getElementById('no-comparables');
         const siguienteBtn = document.getElementById('btn-siguiente-2');
+        const counter = document.getElementById('comparables-count');
+        const counterContainer = document.getElementById('comparables-counter');
+        const warningMessage = document.getElementById('comparables-warning');
 
         // Limpiar el contenedor por completo
         container.innerHTML = '';
 
-        if (window.tasacionApp.comparables.length === 0) {
+        // Actualizar contador
+        const count = window.tasacionApp.comparables.length;
+        counter.textContent = count;
+
+        if (count === 0) {
             noComparables.style.display = 'block';
             siguienteBtn.disabled = true;
+            counterContainer.className = 'comparables-counter not-enough';
+            warningMessage.style.display = 'flex';
         } else {
             noComparables.style.display = 'none';
-            siguienteBtn.disabled = false;
+            siguienteBtn.disabled = count < 4;
+            
+            if (count < 4) {
+                counterContainer.className = 'comparables-counter not-enough';
+                warningMessage.style.display = 'flex';
+            } else {
+                counterContainer.className = 'comparables-counter enough';
+                warningMessage.style.display = 'none';
+            }
         }
 
         // Volver a crear todas las tarjetas desde cero
@@ -270,7 +287,7 @@ class ComparablesManager {
             card.className = 'comparable-card';
             
             // NUEVA REGLA: Si hay menos de 4 comparables, mostrar un indicador visual
-            const warningBadge = window.tasacionApp.comparables.length < 4 
+            const warningBadge = count < 4 
                 ? '<div class="comparable-warning"><i class="fas fa-exclamation-triangle"></i></div>' 
                 : '';
             
